@@ -1,0 +1,49 @@
+package com.business.busmanagement.model;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Entity
+@Table(name = "seats", uniqueConstraints = @UniqueConstraint(columnNames = {"bus_id", "seat_number"}))
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Seat {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bus_id", nullable = false)
+    private Bus bus;
+
+    @Column(name = "seat_number", nullable = false)
+    private String seatNumber;
+
+    @Column(name = "position_x")
+    private Integer positionX;
+
+    @Column(name = "position_y")
+    private Integer positionY;
+
+    @OneToMany(mappedBy = "seat", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Ticket> tickets;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Seat)) return false;
+        Seat seat = (Seat) o;
+        return id != null && id.equals(seat.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+}

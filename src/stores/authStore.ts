@@ -1,0 +1,82 @@
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import {
+  loginRequest,
+  registerRequest,
+  LoginRequest,
+  RegisterRequest,
+} from "../api/auth";
+import { User } from "../types";
+
+function normalizeRole(role: string | undefined): User["role"] {
+  if (role === "ADMIN" || role === "STAFF" || role === "CUSTOMER") {
+    return role;
+  }
+  return "STAFF";
+}
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isLoading: boolean;
+  login: (payload: LoginRequest) => Promise<User>;
+  register: (payload: RegisterRequest) => Promise<User>;
+  logout: () => void;
+  setUser: (user: User | null) => void;
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      token: null,
+      isLoading: false,
+      login: async (payload: LoginRequest) => {
+        set({ isLoading: true });
+        try {
+          const response = await loginRequest(payload);
+          localStorage.setItem("token", response.token);
+          set({ token: response.token, user: response.user });
+          return response.user;
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+      register: async (payload: RegisterRequest) => {
+        set({ isLoading: true });
+        try {
+          const response = await registerRequest(payload);
+          localStorage.setItem("token", response.token);
+          set({ token: response.token, user: response.user });
+          return response.user;
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+      logout: () => {
+        set({ user: null, token: null });
+        localStorage.removeItem("token");
+      },
+      setUser: (user) => set({ user }),
+    }),
+    {
+      name: "auth-storage",
+      getStorage: () => localStorage,
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token,
+      }),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          if (state.user) {
+            state.user = {
+              ...state.user,
+              role: normalizeRole(state.user.role),
+            };
+          }
+          state.isLoading = false;
+        }
+      },
+    },
+  ),
+);

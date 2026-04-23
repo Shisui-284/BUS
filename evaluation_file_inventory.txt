@@ -1,0 +1,78 @@
+﻿=== src ===
+src\api\apiClient.ts
+src\api\auth.ts
+src\App.tsx
+src\components\layout\MainLayout.tsx
+src\components\layout\ProtectedRoute.tsx
+src\components\ui\Badge.tsx
+src\components\ui\StatusBadge.tsx
+src\main.tsx
+src\pages\admin\AdminDashboardPage.tsx
+src\pages\agent\AgentTicketsPage.tsx
+src\pages\auth\LoginPage.tsx
+src\pages\auth\RegisterPage.tsx
+src\pages\customer\CustomerBookingPage.tsx
+src\pages\dispatcher\DispatcherDashboardPage.tsx
+src\pages\manager\ManagerReportsPage.tsx
+src\pages\technician\TechnicianMaintenancePage.tsx
+src\stores\authStore.ts
+src\stores\dispatcherStore.ts
+src\styles\index.css
+src\styles\theme.css
+src\types\index.ts
+src\utils\constants.ts
+src\vite-env.d.ts
+Total in src: 23
+
+=== backend/src/main ===
+backend\src\main\java\com\business\busmanagement\BusManagementApplication.java
+backend\src\main\java\com\business\busmanagement\config\DataInitializer.java
+backend\src\main\java\com\business\busmanagement\config\JwtAuthenticationFilter.java
+backend\src\main\java\com\business\busmanagement\config\SecurityConfig.java
+backend\src\main\java\com\business\busmanagement\controller\AuthController.java
+backend\src\main\java\com\business\busmanagement\controller\HealthController.java
+backend\src\main\java\com\business\busmanagement\controller\ProfileController.java
+backend\src\main\java\com\business\busmanagement\dto\AuthResponse.java
+backend\src\main\java\com\business\busmanagement\dto\LoginRequest.java
+backend\src\main\java\com\business\busmanagement\dto\RegisterRequest.java
+backend\src\main\java\com\business\busmanagement\model\AuditLog.java
+backend\src\main\java\com\business\busmanagement\model\Bus.java
+backend\src\main\java\com\business\busmanagement\model\Cargo.java
+backend\src\main\java\com\business\busmanagement\model\Employee.java
+backend\src\main\java\com\business\busmanagement\model\Maintenance.java
+backend\src\main\java\com\business\busmanagement\model\Passenger.java
+backend\src\main\java\com\business\busmanagement\model\Payment.java
+backend\src\main\java\com\business\busmanagement\model\Role.java
+backend\src\main\java\com\business\busmanagement\model\Route.java
+backend\src\main\java\com\business\busmanagement\model\Seat.java
+backend\src\main\java\com\business\busmanagement\model\Ticket.java
+backend\src\main\java\com\business\busmanagement\model\Trip.java
+backend\src\main\java\com\business\busmanagement\model\TripAssignment.java
+backend\src\main\java\com\business\busmanagement\model\User.java
+backend\src\main\java\com\business\busmanagement\repository\BusRepository.java
+backend\src\main\java\com\business\busmanagement\repository\EmployeeRepository.java
+backend\src\main\java\com\business\busmanagement\repository\PassengerRepository.java
+backend\src\main\java\com\business\busmanagement\repository\PaymentRepository.java
+backend\src\main\java\com\business\busmanagement\repository\RoleRepository.java
+backend\src\main\java\com\business\busmanagement\repository\RouteRepository.java
+backend\src\main\java\com\business\busmanagement\repository\SeatRepository.java
+backend\src\main\java\com\business\busmanagement\repository\TicketRepository.java
+backend\src\main\java\com\business\busmanagement\repository\TripRepository.java
+backend\src\main\java\com\business\busmanagement\repository\UserRepository.java
+backend\src\main\java\com\business\busmanagement\service\JwtService.java
+backend\src\main\java\com\business\busmanagement\service\PaymentService.java
+backend\src\main\java\com\business\busmanagement\service\TicketService.java
+backend\src\main\java\com\business\busmanagement\service\UserService.java
+backend\src\main\resources\application.properties
+Total in backend/src/main: 39
+
+=== backend/src/test ===
+(no files)
+Total in backend/src/test: 0
+
+=== important configs ===
+backend\db\bus_management_schema.sql
+backend\pom.xml
+backend\src\main\resources\application.properties
+package.json
+Total important configs: 4
