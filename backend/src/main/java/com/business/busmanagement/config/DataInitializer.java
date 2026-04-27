@@ -7,12 +7,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 
 @Component
+@Order(1)
 @RequiredArgsConstructor
 @Slf4j
 public class DataInitializer implements CommandLineRunner {
@@ -85,7 +87,10 @@ public class DataInitializer implements CommandLineRunner {
                     }
 
                     existingUser.setPasswordHash(passwordEncoder.encode(defaultSeedPassword));
-                    return userRepository.save(existingUser);
+                    User saved = userRepository.save(existingUser);
+                    log.info("  [DataInit] Updated user: username={}, role={}, passwordHash={}... (first 10 chars)",
+                        username, role.getName(), saved.getPasswordHash().substring(0, 10));
+                    return saved;
                 })
                 .orElseGet(() -> {
                     User user = new User();
@@ -94,7 +99,10 @@ public class DataInitializer implements CommandLineRunner {
                     user.setRole(role);
                     user.setStatus(User.UserStatus.ACTIVE);
                     user.setPasswordHash(passwordEncoder.encode(defaultSeedPassword));
-                    return userRepository.save(user);
+                    User saved = userRepository.save(user);
+                    log.info("  [DataInit] Created user: username={}, role={}, passwordHash={}... (first 10 chars)",
+                        username, role.getName(), saved.getPasswordHash().substring(0, 10));
+                    return saved;
                 });
     }
 

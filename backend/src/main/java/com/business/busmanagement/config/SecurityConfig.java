@@ -35,7 +35,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/api/public/auth/register", "/api/public/auth/login", "/api/health").permitAll()
+                .requestMatchers("/api/public/auth/register", "/api/public/auth/login", "/api/health", "/api/debug/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/trips").hasAnyRole("ADMIN", "STAFF")
                 .requestMatchers(HttpMethod.GET, "/api/trips").hasAnyRole("ADMIN", "STAFF", "CUSTOMER")
                 .requestMatchers("/api/trip-assignments/**", "/api/employees/available").hasAnyRole("ADMIN", "STAFF")
@@ -49,6 +49,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/private/tickets/*/cancel").hasRole("CUSTOMER")
                 // PRIVATE — profile (mọi role đã đăng nhập)
                 .requestMatchers(HttpMethod.PUT, "/api/auth/profile").authenticated()
+                // ADMIN — quản lý hệ thống
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
