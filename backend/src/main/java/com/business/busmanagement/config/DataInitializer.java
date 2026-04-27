@@ -75,13 +75,26 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private User ensureUser(String username, String email, Role role) {
-        User user = userRepository.findByUsername(username).orElseGet(User::new);
-        user.setUsername(username);
-        user.setEmail(email);
-        user.setRole(role);
-        user.setStatus(User.UserStatus.ACTIVE);
-        user.setPasswordHash(passwordEncoder.encode(defaultSeedPassword));
-        return userRepository.save(user);
+        return userRepository.findByUsername(username)
+                .map(existingUser -> {
+                    existingUser.setEmail(email);
+                    existingUser.setRole(role);
+
+                    if (existingUser.getStatus() == null) {
+                        existingUser.setStatus(User.UserStatus.ACTIVE);
+                    }
+
+                    return userRepository.save(existingUser);
+                })
+                .orElseGet(() -> {
+                    User user = new User();
+                    user.setUsername(username);
+                    user.setEmail(email);
+                    user.setRole(role);
+                    user.setStatus(User.UserStatus.ACTIVE);
+                    user.setPasswordHash(passwordEncoder.encode(defaultSeedPassword));
+                    return userRepository.save(user);
+                });
     }
 
     private void ensureEmployee(User user, String fullName, Employee.EmployeeType employeeType) {
