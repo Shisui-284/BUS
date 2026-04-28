@@ -45,7 +45,8 @@ public class UserService {
 
         // Public registration must only create CUSTOMER accounts.
         Role customerRole = roleRepository.findByName("CUSTOMER")
-            .orElseThrow(() -> new IllegalStateException("Required role CUSTOMER is not configured. Please initialize roles before registering users."));
+                .orElseThrow(() -> new IllegalStateException(
+                        "Required role CUSTOMER is not configured. Please initialize roles before registering users."));
 
         // Create user
         User user = new User();
@@ -78,7 +79,11 @@ public class UserService {
             throw new SecurityException("Account is not active");
         }
 
-        String selectedRole = RoleNormalizer.normalize(request.getRole());
+        String selectedRole = request.getRole();
+        if (selectedRole == null || selectedRole.isBlank()) {
+            selectedRole = user.getRole() != null ? user.getRole().getName() : null;
+        }
+        selectedRole = RoleNormalizer.normalize(selectedRole);
         String actualRole = RoleNormalizer.normalize(user.getRole().getName());
         if (!selectedRole.equals(actualRole)) {
             throw new SecurityException("Account does not match selected role");

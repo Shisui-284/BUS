@@ -35,6 +35,7 @@ public class AdminService {
 
     // ==================== DASHBOARD ====================
 
+    @Transactional(readOnly = true)
     public AdminDashboardResponse getDashboard() {
         long totalUsers = userRepository.count();
         long totalBuses = busRepository.count();
@@ -46,26 +47,30 @@ public class AdminService {
 
         List<Role> roles = roleRepository.findAll();
         List<AdminDashboardResponse.RoleCount> roleDistribution = roles.stream()
-                .map(r -> new AdminDashboardResponse.RoleCount(
-                        RoleNormalizer.normalize(r.getName()),
-                        userRepository.countByRoleId(r.getId())
-                ))
-                .filter(rc -> rc.getCount() > 0)
+                .map(role -> new AdminDashboardResponse.RoleCount(
+                        RoleNormalizer.normalize(role.getName()),
+                        userRepository.countByRoleId(role.getId())))
+                .filter(roleCount -> roleCount.getCount() > 0)
                 .collect(Collectors.toList());
 
         List<Bus> allBuses = busRepository.findAll();
         List<AdminDashboardResponse.BusStatusCount> busStatusDistribution = allBuses.stream()
-                .collect(Collectors.groupingBy(b -> b.getStatus().name()))
-                .entrySet().stream()
-                .map(e -> new AdminDashboardResponse.BusStatusCount(e.getKey(), e.getValue().size()))
+                .collect(Collectors.groupingBy(bus -> bus.getStatus().name()))
+                .entrySet()
+                .stream()
+                .map(entry -> new AdminDashboardResponse.BusStatusCount(entry.getKey(), entry.getValue().size()))
                 .collect(Collectors.toList());
 
         List<AdminDashboardResponse.BusInsuranceAlert> insuranceAlerts = buildInsuranceAlerts(allBuses);
 
         return new AdminDashboardResponse(
-                totalUsers, totalBuses, totalRoutes, todayTrips,
-                roleDistribution, busStatusDistribution, insuranceAlerts
-        );
+                totalUsers,
+                totalBuses,
+                totalRoutes,
+                todayTrips,
+                roleDistribution,
+                busStatusDistribution,
+                insuranceAlerts);
     }
 
     private List<AdminDashboardResponse.BusInsuranceAlert> buildInsuranceAlerts(List<Bus> buses) {
@@ -74,10 +79,13 @@ public class AdminService {
         List<AdminDashboardResponse.BusInsuranceAlert> alerts = new ArrayList<>();
 
         for (Bus bus : buses) {
-            if (bus.getInsuranceExpiry() == null) continue;
+            if (bus.getInsuranceExpiry() == null) {
+                continue;
+            }
 
             LocalDate expiry = bus.getInsuranceExpiry();
             String alertType;
+
             if (expiry.isBefore(today)) {
                 alertType = "EXPIRED";
             } else if (expiry.isBefore(thirtyDaysLater)) {
@@ -92,9 +100,9 @@ public class AdminService {
                     bus.getBusType() != null ? bus.getBusType().name() : "",
                     bus.getStatus().name(),
                     expiry.toString(),
-                    alertType
-            ));
+                    alertType));
         }
+
         return alerts;
     }
 
@@ -103,26 +111,36 @@ public class AdminService {
     @Transactional(readOnly = true)
     public List<UserListResponse> getUsers(String keyword, String role, String status) {
         List<User> users;
+
         if (keyword != null && !keyword.isBlank()) {
             String kw = keyword.toLowerCase();
-            users = userRepository.findAll().stream()
-                    .filter(u -> u.getUsername().toLowerCase().contains(kw)
-                            || (u.getEmail() != null && u.getEmail().toLowerCase().contains(kw)))
+
+            users = userRepository.findAll()
+                    .stream()
+                    .filter(user -> user.getUsername().toLowerCase().contains(kw)
+                            || (user.getEmail() != null && user.getEmail().toLowerCase().contains(kw))
+                            || (user.getPhone() != null && user.getPhone().toLowerCase().contains(kw)))
                     .collect(Collectors.toList());
         } else {
             users = userRepository.findAll();
         }
 
         return users.stream()
-                .filter(u -> {
+                .filter(user -> {
                     if (role != null && !role.isBlank()) {
-                        String normalizedRole = RoleNormalizer.normalize(u.getRole().getName());
-                        if (!role.equalsIgnoreCase(normalizedRole)) return false;
+                        String normalizedRole = RoleNormalizer.normalize(user.getRole().getName());
+
+                        if (!role.equalsIgnoreCase(normalizedRole)) {
+                            return false;
+                        }
                     }
+
                     if (status != null && !status.isBlank()) {
-                        if (u.getStatus() == null || !u.getStatus().name().equalsIgnoreCase(status)) return false;
+                        return user.getStatus() != null
+                                && user.getStatus().name().equalsIgnoreCase(status);
                     }
-                    return true;
+
+                    return user.getStatus() != User.UserStatus.INACTIVE;
                 })
                 .map(this::toUserListResponse)
                 .collect(Collectors.toList());
@@ -132,6 +150,7 @@ public class AdminService {
     public UserDetailResponse getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+
         return toUserDetailResponse(user);
     }
 
@@ -140,6 +159,7 @@ public class AdminService {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new BusinessConflictException("Username already exists");
         }
+
         if (request.getEmail() != null && userRepository.existsByEmail(request.getEmail())) {
             throw new BusinessConflictException("Email already exists");
         }
@@ -154,16 +174,17 @@ public class AdminService {
         user.setPhone(request.getPhone());
         user.setRole(role);
         user.setStatus(User.UserStatus.ACTIVE);
+
         User saved = userRepository.save(user);
 
         if ("STAFF".equalsIgnoreCase(request.getRole())) {
-            Employee emp = new Employee();
-            emp.setUser(saved);
-            emp.setFullName(request.getUsername());
-            emp.setPhone(request.getPhone());
-            emp.setEmployeeType(Employee.EmployeeType.DISPATCHER);
-            emp.setStatus(Employee.EmployeeStatus.ACTIVE);
-            employeeRepository.save(emp);
+            Employee employee = new Employee();
+            employee.setUser(saved);
+            employee.setFullName(request.getUsername());
+            employee.setPhone(request.getPhone());
+            employee.setEmployeeType(Employee.EmployeeType.DISPATCHER);
+            employee.setStatus(Employee.EmployeeStatus.ACTIVE);
+            employeeRepository.save(employee);
         }
 
         return toUserDetailResponse(saved);
@@ -176,25 +197,36 @@ public class AdminService {
 
         if (request.getEmail() != null) {
             Optional<User> existing = userRepository.findByEmail(request.getEmail());
+
             if (existing.isPresent() && !existing.get().getId().equals(id)) {
                 throw new BusinessConflictException("Email already in use");
             }
+
             user.setEmail(request.getEmail());
         }
+
         if (request.getPhone() != null) {
             user.setPhone(request.getPhone());
         }
 
-        Optional<Employee> empOpt = employeeRepository.findByUserId(id);
-        if (empOpt.isPresent()) {
-            Employee emp = empOpt.get();
-            if (request.getFullName() != null) emp.setFullName(request.getFullName());
+        Optional<Employee> employeeOptional = employeeRepository.findByUserId(id);
+
+        if (employeeOptional.isPresent()) {
+            Employee employee = employeeOptional.get();
+
+            if (request.getFullName() != null) {
+                employee.setFullName(request.getFullName());
+            }
+
             if (request.getEmployeeType() != null) {
                 try {
-                    emp.setEmployeeType(Employee.EmployeeType.valueOf(request.getEmployeeType().toUpperCase()));
-                } catch (IllegalArgumentException ignored) {}
+                    employee.setEmployeeType(Employee.EmployeeType.valueOf(request.getEmployeeType().toUpperCase()));
+                } catch (IllegalArgumentException ignored) {
+                    // Ignore invalid employee type.
+                }
             }
-            employeeRepository.save(emp);
+
+            employeeRepository.save(employee);
         }
 
         return toUserDetailResponse(userRepository.save(user));
@@ -210,6 +242,7 @@ public class AdminService {
         } else {
             user.setStatus(User.UserStatus.ACTIVE);
         }
+
         return toUserDetailResponse(userRepository.save(user));
     }
 
@@ -217,7 +250,37 @@ public class AdminService {
     public void resetUserPassword(Long id, String newPassword) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+
         user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void deleteUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+
+        if ("admin".equalsIgnoreCase(user.getUsername())) {
+            throw new BusinessConflictException("Không thể xóa tài khoản admin mặc định");
+        }
+
+        String currentRole = RoleNormalizer.normalize(user.getRole().getName());
+
+        if ("ADMIN".equalsIgnoreCase(currentRole)) {
+            long activeAdminCount = userRepository.findAll()
+                    .stream()
+                    .filter(existingUser -> existingUser.getStatus() == User.UserStatus.ACTIVE)
+                    .filter(existingUser -> existingUser.getRole() != null)
+                    .filter(existingUser -> "ADMIN".equalsIgnoreCase(
+                            RoleNormalizer.normalize(existingUser.getRole().getName())))
+                    .count();
+
+            if (activeAdminCount <= 1) {
+                throw new BusinessConflictException("Không thể xóa admin cuối cùng của hệ thống");
+            }
+        }
+
+        user.setStatus(User.UserStatus.INACTIVE);
         userRepository.save(user);
     }
 
@@ -226,10 +289,13 @@ public class AdminService {
     @Transactional(readOnly = true)
     public List<BusListResponse> getBuses(String keyword, String status) {
         List<Bus> buses;
+
         if (keyword != null && !keyword.isBlank()) {
             String kw = keyword.toLowerCase();
-            buses = busRepository.findAll().stream()
-                    .filter(b -> b.getLicensePlate().toLowerCase().contains(kw))
+
+            buses = busRepository.findAll()
+                    .stream()
+                    .filter(bus -> bus.getLicensePlate().toLowerCase().contains(kw))
                     .collect(Collectors.toList());
         } else {
             buses = busRepository.findAll();
@@ -239,23 +305,25 @@ public class AdminService {
         LocalDate thirtyDays = today.plusDays(30);
 
         return buses.stream()
-                .filter(b -> {
+                .filter(bus -> {
                     if (status != null && !status.isBlank()) {
-                        return b.getStatus().name().equalsIgnoreCase(status);
+                        return bus.getStatus().name().equalsIgnoreCase(status);
                     }
+
                     return true;
                 })
-                .map(b -> new BusListResponse(
-                        b.getId(),
-                        b.getLicensePlate(),
-                        b.getBusType() != null ? b.getBusType().name() : "",
-                        b.getTotalSeats(),
-                        b.getStatus().name(),
-                        b.getLastMaintenanceDate(),
-                        b.getInsuranceExpiry(),
-                        b.getInsuranceExpiry() != null && b.getInsuranceExpiry().isBefore(today),
-                        b.getInsuranceExpiry() != null && !b.getInsuranceExpiry().isBefore(today) && b.getInsuranceExpiry().isBefore(thirtyDays)
-                ))
+                .map(bus -> new BusListResponse(
+                        bus.getId(),
+                        bus.getLicensePlate(),
+                        bus.getBusType() != null ? bus.getBusType().name() : "",
+                        bus.getTotalSeats(),
+                        bus.getStatus().name(),
+                        bus.getLastMaintenanceDate(),
+                        bus.getInsuranceExpiry(),
+                        bus.getInsuranceExpiry() != null && bus.getInsuranceExpiry().isBefore(today),
+                        bus.getInsuranceExpiry() != null
+                                && !bus.getInsuranceExpiry().isBefore(today)
+                                && bus.getInsuranceExpiry().isBefore(thirtyDays)))
                 .collect(Collectors.toList());
     }
 
@@ -263,13 +331,15 @@ public class AdminService {
     public BusDetailResponse getBusById(Long id) {
         Bus bus = busRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Bus not found with id: " + id));
+
         return toBusDetailResponse(bus);
     }
 
     @Transactional
     public BusDetailResponse createBus(CreateBusRequest request) {
-        if (busRepository.findAll().stream()
-                .anyMatch(b -> b.getLicensePlate().equalsIgnoreCase(request.getLicensePlate()))) {
+        if (busRepository.findAll()
+                .stream()
+                .anyMatch(bus -> bus.getLicensePlate().equalsIgnoreCase(request.getLicensePlate()))) {
             throw new BusinessConflictException("License plate already exists");
         }
 
@@ -280,9 +350,11 @@ public class AdminService {
         bus.setStatus(Bus.BusStatus.AVAILABLE);
         bus.setLastMaintenanceDate(request.getLastMaintenanceDate());
         bus.setInsuranceExpiry(request.getInsuranceExpiry());
+
         Bus saved = busRepository.save(bus);
 
         List<Seat> seats = new ArrayList<>();
+
         for (int i = 1; i <= saved.getTotalSeats(); i++) {
             Seat seat = new Seat();
             seat.setBus(saved);
@@ -291,6 +363,7 @@ public class AdminService {
             seat.setPositionY((i - 1) / 10);
             seats.add(seat);
         }
+
         seatRepository.saveAll(seats);
 
         return toBusDetailResponse(saved);
@@ -304,12 +377,15 @@ public class AdminService {
         if (request.getBusType() != null) {
             bus.setBusType(Bus.BusType.valueOf(request.getBusType().toUpperCase()));
         }
+
         if (request.getTotalSeats() != null) {
             bus.setTotalSeats(request.getTotalSeats());
         }
+
         if (request.getLastMaintenanceDate() != null) {
             bus.setLastMaintenanceDate(request.getLastMaintenanceDate());
         }
+
         if (request.getInsuranceExpiry() != null) {
             bus.setInsuranceExpiry(request.getInsuranceExpiry());
         }
@@ -321,7 +397,9 @@ public class AdminService {
     public BusDetailResponse updateBusStatus(Long id, String status) {
         Bus bus = busRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Bus not found with id: " + id));
+
         bus.setStatus(Bus.BusStatus.valueOf(status.toUpperCase()));
+
         return toBusDetailResponse(busRepository.save(bus));
     }
 
@@ -332,28 +410,30 @@ public class AdminService {
         List<Route> routes = routeRepository.findAll();
 
         return routes.stream()
-                .filter(r -> {
+                .filter(route -> {
                     if (keyword != null && !keyword.isBlank()) {
                         String kw = keyword.toLowerCase();
-                        if (!r.getOrigin().toLowerCase().contains(kw)
-                                && !r.getDestination().toLowerCase().contains(kw)) {
+
+                        if (!route.getOrigin().toLowerCase().contains(kw)
+                                && !route.getDestination().toLowerCase().contains(kw)) {
                             return false;
                         }
                     }
+
                     if (Boolean.TRUE.equals(activeOnly)) {
-                        return Boolean.TRUE.equals(r.getIsActive());
+                        return Boolean.TRUE.equals(route.getIsActive());
                     }
+
                     return true;
                 })
-                .map(r -> new RouteListResponse(
-                        r.getId(),
-                        r.getOrigin(),
-                        r.getDestination(),
-                        r.getDistanceKm(),
-                        r.getEstimatedDurationMin(),
-                        r.getBasePrice(),
-                        r.getIsActive()
-                ))
+                .map(route -> new RouteListResponse(
+                        route.getId(),
+                        route.getOrigin(),
+                        route.getDestination(),
+                        route.getDistanceKm(),
+                        route.getEstimatedDurationMin(),
+                        route.getBasePrice(),
+                        route.getIsActive()))
                 .collect(Collectors.toList());
     }
 
@@ -361,6 +441,7 @@ public class AdminService {
     public RouteDetailResponse getRouteById(Long id) {
         Route route = routeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Route not found with id: " + id));
+
         return toRouteDetailResponse(route);
     }
 
@@ -373,6 +454,7 @@ public class AdminService {
         route.setEstimatedDurationMin(request.getEstimatedDurationMin());
         route.setBasePrice(request.getBasePrice());
         route.setIsActive(true);
+
         return toRouteDetailResponse(routeRepository.save(route));
     }
 
@@ -381,12 +463,29 @@ public class AdminService {
         Route route = routeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Route not found with id: " + id));
 
-        if (request.getOrigin() != null) route.setOrigin(request.getOrigin());
-        if (request.getDestination() != null) route.setDestination(request.getDestination());
-        if (request.getDistanceKm() != null) route.setDistanceKm(request.getDistanceKm());
-        if (request.getEstimatedDurationMin() != null) route.setEstimatedDurationMin(request.getEstimatedDurationMin());
-        if (request.getBasePrice() != null) route.setBasePrice(request.getBasePrice());
-        if (request.getIsActive() != null) route.setIsActive(request.getIsActive());
+        if (request.getOrigin() != null) {
+            route.setOrigin(request.getOrigin());
+        }
+
+        if (request.getDestination() != null) {
+            route.setDestination(request.getDestination());
+        }
+
+        if (request.getDistanceKm() != null) {
+            route.setDistanceKm(request.getDistanceKm());
+        }
+
+        if (request.getEstimatedDurationMin() != null) {
+            route.setEstimatedDurationMin(request.getEstimatedDurationMin());
+        }
+
+        if (request.getBasePrice() != null) {
+            route.setBasePrice(request.getBasePrice());
+        }
+
+        if (request.getIsActive() != null) {
+            route.setIsActive(request.getIsActive());
+        }
 
         return toRouteDetailResponse(routeRepository.save(route));
     }
@@ -394,56 +493,65 @@ public class AdminService {
     // ==================== HELPERS ====================
 
     private UserListResponse toUserListResponse(User user) {
-        UserListResponse r = new UserListResponse();
-        r.setId(user.getId());
-        r.setUsername(user.getUsername());
-        r.setEmail(user.getEmail());
-        r.setPhone(user.getPhone());
-        r.setRole(RoleNormalizer.normalize(user.getRole().getName()));
-        r.setStatus(user.getStatus() != null ? user.getStatus().name() : "ACTIVE");
-        r.setCreatedAt(user.getCreatedAt());
+        UserListResponse response = new UserListResponse();
 
-        Optional<Employee> emp = employeeRepository.findByUserId(user.getId());
-        if (emp.isPresent()) {
-            r.setFullName(emp.get().getFullName());
-            r.setEmployeeType(emp.get().getEmployeeType().name());
+        response.setId(user.getId());
+        response.setUsername(user.getUsername());
+        response.setEmail(user.getEmail());
+        response.setPhone(user.getPhone());
+        response.setRole(RoleNormalizer.normalize(user.getRole().getName()));
+        response.setStatus(user.getStatus() != null ? user.getStatus().name() : "ACTIVE");
+        response.setCreatedAt(user.getCreatedAt());
+
+        Optional<Employee> employee = employeeRepository.findByUserId(user.getId());
+
+        if (employee.isPresent()) {
+            response.setFullName(employee.get().getFullName());
+            response.setEmployeeType(employee.get().getEmployeeType().name());
         } else {
-            Optional<Passenger> pass = passengerRepository.findByUserId(user.getId());
-            if (pass.isPresent()) {
-                r.setFullName(pass.get().getFullName());
-                r.setEmployeeType("CUSTOMER");
+            Optional<Passenger> passenger = passengerRepository.findByUserId(user.getId());
+
+            if (passenger.isPresent()) {
+                response.setFullName(passenger.get().getFullName());
+                response.setEmployeeType("CUSTOMER");
             }
         }
-        return r;
+
+        return response;
     }
 
     private UserDetailResponse toUserDetailResponse(User user) {
-        UserDetailResponse r = new UserDetailResponse();
-        r.setId(user.getId());
-        r.setUsername(user.getUsername());
-        r.setEmail(user.getEmail());
-        r.setPhone(user.getPhone());
-        r.setRole(RoleNormalizer.normalize(user.getRole().getName()));
-        r.setStatus(user.getStatus() != null ? user.getStatus().name() : "ACTIVE");
-        r.setCreatedAt(user.getCreatedAt());
-        r.setPermissions(List.of());
+        UserDetailResponse response = new UserDetailResponse();
 
-        Optional<Employee> emp = employeeRepository.findByUserId(user.getId());
-        if (emp.isPresent()) {
-            r.setFullName(emp.get().getFullName());
-            r.setEmployeeType(emp.get().getEmployeeType().name());
+        response.setId(user.getId());
+        response.setUsername(user.getUsername());
+        response.setEmail(user.getEmail());
+        response.setPhone(user.getPhone());
+        response.setRole(RoleNormalizer.normalize(user.getRole().getName()));
+        response.setStatus(user.getStatus() != null ? user.getStatus().name() : "ACTIVE");
+        response.setCreatedAt(user.getCreatedAt());
+        response.setPermissions(List.of());
+
+        Optional<Employee> employee = employeeRepository.findByUserId(user.getId());
+
+        if (employee.isPresent()) {
+            response.setFullName(employee.get().getFullName());
+            response.setEmployeeType(employee.get().getEmployeeType().name());
         } else {
-            Optional<Passenger> pass = passengerRepository.findByUserId(user.getId());
-            if (pass.isPresent()) {
-                r.setFullName(pass.get().getFullName());
-                r.setEmployeeType("CUSTOMER");
+            Optional<Passenger> passenger = passengerRepository.findByUserId(user.getId());
+
+            if (passenger.isPresent()) {
+                response.setFullName(passenger.get().getFullName());
+                response.setEmployeeType("CUSTOMER");
             }
         }
-        return r;
+
+        return response;
     }
 
     private BusDetailResponse toBusDetailResponse(Bus bus) {
         int tripCount = bus.getTrips() != null ? bus.getTrips().size() : 0;
+
         return new BusDetailResponse(
                 bus.getId(),
                 bus.getLicensePlate(),
@@ -452,12 +560,12 @@ public class AdminService {
                 bus.getStatus().name(),
                 bus.getLastMaintenanceDate(),
                 bus.getInsuranceExpiry(),
-                tripCount
-        );
+                tripCount);
     }
 
     private RouteDetailResponse toRouteDetailResponse(Route route) {
         int tripCount = route.getTrips() != null ? route.getTrips().size() : 0;
+
         return new RouteDetailResponse(
                 route.getId(),
                 route.getOrigin(),
@@ -466,7 +574,6 @@ public class AdminService {
                 route.getEstimatedDurationMin(),
                 route.getBasePrice(),
                 route.getIsActive(),
-                tripCount
-        );
+                tripCount);
     }
 }

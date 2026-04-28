@@ -26,7 +26,10 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     getAdminDashboard()
       .then(setData)
-      .catch(() => toast.error("Không thể tải dữ liệu dashboard"))
+      .catch((error) => {
+        const backendMessage = extractApiErrorMessage(error);
+        toast.error(backendMessage || "Không thể tải dữ liệu dashboard");
+      })
       .finally(() => setIsLoading(false));
   }, []);
 

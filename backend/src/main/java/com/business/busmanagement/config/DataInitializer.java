@@ -1,20 +1,26 @@
 package com.business.busmanagement.config;
 
-import com.business.busmanagement.model.*;
-import com.business.busmanagement.repository.*;
+import com.business.busmanagement.model.Bus;
+import com.business.busmanagement.model.Employee;
+import com.business.busmanagement.model.Role;
+import com.business.busmanagement.model.Route;
+import com.business.busmanagement.model.User;
+import com.business.busmanagement.repository.BusRepository;
+import com.business.busmanagement.repository.EmployeeRepository;
+import com.business.busmanagement.repository.RoleRepository;
+import com.business.busmanagement.repository.RouteRepository;
+import com.business.busmanagement.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 
 @Component
-@Order(1)
 @RequiredArgsConstructor
 @Slf4j
 public class DataInitializer implements CommandLineRunner {
@@ -30,7 +36,7 @@ public class DataInitializer implements CommandLineRunner {
     private String defaultSeedPassword;
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         initializeRoles();
         initializeUsers();
         initializeRoutes();
@@ -73,7 +79,7 @@ public class DataInitializer implements CommandLineRunner {
         ensureEmployee(driver, "Nguyễn Văn Tài", Employee.EmployeeType.DRIVER);
         ensureEmployee(assistant, "Trần Thị Hương", Employee.EmployeeType.ASSISTANT);
 
-        log.info("Users and employees initialized with configured seed password");
+        log.info("Users and employees initialized");
     }
 
     private User ensureUser(String username, String email, Role role) {
@@ -86,11 +92,7 @@ public class DataInitializer implements CommandLineRunner {
                         existingUser.setStatus(User.UserStatus.ACTIVE);
                     }
 
-                    existingUser.setPasswordHash(passwordEncoder.encode(defaultSeedPassword));
-                    User saved = userRepository.save(existingUser);
-                    log.info("  [DataInit] Updated user: username={}, role={}, passwordHash={}... (first 10 chars)",
-                        username, role.getName(), saved.getPasswordHash().substring(0, 10));
-                    return saved;
+                    return userRepository.save(existingUser);
                 })
                 .orElseGet(() -> {
                     User user = new User();
@@ -99,10 +101,8 @@ public class DataInitializer implements CommandLineRunner {
                     user.setRole(role);
                     user.setStatus(User.UserStatus.ACTIVE);
                     user.setPasswordHash(passwordEncoder.encode(defaultSeedPassword));
-                    User saved = userRepository.save(user);
-                    log.info("  [DataInit] Created user: username={}, role={}, passwordHash={}... (first 10 chars)",
-                        username, role.getName(), saved.getPasswordHash().substring(0, 10));
-                    return saved;
+
+                    return userRepository.save(user);
                 });
     }
 

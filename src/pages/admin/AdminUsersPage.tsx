@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-import { Search, Plus, Pencil, Lock, Unlock, Key, X } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Search, Plus, Pencil, Lock, Unlock, Key, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import {
   getUsers,
@@ -7,12 +7,21 @@ import {
   updateUser,
   lockUnlockUser,
   resetUserPassword,
+  deleteUser,
   AdminUser,
 } from "../../api/admin";
 import { extractApiErrorMessage } from "../../utils/apiError";
 import { UserRole } from "../../types";
 
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
+  { value: "ADMIN", label: "Admin" },
+  { value: "STAFF", label: "Nhân viên" },
+  { value: "CUSTOMER", label: "Khách hàng" },
+];
+
+const ROLE_FILTER_OPTIONS = [
+  { value: "", label: "Tất cả vai trò" },
+  { value: "ADMIN", label: "Admin" },
   { value: "STAFF", label: "Nhân viên" },
   { value: "CUSTOMER", label: "Khách hàng" },
 ];
@@ -21,6 +30,7 @@ const STATUS_OPTIONS = [
   { value: "", label: "Tất cả" },
   { value: "ACTIVE", label: "Hoạt động" },
   { value: "LOCKED", label: "Bị khóa" },
+  { value: "INACTIVE", label: "Đã xóa" },
 ];
 
 const EMPLOYEE_TYPE_OPTIONS = [
@@ -31,16 +41,10 @@ const EMPLOYEE_TYPE_OPTIONS = [
   { value: "TECHNICIAN", label: "Kỹ thuật" },
 ];
 
-const ROLE_FILTER_OPTIONS = [
-  { value: "", label: "Tất cả vai trò" },
-  { value: "ADMIN", label: "Admin" },
-  { value: "STAFF", label: "Nhân viên" },
-  { value: "CUSTOMER", label: "Khách hàng" },
-];
-
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
   const [keyword, setKeyword] = useState("");
   const [filterRole, setFilterRole] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
@@ -48,19 +52,20 @@ export default function AdminUsersPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
 
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const loadUsers = useCallback(() => {
     setIsLoading(true);
+
     getUsers({
       keyword: keyword || undefined,
       role: filterRole || undefined,
       status: filterStatus || undefined,
     })
       .then(setUsers)
-      .catch(() => toast.error("Không thể tải danh sách người dùng"))
+      .catch((err) => toast.error(extractApiErrorMessage(err) || "Không thể tải danh sách người dùng"))
       .finally(() => setIsLoading(false));
   }, [keyword, filterRole, filterStatus]);
 
@@ -70,6 +75,7 @@ export default function AdminUsersPage() {
 
   const handleCreate = async (form: CreateForm) => {
     setIsSaving(true);
+
     try {
       await createUser({
         username: form.username,
@@ -78,6 +84,7 @@ export default function AdminUsersPage() {
         phone: form.phone,
         role: form.role,
       });
+
       toast.success("Tạo tài khoản thành công");
       setShowCreateModal(false);
       loadUsers();
@@ -90,7 +97,9 @@ export default function AdminUsersPage() {
 
   const handleEdit = async (form: EditForm) => {
     if (!selectedUser) return;
+
     setIsSaving(true);
+
     try {
       await updateUser(selectedUser.id, {
         email: form.email,
@@ -98,6 +107,7 @@ export default function AdminUsersPage() {
         fullName: form.fullName,
         employeeType: form.employeeType,
       });
+
       toast.success("Cập nhật thông tin thành công");
       setShowEditModal(false);
       setSelectedUser(null);
@@ -110,13 +120,20 @@ export default function AdminUsersPage() {
   };
 
   const handleLockUnlock = async (user: AdminUser) => {
+    if (user.status === "INACTIVE") {
+      toast.error("Tài khoản đã xóa không thể khóa hoặc mở khóa");
+      return;
+    }
+
     try {
       const updated = await lockUnlockUser(user.id);
+
       toast.success(
         updated.status === "LOCKED"
           ? `Đã khóa tài khoản ${user.username}`
           : `Đã mở khóa tài khoản ${user.username}`
       );
+
       loadUsers();
     } catch (err) {
       toast.error(extractApiErrorMessage(err));
@@ -126,9 +143,32 @@ export default function AdminUsersPage() {
   const handleResetPassword = async (id: number, newPassword: string) => {
     try {
       await resetUserPassword(id, newPassword);
+
       toast.success("Đổi mật khẩu thành công");
       setShowPasswordModal(false);
       setSelectedUser(null);
+    } catch (err) {
+      toast.error(extractApiErrorMessage(err));
+    }
+  };
+
+  const handleDeleteUser = async (user: AdminUser) => {
+    if (user.status === "INACTIVE") {
+      toast.error("Tài khoản này đã bị xóa");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Bạn có chắc muốn xóa tài khoản "${user.username}" không?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteUser(user.id);
+
+      toast.success(`Đã xóa tài khoản ${user.username}`);
+      loadUsers();
     } catch (err) {
       toast.error(extractApiErrorMessage(err));
     }
@@ -143,6 +183,7 @@ export default function AdminUsersPage() {
             Quản lý tài khoản nhân viên và khách hàng trong hệ thống
           </p>
         </div>
+
         <button
           onClick={() => setShowCreateModal(true)}
           className="inline-flex items-center gap-2 rounded-2xl bg-[#0F2849] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1a3a6b]"
@@ -152,38 +193,42 @@ export default function AdminUsersPage() {
         </button>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-white p-4 shadow-sm">
         <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
           <Search className="h-4 w-4 text-slate-400" />
           <input
             value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
+            onChange={(event) => setKeyword(event.target.value)}
             placeholder="Tìm tên đăng nhập, email..."
             className="w-64 border-none bg-transparent text-sm outline-none placeholder:text-slate-400"
           />
         </div>
+
         <select
           value={filterRole}
-          onChange={(e) => setFilterRole(e.target.value)}
+          onChange={(event) => setFilterRole(event.target.value)}
           className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none"
         >
-          {ROLE_FILTER_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
+          {ROLE_FILTER_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
           ))}
         </select>
+
         <select
           value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
+          onChange={(event) => setFilterStatus(event.target.value)}
           className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none"
         >
-          {STATUS_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
+          {STATUS_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
           ))}
         </select>
       </div>
 
-      {/* Table */}
       <div className="rounded-3xl bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
@@ -198,6 +243,7 @@ export default function AdminUsersPage() {
                 <th className="px-4 py-3 font-semibold text-right">Thao tác</th>
               </tr>
             </thead>
+
             <tbody className="divide-y divide-slate-200">
               {isLoading ? (
                 <tr>
@@ -215,42 +261,49 @@ export default function AdminUsersPage() {
                 users.map((user) => (
                   <tr key={user.id} className="hover:bg-slate-50">
                     <td className="px-4 py-3">
-                      <div>
-                        <p className="font-medium text-slate-900">{user.username}</p>
-                        <p className="text-xs text-slate-400">{user.fullName || "—"}</p>
-                      </div>
+                      <p className="font-medium text-slate-900">{user.username}</p>
+                      <p className="text-xs text-slate-400">{user.fullName || "—"}</p>
                     </td>
+
                     <td className="px-4 py-3 text-slate-600">{user.email || "—"}</td>
+
                     <td className="px-4 py-3">
                       <RoleBadge role={user.role} />
                     </td>
+
                     <td className="px-4 py-3">
                       <StatusBadge status={user.status} />
                     </td>
-                    <td className="px-4 py-3 text-slate-600 text-xs">
+
+                    <td className="px-4 py-3 text-xs text-slate-600">
                       {user.employeeType || "—"}
                     </td>
-                    <td className="px-4 py-3 text-slate-600 text-xs">
+
+                    <td className="px-4 py-3 text-xs text-slate-600">
                       {user.createdAt
                         ? new Date(user.createdAt).toLocaleDateString("vi-VN")
                         : "—"}
                     </td>
+
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           title="Sửa"
+                          disabled={user.status === "INACTIVE"}
                           onClick={() => {
                             setSelectedUser(user);
                             setShowEditModal(true);
                           }}
-                          className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600"
+                          className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
+
                         <button
                           title={user.status === "LOCKED" ? "Mở khóa" : "Khóa"}
+                          disabled={user.status === "INACTIVE"}
                           onClick={() => handleLockUnlock(user)}
-                          className="rounded-lg p-2 text-slate-400 transition hover:bg-amber-50 hover:text-amber-600"
+                          className="rounded-lg p-2 text-slate-400 transition hover:bg-amber-50 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           {user.status === "LOCKED" ? (
                             <Unlock className="h-4 w-4" />
@@ -258,15 +311,26 @@ export default function AdminUsersPage() {
                             <Lock className="h-4 w-4" />
                           )}
                         </button>
+
                         <button
                           title="Đổi mật khẩu"
+                          disabled={user.status === "INACTIVE"}
                           onClick={() => {
                             setSelectedUser(user);
                             setShowPasswordModal(true);
                           }}
-                          className="rounded-lg p-2 text-slate-400 transition hover:bg-purple-50 hover:text-purple-600"
+                          className="rounded-lg p-2 text-slate-400 transition hover:bg-purple-50 hover:text-purple-600 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           <Key className="h-4 w-4" />
+                        </button>
+
+                        <button
+                          title="Xóa tài khoản"
+                          disabled={user.status === "INACTIVE"}
+                          onClick={() => handleDeleteUser(user)}
+                          className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     </td>
@@ -278,7 +342,6 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      {/* Modals */}
       {showCreateModal && (
         <CreateUserModal
           onClose={() => setShowCreateModal(false)}
@@ -286,6 +349,7 @@ export default function AdminUsersPage() {
           isSaving={isSaving}
         />
       )}
+
       {showEditModal && selectedUser && (
         <EditUserModal
           user={selectedUser}
@@ -297,6 +361,7 @@ export default function AdminUsersPage() {
           isSaving={isSaving}
         />
       )}
+
       {showPasswordModal && selectedUser && (
         <ResetPasswordModal
           username={selectedUser.username}
@@ -304,14 +369,12 @@ export default function AdminUsersPage() {
             setShowPasswordModal(false);
             setSelectedUser(null);
           }}
-          onSubmit={(pw) => handleResetPassword(selectedUser.id, pw)}
+          onSubmit={(password) => handleResetPassword(selectedUser.id, password)}
         />
       )}
     </div>
   );
 }
-
-// ==================== Sub-components ====================
 
 function RoleBadge({ role }: { role: string }) {
   const styles: Record<string, string> = {
@@ -319,23 +382,44 @@ function RoleBadge({ role }: { role: string }) {
     STAFF: "bg-blue-100 text-blue-700",
     CUSTOMER: "bg-emerald-100 text-emerald-700",
   };
+
   const labels: Record<string, string> = {
     ADMIN: "Admin",
     STAFF: "Nhân viên",
     CUSTOMER: "Khách hàng",
   };
+
   return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${styles[role] ?? "bg-slate-100 text-slate-600"}`}>
+    <span
+      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
+        styles[role] ?? "bg-slate-100 text-slate-600"
+      }`}
+    >
       {labels[role] ?? role}
     </span>
   );
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const isActive = status === "ACTIVE";
+  const styles: Record<string, string> = {
+    ACTIVE: "bg-emerald-100 text-emerald-700",
+    LOCKED: "bg-amber-100 text-amber-700",
+    INACTIVE: "bg-red-100 text-red-700",
+  };
+
+  const labels: Record<string, string> = {
+    ACTIVE: "Hoạt động",
+    LOCKED: "Bị khóa",
+    INACTIVE: "Đã xóa",
+  };
+
   return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${isActive ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
-      {isActive ? "Hoạt động" : "Bị khóa"}
+    <span
+      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
+        styles[status] ?? "bg-slate-100 text-slate-600"
+      }`}
+    >
+      {labels[status] ?? status}
     </span>
   );
 }
@@ -354,7 +438,7 @@ function CreateUserModal({
   isSaving,
 }: {
   onClose: () => void;
-  onSubmit: (f: CreateForm) => void;
+  onSubmit: (form: CreateForm) => void;
   isSaving: boolean;
 }) {
   const [form, setForm] = useState<CreateForm>({
@@ -365,8 +449,8 @@ function CreateUserModal({
     role: "STAFF",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
     onSubmit(form);
   };
 
@@ -376,49 +460,56 @@ function CreateUserModal({
         <FormField label="Tên đăng nhập" required>
           <input
             value={form.username}
-            onChange={(e) => setForm({ ...form, username: e.target.value })}
+            onChange={(event) => setForm({ ...form, username: event.target.value })}
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
             required
             minLength={3}
           />
         </FormField>
+
         <FormField label="Mật khẩu" required>
           <input
             type="password"
             value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            onChange={(event) => setForm({ ...form, password: event.target.value })}
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
             required
             minLength={8}
           />
         </FormField>
+
         <FormField label="Email" required>
           <input
             type="email"
             value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            onChange={(event) => setForm({ ...form, email: event.target.value })}
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
             required
           />
         </FormField>
+
         <FormField label="Số điện thoại">
           <input
             value={form.phone}
-            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            onChange={(event) => setForm({ ...form, phone: event.target.value })}
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
           />
         </FormField>
+
         <FormField label="Vai trò" required>
           <select
             value={form.role}
-            onChange={(e) => setForm({ ...form, role: e.target.value as UserRole })}
+            onChange={(event) => setForm({ ...form, role: event.target.value as UserRole })}
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
           >
-            {ROLE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
+            {ROLE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
             ))}
           </select>
         </FormField>
+
         <div className="flex justify-end gap-3 pt-2">
           <button
             type="button"
@@ -427,6 +518,7 @@ function CreateUserModal({
           >
             Hủy
           </button>
+
           <button
             type="submit"
             disabled={isSaving}
@@ -455,7 +547,7 @@ function EditUserModal({
 }: {
   user: AdminUser;
   onClose: () => void;
-  onSubmit: (f: EditForm) => void;
+  onSubmit: (form: EditForm) => void;
   isSaving: boolean;
 }) {
   const [form, setForm] = useState<EditForm>({
@@ -465,8 +557,8 @@ function EditUserModal({
     employeeType: user.employeeType || "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
     onSubmit(form);
   };
 
@@ -477,36 +569,42 @@ function EditUserModal({
           <input
             type="email"
             value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            onChange={(event) => setForm({ ...form, email: event.target.value })}
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
           />
         </FormField>
+
         <FormField label="Số điện thoại">
           <input
             value={form.phone}
-            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            onChange={(event) => setForm({ ...form, phone: event.target.value })}
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
           />
         </FormField>
+
         <FormField label="Họ tên">
           <input
             value={form.fullName}
-            onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+            onChange={(event) => setForm({ ...form, fullName: event.target.value })}
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
           />
         </FormField>
+
         <FormField label="Loại nhân sự">
           <select
             value={form.employeeType}
-            onChange={(e) => setForm({ ...form, employeeType: e.target.value })}
+            onChange={(event) => setForm({ ...form, employeeType: event.target.value })}
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
           >
             <option value="">— Không xác định —</option>
-            {EMPLOYEE_TYPE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
+            {EMPLOYEE_TYPE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
             ))}
           </select>
         </FormField>
+
         <div className="flex justify-end gap-3 pt-2">
           <button
             type="button"
@@ -515,6 +613,7 @@ function EditUserModal({
           >
             Hủy
           </button>
+
           <button
             type="submit"
             disabled={isSaving}
@@ -535,21 +634,24 @@ function ResetPasswordModal({
 }: {
   username: string;
   onClose: () => void;
-  onSubmit: (pw: string) => void;
+  onSubmit: (password: string) => void;
 }) {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+
     if (password !== confirm) {
       toast.error("Mật khẩu xác nhận không khớp");
       return;
     }
+
     if (password.length < 8) {
       toast.error("Mật khẩu phải có ít nhất 8 ký tự");
       return;
     }
+
     onSubmit(password);
   };
 
@@ -560,22 +662,24 @@ function ResetPasswordModal({
           <input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(event) => setPassword(event.target.value)}
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
             required
             minLength={8}
           />
         </FormField>
+
         <FormField label="Xác nhận mật khẩu" required>
           <input
             type="password"
             value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
+            onChange={(event) => setConfirm(event.target.value)}
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
             required
             minLength={8}
           />
         </FormField>
+
         <div className="flex justify-end gap-3 pt-2">
           <button
             type="button"
@@ -584,6 +688,7 @@ function ResetPasswordModal({
           >
             Hủy
           </button>
+
           <button
             type="submit"
             className="rounded-xl bg-[#0F2849] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1a3a6b]"
@@ -610,6 +715,7 @@ function Modal({
       <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+
           <button
             onClick={onClose}
             className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
@@ -617,6 +723,7 @@ function Modal({
             <X className="h-5 w-5" />
           </button>
         </div>
+
         {children}
       </div>
     </div>
@@ -638,6 +745,7 @@ function FormField({
         {label}
         {required && <span className="ml-1 text-red-500">*</span>}
       </label>
+
       {children}
     </div>
   );

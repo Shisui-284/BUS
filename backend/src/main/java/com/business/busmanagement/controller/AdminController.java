@@ -66,6 +66,12 @@ public class AdminController {
         return ResponseEntity.ok(Map.of("message", "Password updated successfully"));
     }
 
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<Map<String, String>> deleteUser(@PathVariable Long id) {
+        adminService.deleteUser(id);
+        return ResponseEntity.ok(Map.of("message", "User deleted successfully"));
+    }
+
     // ==================== BUS MANAGEMENT ====================
 
     @GetMapping("/buses")
@@ -97,9 +103,11 @@ public class AdminController {
             @PathVariable Long id,
             @RequestBody Map<String, String> body) {
         String status = body.get("status");
+
         if (status == null || status.isBlank()) {
             return ResponseEntity.badRequest().build();
         }
+
         return ResponseEntity.ok(adminService.updateBusStatus(id, status));
     }
 

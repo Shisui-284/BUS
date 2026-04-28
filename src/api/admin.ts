@@ -98,7 +98,9 @@ export async function lockUnlockUser(id: number): Promise<AdminUser> {
 export async function resetUserPassword(id: number, newPassword: string): Promise<void> {
   await apiClient.put(`/admin/users/${id}/password`, { newPassword });
 }
-
+export async function deleteUser(id: number): Promise<void> {
+  await apiClient.delete(`/admin/users/${id}`);
+}
 // ==================== BUS MANAGEMENT ====================
 
 export interface AdminBus {

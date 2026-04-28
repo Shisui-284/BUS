@@ -47,7 +47,8 @@ Content-Type: application/json
 
 {
   "username": "nguyenvana",
-  "password": "password123"
+  "password": "password123",
+  "role": "CUSTOMER"
 }
 ```
 
