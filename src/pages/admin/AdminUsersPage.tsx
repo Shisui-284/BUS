@@ -176,38 +176,43 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Quản lý tài khoản</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Quản lý tài khoản nhân viên và khách hàng trong hệ thống
-          </p>
-        </div>
+      <div className="admin-panel p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-slate-400">
+              Account Management
+            </p>
+            <h1 className="admin-title text-3xl">Quản lý tài khoản</h1>
+            <p className="admin-subtitle mt-2 text-sm">
+              Quản lý tài khoản admin, nhân viên và khách hàng trong hệ thống.
+            </p>
+          </div>
 
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="inline-flex items-center gap-2 rounded-2xl bg-[#0F2849] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1a3a6b]"
-        >
-          <Plus className="h-4 w-4" />
-          Tạo tài khoản
-        </button>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="admin-button-primary inline-flex items-center justify-center gap-2 px-5 py-3 text-sm"
+          >
+            <Plus className="h-4 w-4" />
+            Tạo tài khoản
+          </button>
+        </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-white p-4 shadow-sm">
-        <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+      <div className="admin-panel flex flex-wrap items-center gap-3 p-4">
+        <div className="admin-input flex min-w-[260px] flex-1 items-center gap-2 px-3 py-2">
           <Search className="h-4 w-4 text-slate-400" />
           <input
             value={keyword}
             onChange={(event) => setKeyword(event.target.value)}
             placeholder="Tìm tên đăng nhập, email..."
-            className="w-64 border-none bg-transparent text-sm outline-none placeholder:text-slate-400"
+            className="w-full border-none bg-transparent text-sm outline-none placeholder:text-slate-400 focus:shadow-none"
           />
         </div>
 
         <select
           value={filterRole}
           onChange={(event) => setFilterRole(event.target.value)}
-          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none"
+          className="admin-select px-3 py-2 text-sm outline-none"
         >
           {ROLE_FILTER_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -219,7 +224,7 @@ export default function AdminUsersPage() {
         <select
           value={filterStatus}
           onChange={(event) => setFilterStatus(event.target.value)}
-          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none"
+          className="admin-select px-3 py-2 text-sm outline-none"
         >
           {STATUS_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -229,109 +234,115 @@ export default function AdminUsersPage() {
         </select>
       </div>
 
-      <div className="rounded-3xl bg-white shadow-sm">
+      <div className="admin-panel overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-            <thead className="bg-slate-50 text-slate-500">
+          <table className="admin-table min-w-full divide-y divide-slate-200 text-left text-sm">
+            <thead>
               <tr>
-                <th className="px-4 py-3 font-semibold">Tài khoản</th>
-                <th className="px-4 py-3 font-semibold">Email</th>
-                <th className="px-4 py-3 font-semibold">Vai trò</th>
-                <th className="px-4 py-3 font-semibold">Trạng thái</th>
-                <th className="px-4 py-3 font-semibold">Loại nhân sự</th>
-                <th className="px-4 py-3 font-semibold">Ngày tạo</th>
-                <th className="px-4 py-3 font-semibold text-right">Thao tác</th>
+                <th className="px-5 py-4">Tài khoản</th>
+                <th className="px-5 py-4">Email</th>
+                <th className="px-5 py-4">Vai trò</th>
+                <th className="px-5 py-4">Trạng thái</th>
+                <th className="px-5 py-4">Loại nhân sự</th>
+                <th className="px-5 py-4">Ngày tạo</th>
+                <th className="px-5 py-4 text-right">Thao tác</th>
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-slate-200">
+            <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-slate-400">
-                    Đang tải...
+                  <td colSpan={7} className="px-5 py-14 text-center text-slate-400">
+                    Đang tải dữ liệu...
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-slate-400">
+                  <td colSpan={7} className="px-5 py-14 text-center text-slate-400">
                     Không có người dùng nào
                   </td>
                 </tr>
               ) : (
                 users.map((user) => (
-                  <tr key={user.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-slate-900">{user.username}</p>
-                      <p className="text-xs text-slate-400">{user.fullName || "—"}</p>
+                  <tr key={user.id}>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-sm font-bold text-slate-700">
+                          {user.username?.charAt(0)?.toUpperCase() || "U"}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-900">{user.username}</p>
+                          <p className="text-xs text-slate-400">{user.fullName || "—"}</p>
+                        </div>
+                      </div>
                     </td>
 
-                    <td className="px-4 py-3 text-slate-600">{user.email || "—"}</td>
+                    <td className="px-5 py-4 text-slate-600">{user.email || "—"}</td>
 
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4">
                       <RoleBadge role={user.role} />
                     </td>
 
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4">
                       <StatusBadge status={user.status} />
                     </td>
 
-                    <td className="px-4 py-3 text-xs text-slate-600">
+                    <td className="px-5 py-4 text-xs text-slate-600">
                       {user.employeeType || "—"}
                     </td>
 
-                    <td className="px-4 py-3 text-xs text-slate-600">
+                    <td className="px-5 py-4 text-xs text-slate-600">
                       {user.createdAt
                         ? new Date(user.createdAt).toLocaleDateString("vi-VN")
                         : "—"}
                     </td>
 
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4">
                       <div className="flex items-center justify-end gap-1">
-                        <button
+                        <ActionButton
                           title="Sửa"
                           disabled={user.status === "INACTIVE"}
                           onClick={() => {
                             setSelectedUser(user);
                             setShowEditModal(true);
                           }}
-                          className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           <Pencil className="h-4 w-4" />
-                        </button>
+                        </ActionButton>
 
-                        <button
+                        <ActionButton
                           title={user.status === "LOCKED" ? "Mở khóa" : "Khóa"}
                           disabled={user.status === "INACTIVE"}
                           onClick={() => handleLockUnlock(user)}
-                          className="rounded-lg p-2 text-slate-400 transition hover:bg-amber-50 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-40"
+                          variant="warning"
                         >
                           {user.status === "LOCKED" ? (
                             <Unlock className="h-4 w-4" />
                           ) : (
                             <Lock className="h-4 w-4" />
                           )}
-                        </button>
+                        </ActionButton>
 
-                        <button
+                        <ActionButton
                           title="Đổi mật khẩu"
                           disabled={user.status === "INACTIVE"}
                           onClick={() => {
                             setSelectedUser(user);
                             setShowPasswordModal(true);
                           }}
-                          className="rounded-lg p-2 text-slate-400 transition hover:bg-purple-50 hover:text-purple-600 disabled:cursor-not-allowed disabled:opacity-40"
+                          variant="info"
                         >
                           <Key className="h-4 w-4" />
-                        </button>
+                        </ActionButton>
 
-                        <button
+                        <ActionButton
                           title="Xóa tài khoản"
                           disabled={user.status === "INACTIVE"}
                           onClick={() => handleDeleteUser(user)}
-                          className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                          variant="danger"
                         >
                           <Trash2 className="h-4 w-4" />
-                        </button>
+                        </ActionButton>
                       </div>
                     </td>
                   </tr>
@@ -376,11 +387,43 @@ export default function AdminUsersPage() {
   );
 }
 
+function ActionButton({
+  title,
+  disabled,
+  onClick,
+  children,
+  variant = "default",
+}: {
+  title: string;
+  disabled?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  variant?: "default" | "warning" | "info" | "danger";
+}) {
+  const variants: Record<string, string> = {
+    default: "hover:bg-blue-50 hover:text-blue-600",
+    warning: "hover:bg-amber-50 hover:text-amber-600",
+    info: "hover:bg-purple-50 hover:text-purple-600",
+    danger: "hover:bg-red-50 hover:text-red-600",
+  };
+
+  return (
+    <button
+      title={title}
+      disabled={disabled}
+      onClick={onClick}
+      className={`rounded-xl p-2 text-slate-400 transition disabled:cursor-not-allowed disabled:opacity-40 ${variants[variant]}`}
+    >
+      {children}
+    </button>
+  );
+}
+
 function RoleBadge({ role }: { role: string }) {
   const styles: Record<string, string> = {
-    ADMIN: "bg-red-100 text-red-700",
-    STAFF: "bg-blue-100 text-blue-700",
-    CUSTOMER: "bg-emerald-100 text-emerald-700",
+    ADMIN: "badge-danger",
+    STAFF: "badge-info",
+    CUSTOMER: "badge-success",
   };
 
   const labels: Record<string, string> = {
@@ -390,11 +433,7 @@ function RoleBadge({ role }: { role: string }) {
   };
 
   return (
-    <span
-      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
-        styles[role] ?? "bg-slate-100 text-slate-600"
-      }`}
-    >
+    <span className={`badge ${styles[role] ?? "bg-slate-100 text-slate-600"}`}>
       {labels[role] ?? role}
     </span>
   );
@@ -402,9 +441,9 @@ function RoleBadge({ role }: { role: string }) {
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    ACTIVE: "bg-emerald-100 text-emerald-700",
-    LOCKED: "bg-amber-100 text-amber-700",
-    INACTIVE: "bg-red-100 text-red-700",
+    ACTIVE: "badge-success",
+    LOCKED: "badge-warning",
+    INACTIVE: "badge-danger",
   };
 
   const labels: Record<string, string> = {
@@ -414,11 +453,7 @@ function StatusBadge({ status }: { status: string }) {
   };
 
   return (
-    <span
-      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
-        styles[status] ?? "bg-slate-100 text-slate-600"
-      }`}
-    >
+    <span className={`badge ${styles[status] ?? "bg-slate-100 text-slate-600"}`}>
       {labels[status] ?? status}
     </span>
   );
@@ -461,7 +496,7 @@ function CreateUserModal({
           <input
             value={form.username}
             onChange={(event) => setForm({ ...form, username: event.target.value })}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            className="admin-input w-full px-3 py-2 text-sm outline-none"
             required
             minLength={3}
           />
@@ -472,7 +507,7 @@ function CreateUserModal({
             type="password"
             value={form.password}
             onChange={(event) => setForm({ ...form, password: event.target.value })}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            className="admin-input w-full px-3 py-2 text-sm outline-none"
             required
             minLength={8}
           />
@@ -483,7 +518,7 @@ function CreateUserModal({
             type="email"
             value={form.email}
             onChange={(event) => setForm({ ...form, email: event.target.value })}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            className="admin-input w-full px-3 py-2 text-sm outline-none"
             required
           />
         </FormField>
@@ -492,7 +527,7 @@ function CreateUserModal({
           <input
             value={form.phone}
             onChange={(event) => setForm({ ...form, phone: event.target.value })}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            className="admin-input w-full px-3 py-2 text-sm outline-none"
           />
         </FormField>
 
@@ -500,7 +535,7 @@ function CreateUserModal({
           <select
             value={form.role}
             onChange={(event) => setForm({ ...form, role: event.target.value as UserRole })}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            className="admin-select w-full px-3 py-2 text-sm outline-none"
           >
             {ROLE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -514,7 +549,7 @@ function CreateUserModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            className="admin-button-secondary px-4 py-2 text-sm"
           >
             Hủy
           </button>
@@ -522,7 +557,7 @@ function CreateUserModal({
           <button
             type="submit"
             disabled={isSaving}
-            className="rounded-xl bg-[#0F2849] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1a3a6b] disabled:opacity-60"
+            className="admin-button-primary px-4 py-2 text-sm"
           >
             {isSaving ? "Đang tạo..." : "Tạo tài khoản"}
           </button>
@@ -570,7 +605,7 @@ function EditUserModal({
             type="email"
             value={form.email}
             onChange={(event) => setForm({ ...form, email: event.target.value })}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            className="admin-input w-full px-3 py-2 text-sm outline-none"
           />
         </FormField>
 
@@ -578,7 +613,7 @@ function EditUserModal({
           <input
             value={form.phone}
             onChange={(event) => setForm({ ...form, phone: event.target.value })}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            className="admin-input w-full px-3 py-2 text-sm outline-none"
           />
         </FormField>
 
@@ -586,7 +621,7 @@ function EditUserModal({
           <input
             value={form.fullName}
             onChange={(event) => setForm({ ...form, fullName: event.target.value })}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            className="admin-input w-full px-3 py-2 text-sm outline-none"
           />
         </FormField>
 
@@ -594,7 +629,7 @@ function EditUserModal({
           <select
             value={form.employeeType}
             onChange={(event) => setForm({ ...form, employeeType: event.target.value })}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            className="admin-select w-full px-3 py-2 text-sm outline-none"
           >
             <option value="">— Không xác định —</option>
             {EMPLOYEE_TYPE_OPTIONS.map((option) => (
@@ -609,7 +644,7 @@ function EditUserModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            className="admin-button-secondary px-4 py-2 text-sm"
           >
             Hủy
           </button>
@@ -617,7 +652,7 @@ function EditUserModal({
           <button
             type="submit"
             disabled={isSaving}
-            className="rounded-xl bg-[#0F2849] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1a3a6b] disabled:opacity-60"
+            className="admin-button-primary px-4 py-2 text-sm"
           >
             {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
           </button>
@@ -663,7 +698,7 @@ function ResetPasswordModal({
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            className="admin-input w-full px-3 py-2 text-sm outline-none"
             required
             minLength={8}
           />
@@ -674,7 +709,7 @@ function ResetPasswordModal({
             type="password"
             value={confirm}
             onChange={(event) => setConfirm(event.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            className="admin-input w-full px-3 py-2 text-sm outline-none"
             required
             minLength={8}
           />
@@ -684,14 +719,14 @@ function ResetPasswordModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            className="admin-button-secondary px-4 py-2 text-sm"
           >
             Hủy
           </button>
 
           <button
             type="submit"
-            className="rounded-xl bg-[#0F2849] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1a3a6b]"
+            className="admin-button-primary px-4 py-2 text-sm"
           >
             Đổi mật khẩu
           </button>
@@ -711,14 +746,14 @@ function Modal({
   children: React.ReactNode;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-xl">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+    <div className="admin-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="admin-modal w-full max-w-lg p-6">
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-slate-900">{title}</h2>
 
           <button
             onClick={onClose}
-            className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+            className="rounded-xl p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
           >
             <X className="h-5 w-5" />
           </button>
@@ -741,7 +776,7 @@ function FormField({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium text-slate-700">
+      <label className="mb-1.5 block text-sm font-semibold text-slate-700">
         {label}
         {required && <span className="ml-1 text-red-500">*</span>}
       </label>

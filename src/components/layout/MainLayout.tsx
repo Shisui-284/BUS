@@ -34,7 +34,7 @@ function MainLayout() {
   const items = menuConfig[role] ?? menuConfig.CUSTOMER;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[var(--admin-bg)]">
       <div className="flex min-h-screen">
         <aside className="w-60 bg-[#0F2849] text-white shadow-md">
           <div className="px-6 py-8">

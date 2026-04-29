@@ -7,7 +7,7 @@ import ProtectedRoute from "./components/layout/ProtectedRoute";
 
 function App() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-[var(--admin-bg)] text-slate-900">
       <Routes>
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
