@@ -1,10 +1,13 @@
 package com.business.busmanagement.service;
 
+import com.business.busmanagement.dto.TripCreateRequest;
+import com.business.busmanagement.dto.TripResponse;
 import com.business.busmanagement.dto.admin.*;
 import com.business.busmanagement.exception.BusinessConflictException;
 import com.business.busmanagement.exception.ResourceNotFoundException;
 import com.business.busmanagement.model.*;
 import com.business.busmanagement.repository.*;
+import com.business.busmanagement.service.TripService;
 import com.business.busmanagement.util.RoleNormalizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,6 +33,7 @@ public class AdminService {
     private final BusRepository busRepository;
     private final RouteRepository routeRepository;
     private final TripRepository tripRepository;
+    private final TripService tripService;
     private final SeatRepository seatRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -37,7 +41,12 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public AdminDashboardResponse getDashboard() {
-        long totalUsers = userRepository.count();
+        List<User> visibleUsers = userRepository.findAll()
+                .stream()
+                .filter(user -> user.getStatus() != User.UserStatus.INACTIVE)
+                .collect(Collectors.toList());
+
+        long totalUsers = visibleUsers.size();
         long totalBuses = busRepository.count();
         long totalRoutes = routeRepository.count();
 
@@ -47,9 +56,17 @@ public class AdminService {
 
         List<Role> roles = roleRepository.findAll();
         List<AdminDashboardResponse.RoleCount> roleDistribution = roles.stream()
-                .map(role -> new AdminDashboardResponse.RoleCount(
-                        RoleNormalizer.normalize(role.getName()),
-                        userRepository.countByRoleId(role.getId())))
+                .map(role -> {
+                    String normalizedRole = RoleNormalizer.normalize(role.getName());
+
+                    long count = visibleUsers.stream()
+                            .filter(user -> user.getRole() != null)
+                            .filter(user -> normalizedRole.equalsIgnoreCase(
+                                    RoleNormalizer.normalize(user.getRole().getName())))
+                            .count();
+
+                    return new AdminDashboardResponse.RoleCount(normalizedRole, count);
+                })
                 .filter(roleCount -> roleCount.getCount() > 0)
                 .collect(Collectors.toList());
 
@@ -280,7 +297,19 @@ public class AdminService {
             }
         }
 
+        String deletedSuffix = "_deleted_" + user.getId();
+
+        if (user.getUsername() != null && !user.getUsername().contains("_deleted_")) {
+            user.setUsername(user.getUsername() + deletedSuffix);
+        }
+
+        if (user.getEmail() != null && !user.getEmail().startsWith("deleted_")) {
+            user.setEmail("deleted_" + user.getId() + "_" + user.getEmail());
+        }
+
+        user.setPhone(null);
         user.setStatus(User.UserStatus.INACTIVE);
+
         userRepository.save(user);
     }
 
@@ -488,6 +517,26 @@ public class AdminService {
         }
 
         return toRouteDetailResponse(routeRepository.save(route));
+    }
+
+    @Transactional(readOnly = true)
+    public List<TripResponse> getTrips(LocalDate date, Long routeId, Trip.TripStatus status) {
+        return tripService.getTrips(date, routeId, status);
+    }
+
+    @Transactional
+    public TripResponse createTrip(TripCreateRequest request) {
+        return tripService.createTrip(request);
+    }
+
+    @Transactional
+    public TripResponse updateTrip(Long id, TripCreateRequest request) {
+        return tripService.updateTrip(id, request);
+    }
+
+    @Transactional
+    public void deleteTrip(Long id) {
+        tripService.deleteTrip(id);
     }
 
     // ==================== HELPERS ====================

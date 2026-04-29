@@ -211,3 +211,53 @@ export async function updateRoute(id: number, payload: UpdateRoutePayload): Prom
   const res = await apiClient.put<AdminRoute>(`/admin/routes/${id}`, payload);
   return res.data;
 }
+
+// ==================== TRIP MANAGEMENT ====================
+
+export interface AdminTrip {
+  id: number;
+  routeId: number;
+  routeName: string;
+  busId: number;
+  busLabel: string;
+  departureTime: string;
+  arrivalTime: string;
+  status: "SCHEDULED" | "RUNNING" | "COMPLETED" | "CANCELLED" | "DELAYED";
+  assignments: {
+    id: number;
+    employeeId: number | null;
+    employeeName: string | null;
+    role: string;
+  }[];
+}
+
+export interface CreateTripPayload {
+  routeId: number;
+  busId: number;
+  departureTime: string;
+  arrivalTime: string;
+  status?: string;
+}
+
+export async function getAdminTrips(params?: {
+  date?: string;
+  routeId?: number;
+  status?: string;
+}): Promise<AdminTrip[]> {
+  const res = await apiClient.get<AdminTrip[]>("/admin/trips", { params });
+  return res.data;
+}
+
+export async function createAdminTrip(payload: CreateTripPayload): Promise<AdminTrip> {
+  const res = await apiClient.post<AdminTrip>("/admin/trips", payload);
+  return res.data;
+}
+
+export async function updateAdminTrip(id: number, payload: CreateTripPayload): Promise<AdminTrip> {
+  const res = await apiClient.put<AdminTrip>(`/admin/trips/${id}`, payload);
+  return res.data;
+}
+
+export async function deleteAdminTrip(id: number): Promise<void> {
+  await apiClient.delete(`/admin/trips/${id}`);
+}

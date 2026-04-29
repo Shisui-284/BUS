@@ -6,6 +6,7 @@ import AdminDashboardPage from "../../pages/admin/AdminDashboardPage";
 import AdminUsersPage from "../../pages/admin/AdminUsersPage";
 import AdminBusesPage from "../../pages/admin/AdminBusesPage";
 import AdminRoutesPage from "../../pages/admin/AdminRoutesPage";
+import AdminTripsPage from "../../pages/admin/AdminTripsPage";
 import DispatcherDashboardPage from "../../pages/dispatcher/DispatcherDashboardPage";
 import CustomerBookingPage from "../../pages/customer/CustomerBookingPage";
 import CustomerTicketsPage from "../../pages/customer/CustomerTicketsPage";
@@ -17,6 +18,7 @@ const menuConfig = {
     { label: "Quản lý tài khoản", to: "/admin/users" },
     { label: "Quản lý xe", to: "/admin/buses" },
     { label: "Quản lý tuyến", to: "/admin/routes" },
+    { label: "Quản lý chuyến", to: "/admin/trips" },
   ],
   STAFF: [{ label: "Dashboard", to: "/staff/dashboard" }],
   CUSTOMER: [
@@ -90,6 +92,7 @@ function MainLayout() {
               <Route path="/admin/users" element={<AdminUsersPage />} />
               <Route path="/admin/buses" element={<AdminBusesPage />} />
               <Route path="/admin/routes" element={<AdminRoutesPage />} />
+              <Route path="/admin/trips" element={<AdminTripsPage />} />
               <Route
                 path="/staff/dashboard"
                 element={<DispatcherDashboardPage />}

@@ -1,6 +1,9 @@
 package com.business.busmanagement.controller;
 
+import com.business.busmanagement.dto.TripCreateRequest;
+import com.business.busmanagement.dto.TripResponse;
 import com.business.busmanagement.dto.admin.*;
+import com.business.busmanagement.model.Trip;
 import com.business.busmanagement.service.AdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -135,5 +138,33 @@ public class AdminController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateRouteRequest request) {
         return ResponseEntity.ok(adminService.updateRoute(id, request));
+    }
+
+    // ==================== TRIP MANAGEMENT ====================
+
+    @GetMapping("/trips")
+    public ResponseEntity<List<TripResponse>> getTrips(
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate date,
+            @RequestParam(required = false) Long routeId,
+            @RequestParam(required = false) Trip.TripStatus status) {
+        return ResponseEntity.ok(adminService.getTrips(date, routeId, status));
+    }
+
+    @PostMapping("/trips")
+    public ResponseEntity<TripResponse> createTrip(@Valid @RequestBody TripCreateRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(adminService.createTrip(request));
+    }
+
+    @PutMapping("/trips/{id}")
+    public ResponseEntity<TripResponse> updateTrip(
+            @PathVariable Long id,
+            @Valid @RequestBody TripCreateRequest request) {
+        return ResponseEntity.ok(adminService.updateTrip(id, request));
+    }
+
+    @DeleteMapping("/trips/{id}")
+    public ResponseEntity<Map<String, String>> deleteTrip(@PathVariable Long id) {
+        adminService.deleteTrip(id);
+        return ResponseEntity.ok(Map.of("message", "Trip deleted successfully"));
     }
 }
