@@ -1,12 +1,10 @@
 package com.business.busmanagement.config;
 
 import com.business.busmanagement.model.Bus;
-import com.business.busmanagement.model.Employee;
 import com.business.busmanagement.model.Role;
 import com.business.busmanagement.model.Route;
 import com.business.busmanagement.model.User;
 import com.business.busmanagement.repository.BusRepository;
-import com.business.busmanagement.repository.EmployeeRepository;
 import com.business.busmanagement.repository.RoleRepository;
 import com.business.busmanagement.repository.RouteRepository;
 import com.business.busmanagement.repository.UserRepository;
@@ -14,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -23,11 +22,11 @@ import java.util.Arrays;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@Order(1)
 public class DataInitializer implements CommandLineRunner {
 
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
-    private final EmployeeRepository employeeRepository;
     private final RouteRepository routeRepository;
     private final BusRepository busRepository;
     private final PasswordEncoder passwordEncoder;
@@ -47,7 +46,6 @@ public class DataInitializer implements CommandLineRunner {
 
     private void initializeRoles() {
         ensureRole("ADMIN", "Administrator with full access");
-        ensureRole("STAFF", "Operational staff with dispatch, reporting, maintenance and ticket access");
         ensureRole("CUSTOMER", "Customer account");
 
         log.info("Roles initialization checked/completed");
@@ -66,20 +64,10 @@ public class DataInitializer implements CommandLineRunner {
 
     private void initializeUsers() {
         Role adminRole = roleRepository.findByName("ADMIN").orElseThrow();
-        Role staffRole = roleRepository.findByName("STAFF").orElseThrow();
 
-        User admin = ensureUser("admin", "admin@bus.com", adminRole);
-        User dispatcher = ensureUser("dispatcher", "dispatcher@bus.com", staffRole);
-        User manager = ensureUser("manager", "manager@bus.com", staffRole);
-        User driver = ensureUser("driver1", "driver1@bus.com", staffRole);
-        User assistant = ensureUser("assistant1", "assistant1@bus.com", staffRole);
+        ensureUser("admin", "admin@bus.com", adminRole);
 
-        ensureEmployee(dispatcher, "Lê Quốc Huy", Employee.EmployeeType.DISPATCHER);
-        ensureEmployee(manager, "Phạm Minh Anh", Employee.EmployeeType.MANAGER);
-        ensureEmployee(driver, "Nguyễn Văn Tài", Employee.EmployeeType.DRIVER);
-        ensureEmployee(assistant, "Trần Thị Hương", Employee.EmployeeType.ASSISTANT);
-
-        log.info("Users and employees initialized");
+        log.info("Users initialized");
     }
 
     private User ensureUser(String username, String email, Role role) {
@@ -104,15 +92,6 @@ public class DataInitializer implements CommandLineRunner {
 
                     return userRepository.save(user);
                 });
-    }
-
-    private void ensureEmployee(User user, String fullName, Employee.EmployeeType employeeType) {
-        Employee employee = employeeRepository.findByUserId(user.getId()).orElseGet(Employee::new);
-        employee.setUser(user);
-        employee.setFullName(fullName);
-        employee.setEmployeeType(employeeType);
-        employee.setStatus(Employee.EmployeeStatus.ACTIVE);
-        employeeRepository.save(employee);
     }
 
     private void initializeRoutes() {

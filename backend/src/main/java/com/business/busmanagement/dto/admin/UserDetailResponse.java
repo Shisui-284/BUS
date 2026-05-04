@@ -19,7 +19,6 @@ public class UserDetailResponse {
     private String role;
     private String status;
     private String fullName;
-    private String employeeType;
     private LocalDateTime createdAt;
     private List<String> permissions;
 }

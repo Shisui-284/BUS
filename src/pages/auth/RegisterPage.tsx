@@ -7,7 +7,6 @@ import { extractApiErrorMessage, extractApiStatus } from "../../utils/apiError";
 
 const roleRedirect: Record<string, string> = {
   ADMIN: "/admin/dashboard",
-  STAFF: "/staff/dashboard",
   CUSTOMER: "/customer/booking",
 };
 
@@ -30,7 +29,7 @@ export default function RegisterPage() {
         email,
         password,
       });
-      navigate(roleRedirect[user.role] ?? "/staff/dashboard");
+      navigate(roleRedirect[user.role] ?? "/customer/booking");
       toast.success("Đăng ký thành công! Đã đăng nhập tự động.");
     } catch (error: unknown) {
       const status = extractApiStatus(error);
@@ -66,7 +65,7 @@ export default function RegisterPage() {
             <div className="space-y-4 rounded-3xl bg-white/10 p-6">
               <div className="flex items-center gap-3 text-sm text-slate-200">
                 <ShieldCheck className="h-5 w-5" />
-                Chỉ khách hàng tự đăng ký; admin và staff dùng tài khoản được
+                Chỉ khách hàng tự đăng ký; admin dùng tài khoản được
                 cấp.
               </div>
               <div className="flex items-center gap-3 text-sm text-slate-200">

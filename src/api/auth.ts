@@ -4,7 +4,7 @@ import { User } from "../types";
 export interface LoginRequest {
   username: string;
   password: string;
-  role: "ADMIN" | "STAFF" | "CUSTOMER";
+  role: "ADMIN" | "CUSTOMER";
 }
 
 export interface RegisterRequest {

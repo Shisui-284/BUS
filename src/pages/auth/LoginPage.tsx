@@ -8,14 +8,13 @@ import { extractApiErrorMessage, extractApiStatus } from "../../utils/apiError";
 
 const roleRedirect: Record<UserRole, string> = {
   ADMIN: "/admin/dashboard",
-  STAFF: "/staff/dashboard",
   CUSTOMER: "/customer/booking",
 };
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<UserRole>("STAFF");
+  const [role, setRole] = useState<UserRole>("ADMIN");
   const [showPassword, setShowPassword] = useState(false);
   const login = useAuthStore((state) => state.login);
   const isLoading = useAuthStore((state) => state.isLoading);
@@ -25,7 +24,7 @@ export default function LoginPage() {
     event.preventDefault();
     try {
       const user = await login({ username, password, role });
-      const nextPath = roleRedirect[user.role] ?? "/staff/dashboard";
+      const nextPath = roleRedirect[user.role] ?? "/admin/dashboard";
       navigate(nextPath);
     } catch (error: unknown) {
       const status = extractApiStatus(error);
@@ -92,7 +91,6 @@ export default function LoginPage() {
                     className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500"
                   >
                     <option value="ADMIN">ADMIN</option>
-                    <option value="STAFF">STAFF</option>
                     <option value="CUSTOMER">CUSTOMER</option>
                   </select>
                 </label>
@@ -146,7 +144,7 @@ export default function LoginPage() {
                   />
                   Ghi nhớ đăng nhập
                 </label>
-                <div>Admin và staff dùng tài khoản được cấp sẵn</div>
+                <div>Admin dùng tài khoản được cấp sẵn</div>
               </div>
 
               <button

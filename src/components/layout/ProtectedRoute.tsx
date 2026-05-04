@@ -22,16 +22,11 @@ export default function ProtectedRoute({
     const path = location.pathname;
 
     if (path.startsWith("/admin/") && user.role !== "ADMIN") {
-      navigate("/staff/dashboard", { replace: true });
+      navigate("/auth/login", { replace: true });
       return;
     }
 
-    if (path.startsWith("/staff/") && user.role !== "STAFF" && user.role !== "ADMIN") {
-      navigate("/customer/booking", { replace: true });
-      return;
-    }
-
-    if (path.startsWith("/customer/") && user.role !== "CUSTOMER" && user.role !== "STAFF" && user.role !== "ADMIN") {
+    if (path.startsWith("/customer/") && user.role !== "CUSTOMER") {
       navigate("/auth/login", { replace: true });
       return;
     }
@@ -39,7 +34,6 @@ export default function ProtectedRoute({
     if (allowedRoles && !allowedRoles.includes(user.role)) {
       const defaultPath: Record<string, string> = {
         ADMIN: "/admin/dashboard",
-        STAFF: "/staff/dashboard",
         CUSTOMER: "/customer/booking",
       };
       navigate(defaultPath[user.role] ?? "/auth/login", { replace: true });

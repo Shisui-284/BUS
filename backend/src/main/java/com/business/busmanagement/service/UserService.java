@@ -4,11 +4,9 @@ import com.business.busmanagement.dto.AuthResponse;
 import com.business.busmanagement.dto.LoginRequest;
 import com.business.busmanagement.dto.RegisterRequest;
 import com.business.busmanagement.exception.BusinessConflictException;
-import com.business.busmanagement.model.Employee;
 import com.business.busmanagement.model.Passenger;
 import com.business.busmanagement.model.Role;
 import com.business.busmanagement.model.User;
-import com.business.busmanagement.repository.EmployeeRepository;
 import com.business.busmanagement.repository.PassengerRepository;
 import com.business.busmanagement.repository.RoleRepository;
 import com.business.busmanagement.repository.UserRepository;
@@ -27,7 +25,6 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final EmployeeRepository employeeRepository;
     private final PassengerRepository passengerRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -116,13 +113,6 @@ public class UserService {
         userDto.setUsername(user.getUsername());
         userDto.setEmail(user.getEmail());
         userDto.setRole(RoleNormalizer.normalize(user.getRole().getName()));
-
-        Optional<Employee> employee = employeeRepository.findByUserId(user.getId());
-        if (employee.isPresent()) {
-            userDto.setFullName(employee.get().getFullName());
-            userDto.setPhone("");
-            return userDto;
-        }
 
         Optional<Passenger> passenger = passengerRepository.findByUserId(user.getId());
         passenger.ifPresent(pass -> {

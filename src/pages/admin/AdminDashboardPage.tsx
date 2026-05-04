@@ -6,7 +6,6 @@ import { extractApiErrorMessage } from "../../utils/apiError";
 
 const ROLE_LABELS: Record<string, string> = {
   ADMIN: "Quản trị",
-  STAFF: "Nhân viên",
   CUSTOMER: "Khách hàng",
 };
 
@@ -124,9 +123,7 @@ export default function AdminDashboardPage() {
                 const color =
                   roleItem.role === "ADMIN"
                     ? "bg-red-500"
-                    : roleItem.role === "STAFF"
-                      ? "bg-blue-500"
-                      : "bg-emerald-500";
+                    : "bg-emerald-500";
 
                 return (
                   <ProgressItem

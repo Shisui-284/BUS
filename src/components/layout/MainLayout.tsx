@@ -7,7 +7,6 @@ import AdminUsersPage from "../../pages/admin/AdminUsersPage";
 import AdminBusesPage from "../../pages/admin/AdminBusesPage";
 import AdminRoutesPage from "../../pages/admin/AdminRoutesPage";
 import AdminTripsPage from "../../pages/admin/AdminTripsPage";
-import DispatcherDashboardPage from "../../pages/dispatcher/DispatcherDashboardPage";
 import CustomerBookingPage from "../../pages/customer/CustomerBookingPage";
 import CustomerTicketsPage from "../../pages/customer/CustomerTicketsPage";
 import CustomerProfilePage from "../../pages/customer/CustomerProfilePage";
@@ -20,7 +19,6 @@ const menuConfig = {
     { label: "Quản lý tuyến", to: "/admin/routes" },
     { label: "Quản lý chuyến", to: "/admin/trips" },
   ],
-  STAFF: [{ label: "Dashboard", to: "/staff/dashboard" }],
   CUSTOMER: [
     { label: "Đặt vé", to: "/customer/booking" },
     { label: "Vé của tôi", to: "/customer/tickets" },
@@ -94,10 +92,6 @@ function MainLayout() {
               <Route path="/admin/routes" element={<AdminRoutesPage />} />
               <Route path="/admin/trips" element={<AdminTripsPage />} />
               <Route
-                path="/staff/dashboard"
-                element={<DispatcherDashboardPage />}
-              />
-              <Route
                 path="/customer/booking"
                 element={<CustomerBookingPage />}
               />
@@ -119,7 +113,7 @@ function MainLayout() {
 }
 
 function NavigateToDefault({ role }: { role: RoleKey }) {
-  const defaultPath = menuConfig[role]?.[0]?.to ?? "/staff/dashboard";
+  const defaultPath = menuConfig[role]?.[0]?.to ?? "/customer/booking";
   return <Navigate to={defaultPath} replace />;
 }
 

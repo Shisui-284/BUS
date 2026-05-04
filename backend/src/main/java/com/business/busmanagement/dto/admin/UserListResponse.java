@@ -18,6 +18,5 @@ public class UserListResponse {
     private String role;
     private String status;
     private String fullName;
-    private String employeeType;
     private LocalDateTime createdAt;
 }

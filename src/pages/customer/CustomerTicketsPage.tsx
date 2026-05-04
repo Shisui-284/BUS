@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { Link } from "react-router-dom";
-import { getMyTickets, cancelTicket, TicketRecord } from "../../api/customer";
+import { Link, useNavigate } from "react-router-dom";
+import { getMyTickets, cancelTicket, mockPayment, TicketRecord } from "../../api/customer";
 
 const STATUS_MAP: Record<string, { label: string; style: string }> = {
   BOOKED: { label: "Chờ xác nhận", style: "bg-amber-100 text-amber-800" },
+  HOLD: { label: "Chờ thanh toán", style: "bg-blue-100 text-blue-800" },
   PAID: { label: "Đã thanh toán", style: "bg-emerald-100 text-emerald-800" },
   CANCELLED: { label: "Đã hủy", style: "bg-red-100 text-red-700" },
   REFUNDED: { label: "Hoàn tiền", style: "bg-slate-100 text-slate-600" },
@@ -23,9 +24,11 @@ const fmtPrice = (p: number) =>
   p.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
 export default function CustomerTicketsPage() {
+  const navigate = useNavigate();
   const [tickets, setTickets] = useState<TicketRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<number | null>(null);
+  const [payingId, setPayingId] = useState<number | null>(null);
 
   useEffect(() => {
     getMyTickets()
@@ -47,6 +50,21 @@ export default function CustomerTicketsPage() {
       toast.error(err instanceof Error ? err.message : "Hủy vé thất bại");
     } finally {
       setCancellingId(null);
+    }
+  };
+
+  const handlePayNow = async (ticket: TicketRecord) => {
+    setPayingId(ticket.id);
+    try {
+      await mockPayment(ticket.id, ticket.price);
+      // Reload tickets to get updated status
+      const updated = await getMyTickets();
+      setTickets(updated);
+      toast.success("Thanh toán thành công!");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Thanh toán thất bại");
+    } finally {
+      setPayingId(null);
     }
   };
 
@@ -83,6 +101,7 @@ export default function CustomerTicketsPage() {
             style: "bg-slate-100 text-slate-600",
           };
           const canCancel = ticket.status === "BOOKED";
+          const canPay = ticket.status === "HOLD";
           return (
             <div
               key={ticket.id}
@@ -118,6 +137,15 @@ export default function CustomerTicketsPage() {
                     className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
                   >
                     {cancellingId === ticket.id ? "..." : "Hủy"}
+                  </button>
+                )}
+                {canPay && (
+                  <button
+                    onClick={() => handlePayNow(ticket)}
+                    disabled={payingId === ticket.id}
+                    className="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-600 disabled:opacity-50"
+                  >
+                    {payingId === ticket.id ? "..." : "Thanh toán"}
                   </button>
                 )}
               </div>

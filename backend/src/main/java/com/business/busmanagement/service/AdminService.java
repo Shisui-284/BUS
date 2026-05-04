@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -28,11 +29,11 @@ public class AdminService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final EmployeeRepository employeeRepository;
     private final PassengerRepository passengerRepository;
     private final BusRepository busRepository;
     private final RouteRepository routeRepository;
     private final TripRepository tripRepository;
+    private final TicketRepository ticketRepository;
     private final TripService tripService;
     private final SeatRepository seatRepository;
     private final PasswordEncoder passwordEncoder;
@@ -194,16 +195,6 @@ public class AdminService {
 
         User saved = userRepository.save(user);
 
-        if ("STAFF".equalsIgnoreCase(request.getRole())) {
-            Employee employee = new Employee();
-            employee.setUser(saved);
-            employee.setFullName(request.getUsername());
-            employee.setPhone(request.getPhone());
-            employee.setEmployeeType(Employee.EmployeeType.DISPATCHER);
-            employee.setStatus(Employee.EmployeeStatus.ACTIVE);
-            employeeRepository.save(employee);
-        }
-
         return toUserDetailResponse(saved);
     }
 
@@ -224,26 +215,6 @@ public class AdminService {
 
         if (request.getPhone() != null) {
             user.setPhone(request.getPhone());
-        }
-
-        Optional<Employee> employeeOptional = employeeRepository.findByUserId(id);
-
-        if (employeeOptional.isPresent()) {
-            Employee employee = employeeOptional.get();
-
-            if (request.getFullName() != null) {
-                employee.setFullName(request.getFullName());
-            }
-
-            if (request.getEmployeeType() != null) {
-                try {
-                    employee.setEmployeeType(Employee.EmployeeType.valueOf(request.getEmployeeType().toUpperCase()));
-                } catch (IllegalArgumentException ignored) {
-                    // Ignore invalid employee type.
-                }
-            }
-
-            employeeRepository.save(employee);
         }
 
         return toUserDetailResponse(userRepository.save(user));
@@ -432,6 +403,19 @@ public class AdminService {
         return toBusDetailResponse(busRepository.save(bus));
     }
 
+    @Transactional
+    public void deleteBus(Long id) {
+        Bus bus = busRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Bus not found with id: " + id));
+
+        if (bus.getTrips() != null && !bus.getTrips().isEmpty()) {
+            throw new BusinessConflictException(
+                    "Không thể xóa xe vì đang có " + bus.getTrips().size() + " chuyến xe liên quan");
+        }
+
+        busRepository.delete(bus);
+    }
+
     // ==================== ROUTE MANAGEMENT ====================
 
     @Transactional(readOnly = true)
@@ -519,6 +503,19 @@ public class AdminService {
         return toRouteDetailResponse(routeRepository.save(route));
     }
 
+    @Transactional
+    public void deleteRoute(Long id) {
+        Route route = routeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Route not found with id: " + id));
+
+        if (route.getTrips() != null && !route.getTrips().isEmpty()) {
+            throw new BusinessConflictException(
+                    "Không thể xóa tuyến đường vì đang có " + route.getTrips().size() + " chuyến xe liên quan");
+        }
+
+        routeRepository.delete(route);
+    }
+
     @Transactional(readOnly = true)
     public List<TripResponse> getTrips(LocalDate date, Long routeId, Trip.TripStatus status) {
         return tripService.getTrips(date, routeId, status);
@@ -539,7 +536,279 @@ public class AdminService {
         tripService.deleteTrip(id);
     }
 
-    // ==================== HELPERS ====================
+    // ==================== TRIP DETAIL ====================
+
+    @Transactional(readOnly = true)
+    public TripDetailResponse getTripById(Long id) {
+        Trip trip = tripRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Trip not found with id: " + id));
+
+        List<Long> bookedSeatIds = ticketRepository.findBookedSeatIdsByTripId(id);
+        List<Ticket> allTickets = ticketRepository.findAll().stream()
+                .filter(t -> t.getTrip() != null && t.getTrip().getId().equals(id))
+                .toList();
+
+        // Fetch seats directly via repository to avoid lazy loading issues
+        List<Seat> seats = List.of();
+        if (trip.getBus() != null) {
+            seats = seatRepository.findByBusId(trip.getBus().getId());
+        }
+
+        int totalSeats = seats.size();
+        int bookedCount = bookedSeatIds.size();
+
+        // Build seat info list
+        List<TripDetailResponse.SeatInfo> seatInfos = seats.stream()
+                .map(seat -> {
+                    boolean isBooked = bookedSeatIds.contains(seat.getId());
+                    Ticket bookedTicket = isBooked ? allTickets.stream()
+                            .filter(t -> t.getSeat() != null && t.getSeat().getId().equals(seat.getId()))
+                            .findFirst().orElse(null) : null;
+
+                    String bookedBy = "";
+                    String passengerName = "";
+                    if (bookedTicket != null && bookedTicket.getBookedBy() != null) {
+                        bookedBy = bookedTicket.getBookedBy().getUsername();
+                    }
+                    if (bookedTicket != null && bookedTicket.getPassenger() != null) {
+                        passengerName = bookedTicket.getPassenger().getFullName();
+                    }
+
+                    return new TripDetailResponse.SeatInfo(
+                            seat.getId(),
+                            seat.getSeatNumber(),
+                            seat.getPositionX(),
+                            seat.getPositionY(),
+                            isBooked,
+                            bookedBy,
+                            passengerName
+                    );
+                })
+                .toList();
+
+        // Build ticket list
+        List<TripDetailResponse.TicketInfo> ticketInfos = allTickets.stream()
+                .map(ticket -> new TripDetailResponse.TicketInfo(
+                        ticket.getId(),
+                        ticket.getSeat() != null ? ticket.getSeat().getSeatNumber() : "",
+                        ticket.getPassenger() != null ? ticket.getPassenger().getFullName() : "",
+                        ticket.getPassenger() != null ? ticket.getPassenger().getPhone() : "",
+                        ticket.getPrice(),
+                        ticket.getStatus().name(),
+                        ticket.getBookedAt()
+                ))
+                .toList();
+
+        // Revenue calculation
+        BigDecimal estimatedRevenue = trip.getRoute() != null
+                ? trip.getRoute().getBasePrice().multiply(BigDecimal.valueOf(bookedCount))
+                : BigDecimal.ZERO;
+        BigDecimal actualRevenue = allTickets.stream()
+                .filter(t -> t.getStatus() == Ticket.TicketStatus.PAID)
+                .map(Ticket::getPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Route info
+        TripDetailResponse.RouteInfo routeInfo = null;
+        if (trip.getRoute() != null) {
+            routeInfo = new TripDetailResponse.RouteInfo(
+                    trip.getRoute().getId(),
+                    trip.getRoute().getOrigin(),
+                    trip.getRoute().getDestination(),
+                    trip.getRoute().getDistanceKm(),
+                    trip.getRoute().getEstimatedDurationMin(),
+                    trip.getRoute().getBasePrice()
+            );
+        }
+
+        // Bus info
+        TripDetailResponse.BusInfo busInfo = null;
+        if (trip.getBus() != null) {
+            busInfo = new TripDetailResponse.BusInfo(
+                    trip.getBus().getId(),
+                    trip.getBus().getLicensePlate(),
+                    trip.getBus().getBusType().name(),
+                    trip.getBus().getTotalSeats(),
+                    trip.getBus().getStatus().name()
+            );
+        }
+
+        return new TripDetailResponse(
+                trip.getId(),
+                routeInfo,
+                busInfo,
+                trip.getDepartureTime(),
+                trip.getArrivalTime(),
+                trip.getStatus(),
+                trip.getActualDeparture(),
+                trip.getActualArrival(),
+                totalSeats,
+                bookedCount,
+                totalSeats - bookedCount,
+                seatInfos,
+                ticketInfos,
+                estimatedRevenue,
+                actualRevenue
+        );
+    }
+
+    // ==================== TICKET MANAGEMENT ====================
+
+    @Transactional(readOnly = true)
+    public List<TicketListResponse> getTickets(String keyword, String status, Long tripId) {
+        Ticket.TicketStatus ticketStatus = null;
+        if (status != null && !status.isBlank()) {
+            try {
+                ticketStatus = Ticket.TicketStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+
+        List<Ticket> tickets = ticketRepository.findAllWithFilters(keyword, ticketStatus, tripId);
+
+        return tickets.stream().map(this::toTicketListResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public TicketDetailResponse getTicketById(Long id) {
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with id: " + id));
+
+        return toTicketDetailResponse(ticket);
+    }
+
+    private TicketListResponse toTicketListResponse(Ticket ticket) {
+        String routeName = "";
+        String busLabel = "";
+        String departureTime = "";
+        String tripStatus = "";
+        if (ticket.getTrip() != null) {
+            if (ticket.getTrip().getRoute() != null) {
+                routeName = ticket.getTrip().getRoute().getOrigin() + " -> " + ticket.getTrip().getRoute().getDestination();
+            }
+            if (ticket.getTrip().getBus() != null) {
+                busLabel = ticket.getTrip().getBus().getLicensePlate() + " - " + ticket.getTrip().getBus().getBusType();
+            }
+            departureTime = ticket.getTrip().getDepartureTime() != null
+                    ? ticket.getTrip().getDepartureTime().toString() : "";
+            tripStatus = ticket.getTrip().getStatus().name();
+        }
+
+        String passengerName = ticket.getPassenger() != null ? ticket.getPassenger().getFullName() : "";
+        String passengerPhone = ticket.getPassenger() != null ? ticket.getPassenger().getPhone() : "";
+        String passengerEmail = ticket.getPassenger() != null ? ticket.getPassenger().getEmail() : "";
+        String bookedBy = ticket.getBookedBy() != null ? ticket.getBookedBy().getUsername() : "";
+
+        TicketListResponse.PaymentInfo paymentInfo = null;
+        if (ticket.getPayment() != null) {
+            String paidAt = ticket.getPayment().getPaidAt() != null
+                    ? ticket.getPayment().getPaidAt().toString() : "";
+            paymentInfo = new TicketListResponse.PaymentInfo(
+                    ticket.getPayment().getId(),
+                    ticket.getPayment().getPaymentMethod().name(),
+                    ticket.getPayment().getStatus().name(),
+                    paidAt
+            );
+        }
+
+        boolean canCancel = ticket.getStatus() != Ticket.TicketStatus.CANCELLED
+                && ticket.getStatus() != Ticket.TicketStatus.REFUNDED;
+
+        return new TicketListResponse(
+                ticket.getId(),
+                new TicketListResponse.TripInfo(ticket.getTrip() != null ? ticket.getTrip().getId() : null,
+                        routeName, busLabel, departureTime, tripStatus),
+                ticket.getSeat() != null ? ticket.getSeat().getSeatNumber() : "",
+                passengerName,
+                passengerPhone,
+                passengerEmail,
+                ticket.getPrice(),
+                ticket.getStatus().name(),
+                bookedBy,
+                ticket.getBookedAt(),
+                paymentInfo,
+                canCancel
+        );
+    }
+
+    private TicketDetailResponse toTicketDetailResponse(Ticket ticket) {
+        TicketDetailResponse.TripDetail tripDetail = null;
+        if (ticket.getTrip() != null) {
+            String routeName = "";
+            String busLabel = "";
+            if (ticket.getTrip().getRoute() != null) {
+                routeName = ticket.getTrip().getRoute().getOrigin() + " -> " + ticket.getTrip().getRoute().getDestination();
+            }
+            if (ticket.getTrip().getBus() != null) {
+                busLabel = ticket.getTrip().getBus().getLicensePlate() + " - " + ticket.getTrip().getBus().getBusType();
+            }
+            tripDetail = new TicketDetailResponse.TripDetail(
+                    ticket.getTrip().getId(),
+                    ticket.getTrip().getRoute() != null ? ticket.getTrip().getRoute().getId() : null,
+                    routeName,
+                    ticket.getTrip().getBus() != null ? ticket.getTrip().getBus().getId() : null,
+                    busLabel,
+                    ticket.getTrip().getDepartureTime(),
+                    ticket.getTrip().getArrivalTime(),
+                    ticket.getTrip().getStatus().name()
+            );
+        }
+
+        TicketDetailResponse.SeatDetail seatDetail = null;
+        if (ticket.getSeat() != null) {
+            seatDetail = new TicketDetailResponse.SeatDetail(
+                    ticket.getSeat().getId(),
+                    ticket.getSeat().getSeatNumber(),
+                    ticket.getSeat().getPositionX(),
+                    ticket.getSeat().getPositionY()
+            );
+        }
+
+        TicketDetailResponse.PassengerDetail passengerDetail = null;
+        if (ticket.getPassenger() != null) {
+            passengerDetail = new TicketDetailResponse.PassengerDetail(
+                    ticket.getPassenger().getId(),
+                    ticket.getPassenger().getFullName(),
+                    ticket.getPassenger().getPhone(),
+                    ticket.getPassenger().getEmail(),
+                    ticket.getPassenger().getIdCard()
+            );
+        }
+
+        TicketDetailResponse.UserDetail userDetail = null;
+        if (ticket.getBookedBy() != null) {
+            userDetail = new TicketDetailResponse.UserDetail(
+                    ticket.getBookedBy().getId(),
+                    ticket.getBookedBy().getUsername(),
+                    ticket.getBookedBy().getRole() != null ? ticket.getBookedBy().getRole().getName() : ""
+            );
+        }
+
+        TicketDetailResponse.PaymentDetail paymentDetail = null;
+        if (ticket.getPayment() != null) {
+            paymentDetail = new TicketDetailResponse.PaymentDetail(
+                    ticket.getPayment().getId(),
+                    ticket.getPayment().getAmount(),
+                    ticket.getPayment().getPaymentMethod().name(),
+                    ticket.getPayment().getStatus().name(),
+                    ticket.getPayment().getTransactionCode(),
+                    ticket.getPayment().getPaidAt()
+            );
+        }
+
+        return new TicketDetailResponse(
+                ticket.getId(),
+                tripDetail,
+                seatDetail,
+                passengerDetail,
+                ticket.getPrice(),
+                ticket.getStatus().name(),
+                userDetail,
+                ticket.getBookedAt(),
+                ticket.getPaidAt(),
+                paymentDetail
+        );
+    }
 
     private UserListResponse toUserListResponse(User user) {
         UserListResponse response = new UserListResponse();
@@ -552,18 +821,9 @@ public class AdminService {
         response.setStatus(user.getStatus() != null ? user.getStatus().name() : "ACTIVE");
         response.setCreatedAt(user.getCreatedAt());
 
-        Optional<Employee> employee = employeeRepository.findByUserId(user.getId());
-
-        if (employee.isPresent()) {
-            response.setFullName(employee.get().getFullName());
-            response.setEmployeeType(employee.get().getEmployeeType().name());
-        } else {
-            Optional<Passenger> passenger = passengerRepository.findByUserId(user.getId());
-
-            if (passenger.isPresent()) {
-                response.setFullName(passenger.get().getFullName());
-                response.setEmployeeType("CUSTOMER");
-            }
+        Optional<Passenger> passenger = passengerRepository.findByUserId(user.getId());
+        if (passenger.isPresent()) {
+            response.setFullName(passenger.get().getFullName());
         }
 
         return response;
@@ -581,18 +841,9 @@ public class AdminService {
         response.setCreatedAt(user.getCreatedAt());
         response.setPermissions(List.of());
 
-        Optional<Employee> employee = employeeRepository.findByUserId(user.getId());
-
-        if (employee.isPresent()) {
-            response.setFullName(employee.get().getFullName());
-            response.setEmployeeType(employee.get().getEmployeeType().name());
-        } else {
-            Optional<Passenger> passenger = passengerRepository.findByUserId(user.getId());
-
-            if (passenger.isPresent()) {
-                response.setFullName(passenger.get().getFullName());
-                response.setEmployeeType("CUSTOMER");
-            }
+        Optional<Passenger> passenger = passengerRepository.findByUserId(user.getId());
+        if (passenger.isPresent()) {
+            response.setFullName(passenger.get().getFullName());
         }
 
         return response;

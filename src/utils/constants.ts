@@ -14,7 +14,6 @@ export const STATUS_COLORS: Record<string, string> = {
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   ADMIN: "ADMIN",
-  STAFF: "STAFF",
   CUSTOMER: "CUSTOMER",
 };
 

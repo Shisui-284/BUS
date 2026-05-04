@@ -114,6 +114,12 @@ public class AdminController {
         return ResponseEntity.ok(adminService.updateBusStatus(id, status));
     }
 
+    @DeleteMapping("/buses/{id}")
+    public ResponseEntity<Map<String, String>> deleteBus(@PathVariable Long id) {
+        adminService.deleteBus(id);
+        return ResponseEntity.ok(Map.of("message", "Bus deleted successfully"));
+    }
+
     // ==================== ROUTE MANAGEMENT ====================
 
     @GetMapping("/routes")
@@ -140,6 +146,12 @@ public class AdminController {
         return ResponseEntity.ok(adminService.updateRoute(id, request));
     }
 
+    @DeleteMapping("/routes/{id}")
+    public ResponseEntity<Map<String, String>> deleteRoute(@PathVariable Long id) {
+        adminService.deleteRoute(id);
+        return ResponseEntity.ok(Map.of("message", "Route deleted successfully"));
+    }
+
     // ==================== TRIP MANAGEMENT ====================
 
     @GetMapping("/trips")
@@ -148,6 +160,11 @@ public class AdminController {
             @RequestParam(required = false) Long routeId,
             @RequestParam(required = false) Trip.TripStatus status) {
         return ResponseEntity.ok(adminService.getTrips(date, routeId, status));
+    }
+
+    @GetMapping("/trips/{id}")
+    public ResponseEntity<TripDetailResponse> getTripById(@PathVariable Long id) {
+        return ResponseEntity.ok(adminService.getTripById(id));
     }
 
     @PostMapping("/trips")
@@ -166,5 +183,20 @@ public class AdminController {
     public ResponseEntity<Map<String, String>> deleteTrip(@PathVariable Long id) {
         adminService.deleteTrip(id);
         return ResponseEntity.ok(Map.of("message", "Trip deleted successfully"));
+    }
+
+    // ==================== TICKET MANAGEMENT ====================
+
+    @GetMapping("/tickets")
+    public ResponseEntity<List<TicketListResponse>> getTickets(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long tripId) {
+        return ResponseEntity.ok(adminService.getTickets(keyword, status, tripId));
+    }
+
+    @GetMapping("/tickets/{id}")
+    public ResponseEntity<TicketDetailResponse> getTicketById(@PathVariable Long id) {
+        return ResponseEntity.ok(adminService.getTicketById(id));
     }
 }

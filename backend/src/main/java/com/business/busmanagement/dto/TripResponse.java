@@ -19,7 +19,6 @@ public class TripResponse {
     private LocalDateTime departureTime;
     private LocalDateTime arrivalTime;
     private Trip.TripStatus status;
-    private List<TripAssignmentResponse> assignments;
 
     @Data
     @AllArgsConstructor

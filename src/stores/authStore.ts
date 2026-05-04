@@ -9,8 +9,8 @@ import {
 import { User } from "../types";
 
 function normalizeRole(role: string | undefined): User["role"] {
-  if (role === "ADMIN" || role === "STAFF" || role === "CUSTOMER") {
-    return role;
+  if (role === "ADMIN" || role === "CUSTOMER") {
+    return role as User["role"];
   }
   localStorage.removeItem("token");
   localStorage.removeItem("auth-storage");

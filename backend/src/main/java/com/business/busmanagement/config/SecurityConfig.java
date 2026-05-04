@@ -39,10 +39,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/public/auth/register", "/api/public/auth/login", "/api/health",
                                 "/api/debug/**")
                         .permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/trips").hasAnyRole("ADMIN", "STAFF")
-                        .requestMatchers(HttpMethod.GET, "/api/trips").hasAnyRole("ADMIN", "STAFF", "CUSTOMER")
-                        .requestMatchers("/api/trip-assignments/**", "/api/employees/available")
-                        .hasAnyRole("ADMIN", "STAFF")
                         .requestMatchers("/api/auth/profile").authenticated()
                         // PUBLIC — tìm chuyến không cần đăng nhập
                         .requestMatchers(HttpMethod.GET, "/api/public/trips/search").permitAll()

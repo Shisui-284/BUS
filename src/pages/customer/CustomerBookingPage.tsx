@@ -64,9 +64,7 @@ export default function CustomerBookingPage() {
 
   const [trips, setTrips] = useState<TripSearchResult[]>([]);
   const [seats, setSeats] = useState<SeatStatus[]>([]);
-  const [selectedTrip, setSelectedTrip] = useState<TripSearchResult | null>(
-    null,
-  );
+  const [selectedTrip, setSelectedTrip] = useState<TripSearchResult | null>(null);
   const [selectedSeat, setSelectedSeat] = useState<SeatStatus | null>(null);
   const [phone, setPhone] = useState(user?.phone ?? "");
   const [bookedTicket, setBookedTicket] = useState<TicketRecord | null>(null);
@@ -91,7 +89,6 @@ export default function CustomerBookingPage() {
       }
       return;
     }
-
     setStep(target);
   };
 
@@ -171,7 +168,7 @@ export default function CustomerBookingPage() {
       });
       setBookedTicket(ticket);
       setStep("success");
-      toast.success("Đặt vé thành công");
+      toast.success("Đặt vé thành công! Vé của bạn đã được xác nhận.");
     } catch {
       toast.error("Đặt vé thất bại, vui lòng thử lại");
     } finally {
@@ -361,7 +358,7 @@ export default function CustomerBookingPage() {
               <h2 className="text-base font-semibold text-slate-900">
                 Chọn ghế ngồi
               </h2>
-              <p className="text-sm text-slate-500 mt-0.5">
+              <p className="mt-0.5 text-sm text-slate-500">
                 {selectedTrip.origin} → {selectedTrip.destination} ·{" "}
                 {fmtTime(selectedTrip.departureTime)} · {selectedTrip.busLabel}
               </p>
@@ -432,7 +429,7 @@ export default function CustomerBookingPage() {
         </div>
       )}
 
-      {/* ===== BƯỚC 3: XÁC NHẬN ===== */}
+      {/* ===== BƯỚC 3: XÁC NHẬN & THANH TOÁN COD ===== */}
       {step === "confirm" && selectedTrip && selectedSeat && (
         <div className="rounded-2xl bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
@@ -448,7 +445,7 @@ export default function CustomerBookingPage() {
           </div>
 
           {/* Tóm tắt thông tin chuyến */}
-          <div className="mb-5 rounded-xl bg-slate-50 p-4 space-y-2 text-sm">
+          <div className="mb-5 space-y-2 rounded-xl bg-slate-50 p-4 text-sm">
             {[
               ["Tuyến", `${selectedTrip.origin} → ${selectedTrip.destination}`],
               ["Ngày đi", fmtDate(selectedTrip.departureTime)],
@@ -470,9 +467,26 @@ export default function CustomerBookingPage() {
             </div>
           </div>
 
-          {/* Nhập SĐT — quan trọng, Admin sẽ gọi xác nhận */}
+          {/* Thanh toán COD */}
+          <div className="mb-4 rounded-xl border-2 border-emerald-200 bg-emerald-50 p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500 text-white shrink-0">
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <div>
+                <div className="font-semibold text-slate-900">Thanh toán khi lên xe (COD)</div>
+                <div className="text-xs text-slate-500">
+                  Bạn sẽ thanh toán trực tiếp cho nhân viên khi lên xe
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Nhập SĐT */}
           <div className="mb-5">
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="mb-1 block text-sm font-medium text-slate-700">
               Số điện thoại liên hệ
             </label>
             <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 focus-within:border-[#0F2849]">
@@ -481,12 +495,12 @@ export default function CustomerBookingPage() {
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="Nhập số điện thoại để Admin xác nhận vé"
+                placeholder="Nhập số điện thoại để nhân viên xác nhận vé"
                 className="w-full border-none bg-transparent text-sm outline-none"
               />
             </div>
             <p className="mt-1 text-xs text-slate-400">
-              Nhân viên sẽ gọi vào số này để xác nhận chỗ ngồi của bạn.
+              Nhân viên sẽ gọi xác nhận chỗ ngồi và hướng dẫn thanh toán khi bạn lên xe.
             </p>
           </div>
 
@@ -495,7 +509,7 @@ export default function CustomerBookingPage() {
             disabled={confirming}
             className="w-full rounded-xl bg-[#0F2849] py-3 text-sm font-semibold text-white hover:bg-[#1a3a6b] disabled:opacity-60"
           >
-            {confirming ? "Đang xử lý..." : "Xác nhận đặt vé"}
+            {confirming ? "Đang xử lý..." : "Xác nhận đặt vé (COD)"}
           </button>
         </div>
       )}
@@ -503,14 +517,18 @@ export default function CustomerBookingPage() {
       {/* ===== BƯỚC 4: THÀNH CÔNG ===== */}
       {step === "success" && bookedTicket && selectedTrip && selectedSeat && (
         <div className="rounded-2xl bg-white p-8 shadow-sm">
-          <div className="text-center mb-6">
+          <div className="mb-6 text-center">
             <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
               <Check className="h-7 w-7 text-emerald-600" />
             </div>
             <h2 className="text-xl font-bold text-slate-900">
               Đặt vé thành công!
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-700">
+              <Check className="h-4 w-4" />
+              Đã xác nhận
+            </div>
+            <p className="mt-2 text-sm text-slate-500">
               Mã vé{" "}
               <span className="font-semibold text-slate-700">
                 #{bookedTicket.id}
@@ -519,8 +537,8 @@ export default function CustomerBookingPage() {
           </div>
 
           {/* Ticket card */}
-          <div className="mx-auto max-w-sm rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 space-y-3 text-sm">
-            <div className="text-center font-bold text-[#0F2849] text-base">
+          <div className="mx-auto max-w-sm space-y-3 rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-5 text-sm">
+            <div className="text-center text-base font-bold text-[#0F2849]">
               {selectedTrip.origin} → {selectedTrip.destination}
             </div>
             {[
@@ -530,20 +548,34 @@ export default function CustomerBookingPage() {
               ["Ghế số", selectedSeat.seatNumber],
               ["Hành khách", bookedTicket.passengerName],
               ["Liên hệ", bookedTicket.passengerPhone],
-              ["Giá vé", fmtPrice(selectedTrip.basePrice)],
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between">
                 <span className="text-slate-500">{label}</span>
                 <span className="font-medium text-slate-800">{value}</span>
               </div>
             ))}
-            <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700 text-center mt-2">
-              Nhân viên sẽ gọi điện xác nhận vé vào số{" "}
-              <strong>{bookedTicket.passengerPhone}</strong>
+            <div className="flex justify-between border-t border-emerald-200 pt-2 mt-2">
+              <span className="font-semibold text-emerald-700">Thanh toán</span>
+              <span className="font-bold text-emerald-600 text-base">
+                COD - Khi lên xe
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-semibold text-emerald-700">Giá vé</span>
+              <span className="font-bold text-emerald-600 text-base">
+                {fmtPrice(selectedTrip.basePrice)}
+              </span>
             </div>
           </div>
 
-          <div className="mt-6 flex gap-3 justify-center">
+          <div className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-400">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Bạn sẽ thanh toán trực tiếp cho nhân viên khi lên xe</span>
+          </div>
+
+          <div className="mt-6 flex justify-center gap-3">
             <Link
               to="/customer/tickets"
               className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"

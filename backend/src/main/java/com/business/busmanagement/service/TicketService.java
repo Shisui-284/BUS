@@ -1,15 +1,7 @@
 package com.business.busmanagement.service;
 
-import com.business.busmanagement.model.Passenger;
-import com.business.busmanagement.model.Seat;
-import com.business.busmanagement.model.Ticket;
-import com.business.busmanagement.model.Trip;
-import com.business.busmanagement.model.User;
-import com.business.busmanagement.repository.PassengerRepository;
-import com.business.busmanagement.repository.SeatRepository;
-import com.business.busmanagement.repository.TicketRepository;
-import com.business.busmanagement.repository.TripRepository;
-import com.business.busmanagement.repository.UserRepository;
+import com.business.busmanagement.model.*;
+import com.business.busmanagement.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -29,6 +21,7 @@ public class TicketService {
     private final SeatRepository seatRepository;
     private final PassengerRepository passengerRepository;
     private final UserRepository userRepository;
+    private final PaymentRepository paymentRepository;
 
     @Transactional
     public Ticket bookTicket(Long tripId, Long seatId, Long passengerId, Long bookedById, BigDecimal price) {
@@ -68,17 +61,28 @@ public class TicketService {
             }
 
             ticket.setPrice(price);
-            ticket.setStatus(Ticket.TicketStatus.BOOKED);
+            ticket.setStatus(Ticket.TicketStatus.PAID);
             ticket.setBookedAt(LocalDateTime.now());
-            ticket.setPaidAt(null);
+            ticket.setPaidAt(LocalDateTime.now());
         } else {
             ticket = new Ticket();
             ticket.setTrip(trip);
             ticket.setSeat(seat);
             ticket.setPrice(price);
-            ticket.setStatus(Ticket.TicketStatus.BOOKED);
+            ticket.setStatus(Ticket.TicketStatus.PAID);
             ticket.setBookedAt(LocalDateTime.now());
+            ticket.setPaidAt(LocalDateTime.now());
         }
+
+        // Tự động tạo Payment CASH khi đặt vé (COD - Thanh toán khi nhận xe)
+        Payment payment = new Payment();
+        payment.setTicket(ticket);
+        payment.setAmount(price);
+        payment.setPaymentMethod(Payment.PaymentMethod.CASH);
+        payment.setStatus(Payment.PaymentStatus.SUCCESS);
+        payment.setTransactionCode("CASH-" + System.currentTimeMillis());
+        payment.setPaidAt(LocalDateTime.now());
+        ticket.setPayment(payment);
 
         if (passengerId != null) {
             Passenger passenger = passengerRepository.findById(passengerId)
@@ -93,7 +97,9 @@ public class TicketService {
         }
 
         try {
-            return ticketRepository.save(ticket);
+            Ticket savedTicket = ticketRepository.save(ticket);
+            paymentRepository.save(payment);
+            return savedTicket;
         } catch (DataIntegrityViolationException ex) {
             throw new IllegalStateException("Ghế đã được đặt bởi người khác. Vui lòng thử ghế khác.", ex);
         }

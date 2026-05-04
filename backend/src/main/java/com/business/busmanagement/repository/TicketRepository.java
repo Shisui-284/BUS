@@ -32,4 +32,19 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
               AND t.status NOT IN ('CANCELLED', 'REFUNDED')
             """)
     List<Long> findBookedSeatIdsByTripId(@Param("tripId") Long tripId);
+
+    @Query("""
+            SELECT t FROM Ticket t
+            WHERE (:keyword IS NULL OR :keyword = ''
+                   OR LOWER(t.passenger.fullName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                   OR LOWER(t.passenger.phone) LIKE LOWER(CONCAT('%', :keyword, '%')))
+              AND (:status IS NULL OR t.status = :status)
+              AND (:tripId IS NULL OR t.trip.id = :tripId)
+            ORDER BY t.bookedAt DESC
+            """)
+    List<Ticket> findAllWithFilters(
+            @Param("keyword") String keyword,
+            @Param("status") Ticket.TicketStatus status,
+            @Param("tripId") Long tripId
+    );
 }

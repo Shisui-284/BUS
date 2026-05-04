@@ -1,13 +1,11 @@
 package com.business.busmanagement.service;
 
-import com.business.busmanagement.dto.TripAssignmentResponse;
 import com.business.busmanagement.dto.TripCreateRequest;
 import com.business.busmanagement.dto.TripResponse;
 import com.business.busmanagement.exception.ResourceNotFoundException;
 import com.business.busmanagement.model.Bus;
 import com.business.busmanagement.model.Route;
 import com.business.busmanagement.model.Trip;
-import com.business.busmanagement.model.TripAssignment;
 import com.business.busmanagement.repository.BusRepository;
 import com.business.busmanagement.repository.RouteRepository;
 import com.business.busmanagement.repository.TripRepository;
@@ -139,13 +137,6 @@ public class TripService {
                                 ? trip.getBus().getLicensePlate() + " - " + trip.getBus().getBusType()
                                 : "";
 
-                List<TripAssignmentResponse> assignments = trip.getTripAssignments() == null
-                                ? List.of()
-                                : trip.getTripAssignments()
-                                                .stream()
-                                                .map(this::toAssignmentResponse)
-                                                .toList();
-
                 return new TripResponse(
                                 trip.getId(),
                                 trip.getRoute() != null ? trip.getRoute().getId() : null,
@@ -154,15 +145,6 @@ public class TripService {
                                 busLabel,
                                 trip.getDepartureTime(),
                                 trip.getArrivalTime(),
-                                trip.getStatus(),
-                                assignments);
-        }
-
-        private TripAssignmentResponse toAssignmentResponse(TripAssignment assignment) {
-                return new TripAssignmentResponse(
-                                assignment.getId(),
-                                assignment.getEmployee() != null ? assignment.getEmployee().getId() : null,
-                                assignment.getEmployee() != null ? assignment.getEmployee().getFullName() : null,
-                                assignment.getAssignmentRole());
+                                trip.getStatus());
         }
 }

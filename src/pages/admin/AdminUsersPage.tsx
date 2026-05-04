@@ -15,14 +15,12 @@ import { UserRole } from "../../types";
 
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
   { value: "ADMIN", label: "Admin" },
-  { value: "STAFF", label: "Nhân viên" },
   { value: "CUSTOMER", label: "Khách hàng" },
 ];
 
 const ROLE_FILTER_OPTIONS = [
   { value: "", label: "Tất cả vai trò" },
   { value: "ADMIN", label: "Admin" },
-  { value: "STAFF", label: "Nhân viên" },
   { value: "CUSTOMER", label: "Khách hàng" },
 ];
 
@@ -422,13 +420,11 @@ function ActionButton({
 function RoleBadge({ role }: { role: string }) {
   const styles: Record<string, string> = {
     ADMIN: "badge-danger",
-    STAFF: "badge-info",
     CUSTOMER: "badge-success",
   };
 
   const labels: Record<string, string> = {
     ADMIN: "Admin",
-    STAFF: "Nhân viên",
     CUSTOMER: "Khách hàng",
   };
 
@@ -481,7 +477,7 @@ function CreateUserModal({
     password: "",
     email: "",
     phone: "",
-    role: "STAFF",
+    role: "ADMIN",  // legacy - no longer selectable
   });
 
   const handleSubmit = (event: React.FormEvent) => {
