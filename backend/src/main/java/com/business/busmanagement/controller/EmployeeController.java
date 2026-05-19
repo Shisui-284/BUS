@@ -9,10 +9,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/employees")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 public class EmployeeController {
 
-    @Autowired
-    private EmployeeRepository employeeRepository;
+    private final EmployeeRepository employeeRepository;
 
     // 1. Lấy toàn bộ danh sách nhân sự cho trang quản lý
     @GetMapping

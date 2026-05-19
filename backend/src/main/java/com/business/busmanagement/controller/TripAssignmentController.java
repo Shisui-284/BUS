@@ -10,10 +10,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/trip-assignments")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "${app.cors.allowed-origins}")
 public class TripAssignmentController {
 
-    @Autowired
-    private TripAssignmentRepository assignmentRepository;
+    private final TripAssignmentRepository assignmentRepository;
 
     @PostMapping("/{tripId}")
     public ResponseEntity<?> assignStaff(@PathVariable Long tripId, @RequestBody Map<String, Long> payload) {

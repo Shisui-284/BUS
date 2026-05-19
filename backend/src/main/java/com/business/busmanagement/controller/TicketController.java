@@ -34,7 +34,7 @@ public class TicketController {
     // PUBLIC — Tìm chuyến theo origin/destination/date
     // GET /api/public/trips/search?origin=Hà Nội&destination=TP.HCM&date=2025-05-01
     // ----------------------------------------------------------------
-    @GetMapping("/api/public/trips/search")
+    @GetMapping("/public/trips/search")
     public ResponseEntity<List<TripSearchResponse>> searchTrips(
             @RequestParam(required = false) String origin,
             @RequestParam(required = false) String destination,
@@ -80,7 +80,7 @@ public class TicketController {
     // PUBLIC — Sơ đồ ghế của 1 chuyến
     // GET /api/public/trips/{tripId}/seats
     // ----------------------------------------------------------------
-    @GetMapping("/api/public/trips/{tripId}/seats")
+    @GetMapping("/public/trips/{tripId}/seats")
     public ResponseEntity<List<SeatStatusResponse>> getTripSeats(@PathVariable Long tripId) {
         Trip trip = tripRepository.findById(tripId)
                 .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
@@ -106,7 +106,7 @@ public class TicketController {
     // POST /api/private/tickets
     // Body: { tripId, seatId, price, passengerPhone }
     // ----------------------------------------------------------------
-    @PostMapping("/api/private/tickets")
+    @PostMapping("/private/tickets")
     public ResponseEntity<TicketResponse> bookTicket(@Valid @RequestBody BookTicketRequest request) {
         User currentUser = getCurrentUser();
 
@@ -132,7 +132,7 @@ public class TicketController {
     // PRIVATE — Lịch sử vé
     // GET /api/private/tickets/my
     // ----------------------------------------------------------------
-    @GetMapping("/api/private/tickets/my")
+    @GetMapping("/private/tickets/my")
     public ResponseEntity<List<TicketResponse>> getMyTickets() {
         User currentUser = getCurrentUser();
         List<Ticket> tickets = ticketRepository.findByPassengerUserId(currentUser.getId());
@@ -143,7 +143,7 @@ public class TicketController {
     // PRIVATE — Hủy vé
     // PUT /api/private/tickets/{id}/cancel
     // ----------------------------------------------------------------
-    @PutMapping("/api/private/tickets/{id}/cancel")
+    @PutMapping("/private/tickets/{id}/cancel")
     public ResponseEntity<TicketResponse> cancelTicket(@PathVariable Long id) {
         User currentUser = getCurrentUser();
 

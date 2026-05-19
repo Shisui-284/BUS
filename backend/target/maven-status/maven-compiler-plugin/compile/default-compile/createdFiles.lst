@@ -37,7 +37,6 @@ com\business\busmanagement\model\Cargo.class
 com\business\busmanagement\repository\TripRepository.class
 com\business\busmanagement\dto\admin\BusDetailResponse.class
 com\business\busmanagement\service\AdminService.class
-com\business\busmanagement\controller\PaymentController.class
 com\business\busmanagement\dto\admin\TicketDetailResponse$SeatDetail.class
 com\business\busmanagement\model\Maintenance.class
 com\business\busmanagement\repository\RouteRepository.class
@@ -70,7 +69,6 @@ com\business\busmanagement\model\Seat.class
 com\business\busmanagement\service\PaymentService.class
 com\business\busmanagement\dto\admin\RouteDetailResponse.class
 com\business\busmanagement\repository\SeatRepository.class
-com\business\busmanagement\util\VNPayUtil.class
 com\business\busmanagement\exception\ResourceNotFoundException.class
 com\business\busmanagement\model\Cargo$CargoStatus.class
 com\business\busmanagement\model\User$UserStatus.class
