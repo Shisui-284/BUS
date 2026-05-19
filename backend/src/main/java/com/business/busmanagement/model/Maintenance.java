@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "maintenance")
 @Data
@@ -21,6 +23,7 @@ public class Maintenance {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bus_id")
+    @JsonIgnore
     private Bus bus;
 
     @Column(columnDefinition = "TEXT")

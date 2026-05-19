@@ -1,5 +1,6 @@
 package com.business.busmanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,6 +22,7 @@ public class Payment {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ticket_id", unique = true)
+    @JsonIgnore
     private Ticket ticket;
 
     @Column(nullable = false, precision = 10, scale = 2)

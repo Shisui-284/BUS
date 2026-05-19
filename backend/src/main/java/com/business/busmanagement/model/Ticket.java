@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -22,14 +24,17 @@ public class Ticket {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trip_id")
+    @JsonIgnore
     private Trip trip;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seat_id")
+    @JsonIgnore
     private Seat seat;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "passenger_id")
+    @JsonIgnore
     private Passenger passenger;
 
     @Column(nullable = false, precision = 10, scale = 2)
@@ -41,6 +46,7 @@ public class Ticket {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booked_by")
+    @JsonIgnore
     private User bookedBy;
 
     @CreationTimestamp
@@ -51,6 +57,7 @@ public class Ticket {
     private LocalDateTime paidAt;
 
     @OneToOne(mappedBy = "ticket", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Payment payment;
 
     public enum TicketStatus {

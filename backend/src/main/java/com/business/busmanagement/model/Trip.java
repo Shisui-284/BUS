@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "trips")
 @Data
@@ -21,10 +23,12 @@ public class Trip {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "route_id")
+    @JsonIgnore
     private Route route;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bus_id")
+    @JsonIgnore
     private Bus bus;
 
     @Column(name = "departure_time", nullable = false)
@@ -44,9 +48,11 @@ public class Trip {
     private LocalDateTime actualArrival;
 
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Ticket> tickets;
 
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Cargo> cargos;
 
     public enum TripStatus {

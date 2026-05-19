@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "seats", uniqueConstraints = @UniqueConstraint(columnNames = {"bus_id", "seat_number"}))
 @Data
@@ -20,6 +22,7 @@ public class Seat {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bus_id", nullable = false)
+    @JsonIgnore
     private Bus bus;
 
     @Column(name = "seat_number", nullable = false)
@@ -32,6 +35,7 @@ public class Seat {
     private Integer positionY;
 
     @OneToMany(mappedBy = "seat", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Ticket> tickets;
 
     @Override

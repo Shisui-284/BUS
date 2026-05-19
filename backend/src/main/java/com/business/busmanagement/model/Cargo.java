@@ -9,6 +9,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "cargos")
 @Data
@@ -22,6 +24,7 @@ public class Cargo {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trip_id", nullable = false)
+    @JsonIgnore
     private Trip trip;
 
     @Column(name = "sender_name", nullable = false)
