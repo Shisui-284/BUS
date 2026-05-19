@@ -13,7 +13,9 @@ import java.util.List;
 public interface TripRepository extends JpaRepository<Trip, Long> {
 
 		@Query("""
-				SELECT t FROM Trip t
+				SELECT DISTINCT t FROM Trip t
+				LEFT JOIN FETCH t.route
+				LEFT JOIN FETCH t.bus
 				WHERE (:fromDate IS NULL OR t.departureTime >= :fromDate)
 					AND (:toDate IS NULL OR t.departureTime < :toDate)
 					AND (:routeId IS NULL OR t.route.id = :routeId)

@@ -1,12 +1,11 @@
 import { NavLink, Navigate, Route, Routes } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { LogOut, LayoutDashboard, Menu } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 import { ROLE_LABELS } from "../../utils/constants";
 import AdminDashboardPage from "../../pages/admin/AdminDashboardPage";
 import AdminUsersPage from "../../pages/admin/AdminUsersPage";
 import AdminBusesPage from "../../pages/admin/AdminBusesPage";
 import AdminTripsPage from "../../pages/admin/AdminTripsPage";
-// BỔ SUNG IMPORT TRANG QUẢN LÝ VÉ
 import AdminTicketsPage from "../../pages/admin/AdminTicketsPage";
 import AdminAssignmentsPage from "../../pages/admin/AdminAssignmentsPage";
 
@@ -16,17 +15,17 @@ import CustomerProfilePage from "../../pages/customer/CustomerProfilePage";
 
 const menuConfig = {
   ADMIN: [
-    { label: "Dashboard", to: "/admin/dashboard" },
-    { label: "Quản lý tài khoản", to: "/admin/users" },
-    { label: "Quản lý nhân sự", to: "/admin/assignments" },
-    { label: "Quản lý xe", to: "/admin/buses" },
-    { label: "Quản lý chuyến & tuyến", to: "/admin/trips" },
-    { label: "Quản lý vé", to: "/admin/tickets" },
+    { label: "Dashboard", to: "/admin/dashboard", icon: "📊" },
+    { label: "Quản lý tài khoản", to: "/admin/users", icon: "👥" },
+    { label: "Quản lý nhân sự", to: "/admin/assignments", icon: "👔" },
+    { label: "Quản lý xe", to: "/admin/buses", icon: "🚌" },
+    { label: "Quản lý chuyến & tuyến", to: "/admin/trips", icon: "🗺️" },
+    { label: "Quản lý vé", to: "/admin/tickets", icon: "🎫" },
   ],
   CUSTOMER: [
-    { label: "Đặt vé", to: "/customer/booking" },
-    { label: "Vé của tôi", to: "/customer/tickets" },
-    { label: "Hồ sơ", to: "/customer/profile" },
+    { label: "Đặt vé", to: "/customer/booking", icon: "🎟️" },
+    { label: "Vé của tôi", to: "/customer/tickets", icon: "📋" },
+    { label: "Hồ sơ", to: "/customer/profile", icon: "👤" },
   ],
 };
 
@@ -40,55 +39,125 @@ function MainLayout() {
   return (
     <div className="min-h-screen bg-[var(--admin-bg)]">
       <div className="flex min-h-screen">
-        <aside className="w-60 bg-[#0F2849] text-white shadow-md">
-          <div className="px-6 py-8">
-            <div className="text-2xl font-semibold">XeKhách Pro</div>
-            <p className="mt-2 text-sm text-slate-300">
-              Quản lý chuyến xe liên tỉnh
-            </p>
-          </div>
-          <nav className="px-4">
-            {items.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `block rounded-xl px-4 py-3 text-sm font-medium transition ${
-                    isActive
-                      ? "bg-amber-500 text-slate-950"
-                      : "text-slate-200 hover:bg-white/10"
-                  }`
-                }
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
-          <div className="mt-8 px-6 text-xs text-slate-400">
-            Vai trò: {ROLE_LABELS[role as keyof typeof ROLE_LABELS] || role}
+        {/* Dark Sidebar */}
+        <aside className="w-64 flex-shrink-0">
+          <div className="fixed inset-y-0 left-0 w-64">
+            {/* Sidebar Background */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#2a2a2e] via-[#323238] to-[#2a2a2e]" />
+            
+            {/* Decorative Elements */}
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute -left-20 -top-20 h-40 w-40 rounded-full bg-blue-500/5 blur-3xl" />
+              <div className="absolute -bottom-20 -right-20 h-40 w-40 rounded-full bg-purple-500/5 blur-3xl" />
+            </div>
+
+            {/* Sidebar Content */}
+            <div className="relative flex h-full flex-col">
+              {/* Logo Section */}
+              <div className="px-6 py-8">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg shadow-blue-500/20">
+                    <LayoutDashboard className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold text-white">XeKhách Pro</div>
+                    <p className="text-xs text-slate-500">Quản lý chuyến xe</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation */}
+              <nav className="flex-1 px-4 pb-4">
+                <div className="mb-4 px-3">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-600">
+                    Menu chính
+                  </span>
+                </div>
+                {items.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) =>
+                      `group relative mb-1 flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                        isActive
+                          ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border border-blue-500/30 shadow-lg shadow-blue-500/10"
+                          : "text-slate-400 hover:bg-white/5 hover:text-white border border-transparent"
+                      }`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        {/* Active Indicator */}
+                        {isActive && (
+                          <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-blue-500 to-purple-500" />
+                        )}
+                        <span className="text-lg">{item.icon}</span>
+                        <span>{item.label}</span>
+                        {isActive && (
+                          <div className="ml-auto">
+                            <div className="h-2 w-2 rounded-full bg-blue-400" />
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </nav>
+
+              {/* User Info */}
+              <div className="border-t border-white/5 px-6 py-4">
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-lg font-bold text-white">
+                    {user?.fullName?.charAt(0) || "U"}
+                  </div>
+                  <div className="flex-1 overflow-hidden">
+                    <p className="truncate text-sm font-semibold text-white">
+                      {user?.fullName || "Người dùng"}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {ROLE_LABELS[role as keyof typeof ROLE_LABELS] || role}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={logout}
+                  className="flex w-full items-center gap-2 rounded-xl bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-400 transition-all hover:bg-red-500/20 hover:text-red-300"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Đăng xuất
+                </button>
+              </div>
+            </div>
           </div>
         </aside>
 
-        <div className="flex-1 flex flex-col">
-          <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6 shadow-sm">
-            <div className="text-lg font-semibold text-slate-900">
-              Bảng điều khiển
+        {/* Main Content Area */}
+        <div className="flex flex-1 flex-col">
+          {/* Header */}
+          <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-white/10 bg-[#1a1a2e]/80 px-6 backdrop-blur-xl">
+            <div className="flex items-center gap-4">
+              <div>
+                <h1 className="text-lg font-semibold text-white">Bảng điều khiển</h1>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-slate-700">
-                {user?.fullName || "Người dùng"}
-              </span>
-              <button
-                onClick={logout}
-                className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
-              >
-                <LogOut className="h-4 w-4" />
-                Đăng xuất
-              </button>
+            <div className="flex items-center gap-4">
+              {/* Current Date */}
+              <div className="hidden items-center gap-2 rounded-xl bg-white/5 px-4 py-2 text-sm text-slate-400 lg:flex">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+                <span>
+                  {new Date().toLocaleDateString("vi-VN", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </span>
+              </div>
             </div>
           </header>
 
-          <main className="p-6 flex-1 overflow-y-auto">
+          {/* Main Content */}
+          <main className="flex-1 overflow-y-auto p-6">
             <Routes>
               {/* ADMIN ROUTES */}
               <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
@@ -96,9 +165,7 @@ function MainLayout() {
               <Route path="/admin/assignments" element={<AdminAssignmentsPage />} />
               <Route path="/admin/buses" element={<AdminBusesPage />} />
               <Route path="/admin/trips" element={<AdminTripsPage />} />
-              {/* BỔ SUNG ROUTE TRANG QUẢN LÝ VÉ */}
               <Route path="/admin/tickets" element={<AdminTicketsPage />} />
-              {/* Redirect /admin/routes to /admin/trips */}
               <Route path="/admin/routes" element={<Navigate to="/admin/trips" replace />} />
 
               {/* CUSTOMER ROUTES */}

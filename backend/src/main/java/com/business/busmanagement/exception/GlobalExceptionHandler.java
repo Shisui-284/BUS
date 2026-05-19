@@ -46,8 +46,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleUnexpected(Exception ex) {
-        log.error("Unexpected server error", ex);
-        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
+        log.error("Unexpected server error at /api/admin/trips", ex);
+        String details = ex.getClass().getSimpleName() + ": " + ex.getMessage();
+        if (ex.getCause() != null) {
+            details += " | Cause: " + ex.getCause().getClass().getSimpleName() + ": " + ex.getCause().getMessage();
+        }
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, details);
     }
 
     private ResponseEntity<ApiErrorResponse> build(HttpStatus status, String message) {

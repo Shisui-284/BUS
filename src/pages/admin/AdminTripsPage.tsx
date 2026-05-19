@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, X, MapPin, Clock, Bus, Users, Search, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
+import Snowfall from "../../components/ui/Snowfall";
 import {
   AdminBus,
   AdminRoute,
@@ -170,14 +171,9 @@ export default function AdminTripsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-      {/* Animated background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
-        <div className="absolute top-1/2 right-1/3 w-72 h-72 bg-indigo-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "2s" }} />
-      </div>
-
+    <div className="relative min-h-screen overflow-hidden">
+      <Snowfall />
+      
       <div className="relative z-10 space-y-6 p-6">
         {/* Header */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-8 shadow-2xl">
