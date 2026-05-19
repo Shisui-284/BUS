@@ -1,6 +1,7 @@
 package com.business.busmanagement.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "employees")
@@ -17,6 +18,15 @@ public class Employee {
     private String fullName;
 
     private String phone;
+
+    @Column(name = "hometown")
+    private String hometown;
+
+    @Column(name = "experience_years")
+    private Integer experienceYears;
+
+    @Column(name = "join_date")
+    private LocalDate joinDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "employee_type", nullable = false)
@@ -47,6 +57,15 @@ public class Employee {
 
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
+
+    public String getHometown() { return hometown; }
+    public void setHometown(String hometown) { this.hometown = hometown; }
+
+    public Integer getExperienceYears() { return experienceYears; }
+    public void setExperienceYears(Integer experienceYears) { this.experienceYears = experienceYears; }
+
+    public LocalDate getJoinDate() { return joinDate; }
+    public void setJoinDate(LocalDate joinDate) { this.joinDate = joinDate; }
 
     public EmployeeType getEmployeeType() { return employeeType; }
     public void setEmployeeType(EmployeeType employeeType) { this.employeeType = employeeType; }

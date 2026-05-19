@@ -123,6 +123,9 @@ export interface Employee {
   id: number;
   fullName: string;
   phone: string;
+  hometown?: string;
+  experienceYears?: number;
+  joinDate?: string;
   employeeType: 'DRIVER' | 'ASSISTANT' | 'TECHNICIAN' | 'DISPATCHER' | 'MANAGER';
   status: 'ACTIVE' | 'INACTIVE';
   currentTripInfo?: string;

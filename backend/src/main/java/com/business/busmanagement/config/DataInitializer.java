@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Arrays;
 
 @Component
@@ -169,12 +170,49 @@ public class DataInitializer implements CommandLineRunner {
 
     private void initializeEmployees() {
         if (employeeRepository.count() == 0) {
-            // Tài xế
-            String[] drivers = {
-                "Nguyễn Văn An", "Trần Văn Bình", "Lê Đình Cường",
-                "Phạm Văn Dũng", "Hoàng Văn Em", "Đặng Văn Phong",
-                "Bùi Văn Quang", "Đỗ Văn Sơn", "Ngô Văn Tài", "Vũ Văn Thành"
+            // 5 Tài xế kinh nghiệm cao (VIP)
+            Object[][] experiencedDrivers = {
+                {"Nguyễn Văn Minh", "Hà Nội", 15, LocalDate.of(2008, 3, 15)},
+                {"Trần Đình Cường", "TP.HCM", 14, LocalDate.of(2009, 6, 20)},
+                {"Lê Hồng Sơn", "Đà Nẵng", 13, LocalDate.of(2010, 1, 10)},
+                {"Phạm Quốc Việt", "Hải Phòng", 12, LocalDate.of(2011, 9, 5)},
+                {"Hoàng Minh Tuấn", "Cần Thơ", 11, LocalDate.of(2012, 4, 25)}
             };
+
+            // Các tài xế khác
+            String[] otherDrivers = {
+                "Đặng Văn Phong", "Vũ Văn Thành", "Bùi Văn Quang",
+                "Đỗ Văn Sơn", "Ngô Văn Tài"
+            };
+            String[] driverHometowns = {
+                "Thanh Hóa", "Nghệ An", "Hà Tĩnh", "Quảng Bình", "Huế"
+            };
+
+            // Tài xế kinh nghiệm cao
+            for (Object[] driver : experiencedDrivers) {
+                Employee emp = new Employee();
+                emp.setFullName((String) driver[0]);
+                emp.setHometown((String) driver[1]);
+                emp.setExperienceYears((Integer) driver[2]);
+                emp.setJoinDate((LocalDate) driver[3]);
+                emp.setPhone("090" + String.format("%07d", (int)(Math.random() * 10000000)));
+                emp.setEmployeeType(Employee.EmployeeType.DRIVER);
+                emp.setStatus(Employee.Status.ACTIVE);
+                employeeRepository.save(emp);
+            }
+
+            // Các tài xế khác
+            for (int i = 0; i < otherDrivers.length; i++) {
+                Employee emp = new Employee();
+                emp.setFullName(otherDrivers[i]);
+                emp.setHometown(driverHometowns[i]);
+                emp.setExperienceYears(3 + (int)(Math.random() * 5));
+                emp.setJoinDate(LocalDate.of(2018 + (int)(Math.random() * 5), 1 + (int)(Math.random() * 12), 1 + (int)(Math.random() * 28)));
+                emp.setPhone("090" + String.format("%07d", (int)(Math.random() * 10000000)));
+                emp.setEmployeeType(Employee.EmployeeType.DRIVER);
+                emp.setStatus(Employee.Status.ACTIVE);
+                employeeRepository.save(emp);
+            }
 
             // Phụ xe
             String[] assistants = {
@@ -182,26 +220,25 @@ public class DataInitializer implements CommandLineRunner {
                 "Cao Thị Ngọc", "Đinh Thị Oanh", "Hứa Thị Phương",
                 "Châu Thị Quỳnh", "Thái Thị Thu", "Phùng Thị Vy", "Đoàn Thị Xinh"
             };
+            String[] assistantHometowns = {
+                "Nam Định", "Thái Bình", "Hưng Yên", "Bắc Ninh", "Vĩnh Phúc",
+                "Bắc Giang", "Hải Dương", "Ninh Bình", "Hà Nam", "Sơn La"
+            };
 
-            for (String name : drivers) {
+            for (int i = 0; i < assistants.length; i++) {
                 Employee emp = new Employee();
-                emp.setFullName(name);
-                emp.setPhone("090" + String.format("%07d", (int)(Math.random() * 10000000)));
-                emp.setEmployeeType(Employee.EmployeeType.DRIVER);
-                emp.setStatus(Employee.Status.ACTIVE);
-                employeeRepository.save(emp);
-            }
-
-            for (String name : assistants) {
-                Employee emp = new Employee();
-                emp.setFullName(name);
+                emp.setFullName(assistants[i]);
+                emp.setHometown(assistantHometowns[i]);
+                emp.setExperienceYears(1 + (int)(Math.random() * 6));
+                emp.setJoinDate(LocalDate.of(2019 + (int)(Math.random() * 5), 1 + (int)(Math.random() * 12), 1 + (int)(Math.random() * 28)));
                 emp.setPhone("091" + String.format("%07d", (int)(Math.random() * 10000000)));
                 emp.setEmployeeType(Employee.EmployeeType.ASSISTANT);
                 emp.setStatus(Employee.Status.ACTIVE);
                 employeeRepository.save(emp);
             }
 
-            log.info("Employees initialized: {} drivers, {} assistants", drivers.length, assistants.length);
+            log.info("Employees initialized: {} drivers (including {} experienced), {} assistants",
+                experiencedDrivers.length + otherDrivers.length, experiencedDrivers.length, assistants.length);
         }
     }
 }

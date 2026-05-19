@@ -36,4 +36,10 @@ public class EmployeeController {
     public ResponseEntity<List<Employee>> getEmployeesByType(@PathVariable String type) {
         return ResponseEntity.ok(employeeRepository.findByEmployeeType(Employee.EmployeeType.valueOf(type)));
     }
+
+    // 4. Lấy top tài xế kinh nghiệm nhất
+    @GetMapping("/top-experienced")
+    public ResponseEntity<List<Employee>> getTopExperiencedDrivers() {
+        return ResponseEntity.ok(employeeRepository.findTopDriversByExperience());
+    }
 }

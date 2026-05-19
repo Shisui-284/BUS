@@ -313,6 +313,12 @@ export const getEmployeesByType = async (type: 'DRIVER' | 'ASSISTANT'): Promise<
   const response = await apiClient.get(`/admin/employees/type/${type}`);
   return response.data;
 };
+
+export const getTopExperiencedDrivers = async (): Promise<Employee[]> => {
+  const response = await apiClient.get('/admin/employees/top-experienced');
+  return response.data;
+};
+
 export const getStaffByTrip = async (tripId: number) => {
   const response = await apiClient.get(`/admin/trip-assignments/${tripId}`);
   return response.data;
