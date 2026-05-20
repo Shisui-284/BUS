@@ -16,6 +16,13 @@ const BUS_TYPE_OPTIONS = [
   { value: "LIMOUSINE", label: "Limousine" },
 ];
 
+// Suggest seat count dựa trên loại xe
+const BUS_SEAT_SUGGESTIONS: Record<string, number> = {
+  LIMOUSINE: 40,
+  SLEEPER: 30,
+  SEAT: 40,
+};
+
 const BUS_STATUS_OPTIONS = [
   { value: "", label: "Tất cả" },
   { value: "AVAILABLE", label: "Sẵn sàng" },
@@ -354,11 +361,22 @@ function BusModal({
 }) {
   const [form, setForm] = useState<CreateForm>({
     licensePlate: initialData?.licensePlate ?? "",
-    busType: initialData?.busType ?? "SEAT",
-    totalSeats: initialData?.totalSeats ?? 40,
+    busType: initialData?.busType ?? "LIMOUSINE",
+    totalSeats: initialData?.totalSeats ?? BUS_SEAT_SUGGESTIONS["LIMOUSINE"],
     lastMaintenanceDate: initialData?.lastMaintenanceDate ?? "",
     insuranceExpiry: initialData?.insuranceExpiry ?? "",
   });
+
+  // Auto-update seat count when bus type changes
+  const handleBusTypeChange = (newBusType: string) => {
+    const suggestedSeats = BUS_SEAT_SUGGESTIONS[newBusType] ?? 40;
+    setForm((prev: CreateForm) => ({
+      ...prev,
+      busType: newBusType,
+      // Only auto-fill seats if user hasn't manually changed from default
+      totalSeats: prev.totalSeats === BUS_SEAT_SUGGESTIONS[prev.busType] ? suggestedSeats : prev.totalSeats,
+    }));
+  };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -409,7 +427,7 @@ function BusModal({
           <FormField label="Loại xe" required>
             <select
               value={form.busType}
-              onChange={(event) => setForm({ ...form, busType: event.target.value })}
+              onChange={(event) => handleBusTypeChange(event.target.value)}
               className="admin-select w-full px-3 py-2 text-sm outline-none"
             >
               {BUS_TYPE_OPTIONS.map((option) => (
@@ -420,7 +438,7 @@ function BusModal({
             </select>
           </FormField>
 
-          <FormField label="Số ghế" required>
+          <FormField label={`Số ghế (đề xuất: ${BUS_SEAT_SUGGESTIONS[form.busType] ?? 40} ghế)`} required>
             <input
               type="number"
               inputMode="numeric"

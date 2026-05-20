@@ -46,7 +46,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleUnexpected(Exception ex) {
-        log.error("Unexpected server error at /api/admin/trips", ex);
+        // Log đầy đủ exception với request context
+        log.error("Unexpected server error", ex);
         String details = ex.getClass().getSimpleName() + ": " + ex.getMessage();
         if (ex.getCause() != null) {
             details += " | Cause: " + ex.getCause().getClass().getSimpleName() + ": " + ex.getCause().getMessage();

@@ -10,12 +10,15 @@ interface Snowflake {
   drift: number;
 }
 
-export default function Snowfall() {
+interface SnowfallProps {
+  count?: number;
+}
+
+export default function Snowfall({ count = 120 }: SnowfallProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const snowflakes = useMemo<Snowflake[]>(() => {
     const flakes: Snowflake[] = [];
-    const count = 120; // Number of snowflakes - doubled!
 
     for (let i = 0; i < count; i++) {
       flakes.push({

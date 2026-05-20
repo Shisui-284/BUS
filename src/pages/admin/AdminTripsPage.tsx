@@ -172,7 +172,7 @@ export default function AdminTripsPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      <Snowfall />
+      <Snowfall count={180} />
       
       <div className="relative z-10 space-y-6 p-6">
         {/* Header */}
@@ -271,6 +271,7 @@ export default function AdminTripsPage() {
                   <th className="px-6 py-4 text-xs font-semibold text-slate-300 uppercase tracking-wider">Khởi hành</th>
                   <th className="px-6 py-4 text-xs font-semibold text-slate-300 uppercase tracking-wider">Đến</th>
                   <th className="px-6 py-4 text-xs font-semibold text-slate-300 uppercase tracking-wider">Trạng thái</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-slate-300 uppercase tracking-wider">Ghế</th>
                   <th className="px-6 py-4 text-xs font-semibold text-slate-300 uppercase tracking-wider">Nhân sự</th>
                   <th className="px-6 py-4 text-xs font-semibold text-slate-300 uppercase tracking-wider text-right">Thao tác</th>
                 </tr>
@@ -324,6 +325,37 @@ export default function AdminTripsPage() {
                         <span className={`inline-flex px-3 py-1.5 rounded-full text-xs font-semibold ${STATUS_CONFIG[trip.status]?.bgClass} ${STATUS_CONFIG[trip.status]?.color}`}>
                           {STATUS_CONFIG[trip.status]?.label}
                         </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {trip.totalSeats != null && trip.totalSeats > 0 ? (
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-2 bg-slate-600 rounded-full overflow-hidden max-w-[80px]">
+                                <div
+                                  className={`h-full rounded-full ${
+                                    (trip.bookedSeats ?? 0) / trip.totalSeats >= 0.9
+                                      ? "bg-red-400"
+                                      : (trip.bookedSeats ?? 0) / trip.totalSeats >= 0.6
+                                        ? "bg-amber-400"
+                                        : "bg-emerald-400"
+                                  }`}
+                                  style={{ width: `${Math.min(100, ((trip.bookedSeats ?? 0) / trip.totalSeats) * 100)}%` }}
+                                />
+                              </div>
+                              <span className="text-xs text-slate-300">
+                                {trip.availableSeats ?? 0}/{trip.totalSeats}
+                              </span>
+                            </div>
+                            <span className="text-xs text-slate-400">
+                              {(trip.bookedSeats ?? 0) >= trip.totalSeats
+                                ? "✗ Đã đầy"
+                                : `${trip.availableSeats ?? 0} ghế trống`
+                              }
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-500 italic">Chưa có ghế</span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1">

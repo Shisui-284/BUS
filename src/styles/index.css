@@ -402,6 +402,213 @@ textarea:focus-visible {
 }
 
 @layer utilities {
+  /* ===== CUSTOMER THEME - VIBRANT PINK ===== */
+  :root,
+  .theme-customer {
+    /* Customer Background - Soft Pink Gradient */
+    --customer-bg: #fdf2f8;
+    --customer-bg-soft: #fce7f3;
+    --customer-bg-card: rgba(255, 255, 255, 0.92);
+    --customer-surface: rgba(253, 242, 248, 0.8);
+    --customer-surface-soft: rgba(252, 231, 243, 0.6);
+
+    /* Customer Primary - Vibrant Pink */
+    --customer-primary: #ec4899;
+    --customer-primary-2: #db2777;
+    --customer-primary-3: #be185d;
+
+    /* Customer Accent - Warm Coral */
+    --customer-accent: #f97316;
+    --customer-accent-soft: rgba(249, 115, 22, 0.12);
+
+    /* Customer Text - Warm Dark */
+    --customer-text: #831843;
+    --customer-text-soft: #9d174d;
+    --customer-muted: #be185d;
+    --customer-muted-2: #ec4899;
+
+    /* Customer Border */
+    --customer-border: rgba(236, 72, 153, 0.15);
+    --customer-border-strong: rgba(236, 72, 153, 0.3);
+
+    /* Customer Status Colors */
+    --customer-success: #059669;
+    --customer-warning: #d97706;
+    --customer-danger: #dc2626;
+    --customer-info: #2563eb;
+
+    /* Customer Radius */
+    --customer-radius-sm: 12px;
+    --customer-radius-md: 16px;
+    --customer-radius-lg: 22px;
+    --customer-radius-xl: 28px;
+
+    /* Customer Shadows */
+    --customer-shadow-sm: 0 4px 20px rgba(236, 72, 153, 0.1);
+    --customer-shadow-md: 0 10px 40px rgba(236, 72, 153, 0.15);
+    --customer-shadow-lg: 0 20px 60px rgba(236, 72, 153, 0.2);
+    --customer-glow-pink: 0 0 50px rgba(236, 72, 153, 0.2);
+    --customer-glow-orange: 0 0 50px rgba(249, 115, 22, 0.2);
+  }
+
+  /* Customer page background */
+  .customer-layout {
+    background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 30%, #fdf2f8 60%, #fce7f3 100%);
+    min-height: 100vh;
+    position: relative;
+  }
+
+  .customer-layout::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      radial-gradient(ellipse at 15% 15%, rgba(236, 72, 153, 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 85% 25%, rgba(249, 115, 22, 0.1) 0%, transparent 45%),
+      radial-gradient(ellipse at 50% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Customer cards */
+  .customer-card,
+  .customer-panel {
+    border: 1px solid var(--customer-border);
+    border-radius: var(--customer-radius-xl);
+    background: var(--customer-bg-card);
+    backdrop-filter: blur(12px);
+    box-shadow: var(--customer-shadow-sm);
+  }
+
+  /* Customer inputs */
+  .customer-input,
+  .customer-select {
+    border: 1px solid var(--customer-border);
+    border-radius: var(--customer-radius-md);
+    background: white;
+    color: var(--customer-text);
+    transition: all 0.2s ease;
+  }
+
+  .customer-input:focus,
+  .customer-select:focus {
+    border-color: var(--customer-primary);
+    box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.15);
+    outline: none;
+  }
+
+  /* Customer buttons */
+  .customer-btn-primary {
+    border: 0;
+    border-radius: var(--customer-radius-md);
+    background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+    color: #ffffff;
+    font-weight: 750;
+    box-shadow: 0 8px 20px rgba(236, 72, 153, 0.3);
+    transition: all 0.2s ease;
+  }
+
+  .customer-btn-primary:hover {
+    transform: translateY(-1px);
+    background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+    box-shadow: 0 12px 28px rgba(236, 72, 153, 0.4);
+  }
+
+  /* Customer sidebar */
+  .customer-sidebar {
+    background: linear-gradient(180deg, #831843 0%, #9d174d 50%, #831843 100%);
+    color: #ffffff;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .customer-sidebar .nav-item {
+    color: rgba(255, 255, 255, 0.75);
+    transition: all 0.2s ease;
+  }
+
+  .customer-sidebar .nav-item:hover,
+  .customer-sidebar .nav-item.active {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  /* Override admin styles in customer context */
+  .customer-layout .admin-card,
+  .customer-layout .admin-panel,
+  .customer-layout .admin-table,
+  .customer-layout .admin-modal {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(236, 72, 153, 0.15) !important;
+    color: #831843 !important;
+  }
+
+  .customer-layout .admin-table th {
+    color: #9d174d !important;
+  }
+
+  .customer-layout .admin-table td {
+    color: #831843 !important;
+  }
+
+  .customer-layout .admin-title {
+    color: #831843 !important;
+  }
+
+  .customer-layout .admin-subtitle {
+    color: #ec4899 !important;
+  }
+
+  .customer-layout .admin-card:hover {
+    border-color: rgba(236, 72, 153, 0.3) !important;
+    box-shadow: var(--customer-shadow-md) !important;
+  }
+
+  /* Customer status badges */
+  .customer-badge-success {
+    background: rgba(5, 150, 105, 0.1);
+    color: #059669;
+    border: 1px solid rgba(5, 150, 105, 0.2);
+  }
+
+  .customer-badge-warning {
+    background: rgba(217, 119, 6, 0.1);
+    color: #d97706;
+    border: 1px solid rgba(217, 119, 6, 0.2);
+  }
+
+  .customer-badge-danger {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(220, 38, 38, 0.2);
+  }
+
+  .customer-badge-info {
+    background: rgba(37, 99, 235, 0.1);
+    color: #2563eb;
+    border: 1px solid rgba(37, 99, 235, 0.2);
+  }
+
+  /* Customer scrollbar */
+  .customer-layout ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .customer-layout ::-webkit-scrollbar-track {
+    background: #fce7f3;
+  }
+
+  .customer-layout ::-webkit-scrollbar-thumb {
+    background: rgba(236, 72, 153, 0.3);
+    border-radius: 999px;
+  }
+
+  .customer-layout ::-webkit-scrollbar-thumb:hover {
+    background: rgba(236, 72, 153, 0.5);
+  }
+
   .admin-glass {
     background: rgba(24, 20, 39, 0.75);
     backdrop-filter: blur(20px);

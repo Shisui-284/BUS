@@ -688,12 +688,22 @@ public class AdminService {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with id: " + id));
 
+        if (ticket.getStatus() == Ticket.TicketStatus.CANCELLED) {
+            throw new BusinessConflictException("Vé đã bị hủy, không thể xác nhận");
+        }
+
         if (ticket.getStatus() != Ticket.TicketStatus.HOLD) {
             throw new BusinessConflictException("Chỉ vé đang chờ xác nhận (HOLD) mới có thể xác nhận");
         }
 
+        // Không cho xác nhận nếu chuyến đã khởi hành
+        if (ticket.getTrip() != null && ticket.getTrip().getDepartureTime() != null
+                && LocalDateTime.now().isAfter(ticket.getTrip().getDepartureTime())) {
+            throw new BusinessConflictException("Chuyến xe đã khởi hành, không thể xác nhận vé");
+        }
+
         ticket.setStatus(Ticket.TicketStatus.CONFIRMED);
-        ticket.setPaidAt(java.time.LocalDateTime.now());
+        ticket.setPaidAt(LocalDateTime.now());
 
         // Tạo Payment COD khi xác nhận thành công
         Payment payment = new Payment();
@@ -702,7 +712,7 @@ public class AdminService {
         payment.setPaymentMethod(Payment.PaymentMethod.CASH);
         payment.setStatus(Payment.PaymentStatus.SUCCESS);
         payment.setTransactionCode("CASH-" + System.currentTimeMillis());
-        payment.setPaidAt(java.time.LocalDateTime.now());
+        payment.setPaidAt(LocalDateTime.now());
         ticket.setPayment(payment);
 
         Ticket saved = ticketRepository.save(ticket);
@@ -713,7 +723,7 @@ public class AdminService {
 
     /**
      * Admin hủy vé khi không xác nhận được với khách.
-     * Chỉ vé đang ở trạng thái HOLD mới có thể hủy bởi admin.
+     * Cho phép hủy vé HOLD hoặc CONFIRMED.
      * Ghế sẽ được giải phóng để đặt lại.
      */
     @Transactional
@@ -721,8 +731,22 @@ public class AdminService {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with id: " + id));
 
-        if (ticket.getStatus() != Ticket.TicketStatus.HOLD) {
-            throw new BusinessConflictException("Chỉ vé đang chờ xác nhận (HOLD) mới có thể hủy");
+        if (ticket.getStatus() == Ticket.TicketStatus.CANCELLED) {
+            throw new BusinessConflictException("Vé đã bị hủy trước đó");
+        }
+
+        if (ticket.getStatus() == Ticket.TicketStatus.PAID) {
+            throw new BusinessConflictException("Vé đã thanh toán, không thể hủy. Vui lòng hoàn tiền trước.");
+        }
+
+        if (ticket.getStatus() == Ticket.TicketStatus.REFUNDED) {
+            throw new BusinessConflictException("Vé đã được hoàn tiền");
+        }
+
+        // Không cho hủy nếu chuyến đã khởi hành
+        if (ticket.getTrip() != null && ticket.getTrip().getDepartureTime() != null
+                && LocalDateTime.now().isAfter(ticket.getTrip().getDepartureTime())) {
+            throw new BusinessConflictException("Chuyến xe đã khởi hành, không thể hủy vé");
         }
 
         ticket.setStatus(Ticket.TicketStatus.CANCELLED);

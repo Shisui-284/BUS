@@ -61,6 +61,7 @@ com\business\busmanagement\dto\TicketResponse.class
 com\business\busmanagement\model\Bus$BusStatus.class
 com\business\busmanagement\exception\ApiErrorResponse.class
 com\business\busmanagement\model\Bus.class
+com\business\busmanagement\dto\PayTicketRequest.class
 com\business\busmanagement\repository\PaymentRepository.class
 com\business\busmanagement\util\RoleNormalizer.class
 com\business\busmanagement\model\Trip.class

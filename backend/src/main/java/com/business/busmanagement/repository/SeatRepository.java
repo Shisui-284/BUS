@@ -19,4 +19,7 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
 
     @Query("SELECT s FROM Seat s WHERE s.bus.id = :busId ORDER BY s.seatNumber ASC")
     java.util.List<Seat> findByBusId(@Param("busId") Long busId);
+
+    @Query("SELECT COUNT(s) FROM Seat s WHERE s.bus.id = :busId")
+    int countByBusId(@Param("busId") Long busId);
 }

@@ -31,16 +31,35 @@ export interface BookTicketPayload {
 export interface TicketRecord {
   id: number;
   tripId: number;
-  routeName: string;
+  // Tuyến đường
+  origin: string;
+  destination: string;
+  // Chuyến
   departureTime: string;
   arrivalTime: string;
+  // Xe
+  busLicensePlate: string;
+  busType: string;
   busLabel: string;
+  // Ghế
   seatNumber: string;
+  // Hành khách
   passengerName: string;
   passengerPhone: string;
+  passengerEmail: string;
+  // Đặt vé
   price: number;
   status: string;
   bookedAt: string;
+  paidAt: string;
+  // Thanh toán / Hóa đơn
+  paymentId: number | null;
+  paymentMethod: string | null;
+  paymentStatus: string | null;
+  transactionCode: string | null;
+  transactionTime: string | null;
+  // Mã vé
+  ticketCode: string;
 }
 
 export interface UpdateProfilePayload {
@@ -55,6 +74,13 @@ export const searchTrips = (params: {
 }): Promise<TripSearchResult[]> =>
   apiClient
     .get<TripSearchResult[]>("/public/trips/search", { params })
+    .then((r) => r.data);
+
+export const getAllUpcomingTrips = (params?: {
+  date?: string;
+}): Promise<TripSearchResult[]> =>
+  apiClient
+    .get<TripSearchResult[]>("/public/trips", { params })
     .then((r) => r.data);
 
 export const getTripSeats = (tripId: number): Promise<SeatStatus[]> =>
@@ -85,6 +111,5 @@ export const getProfile = (): Promise<{
 export const updateProfile = (payload: UpdateProfilePayload): Promise<void> =>
   apiClient.put("/auth/profile", payload).then((r) => r.data);
 
-export const mockPayment = async (data: any) => {
-    // ... code xử lý payment của bạn
-};
+export const mockPayment = async (data: { ticketId: number; paymentMethod: string }): Promise<TicketRecord> =>
+  apiClient.put<TicketRecord>(`/private/tickets/${data.ticketId}/pay`, { paymentMethod: data.paymentMethod }).then((r) => r.data);

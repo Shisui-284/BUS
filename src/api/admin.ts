@@ -223,6 +223,9 @@ export interface AdminTrip {
   departureTime: string;
   arrivalTime: string;
   status: "SCHEDULED" | "RUNNING" | "COMPLETED" | "CANCELLED" | "DELAYED";
+  totalSeats?: number;
+  bookedSeats?: number;
+  availableSeats?: number;
   assignments: {
     id: number;
     employeeId: number | null;

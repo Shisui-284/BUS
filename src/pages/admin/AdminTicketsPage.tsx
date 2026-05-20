@@ -33,9 +33,9 @@ const AdminTicketsPage: React.FC = () => {
 
   // Lọc vé kết hợp cả từ khóa tìm kiếm VÀ trạng thái
   const filteredTickets = tickets.filter(t => {
-    const matchSearch = 
-      t.passengerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.passengerPhone.includes(searchTerm) ||
+    const matchSearch =
+      (t.passengerName && t.passengerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (t.passengerPhone && t.passengerPhone.includes(searchTerm)) ||
       t.ticketId.toString().includes(searchTerm);
       
     const matchStatus = statusFilter === 'ALL' || t.status === statusFilter;

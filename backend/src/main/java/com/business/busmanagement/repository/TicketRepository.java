@@ -3,7 +3,9 @@ import com.business.busmanagement.dto.AdminTicketDTO;
 import com.business.busmanagement.model.Seat;
 import com.business.busmanagement.model.Ticket;
 import com.business.busmanagement.model.Trip;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -18,6 +20,13 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     boolean existsByTripAndSeat(Trip trip, Seat seat);
 
+    @Query("SELECT t FROM Ticket t WHERE t.trip.id = :tripId AND t.seat.id = :seatId")
+    Optional<Ticket> findByTripIdAndSeatId(@Param("tripId") Long tripId, @Param("seatId") Long seatId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT t FROM Ticket t WHERE t.trip.id = :tripId AND t.seat.id = :seatId")
+    Optional<Ticket> findByTripIdAndSeatIdForUpdate(@Param("tripId") Long tripId, @Param("seatId") Long seatId);
+
     @Query("""
             SELECT t FROM Ticket t
             JOIN t.passenger p
@@ -29,7 +38,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     @Query("""
             SELECT t.seat.id FROM Ticket t
             WHERE t.trip.id = :tripId
-              AND t.status NOT IN ('CANCELLED', 'REFUNDED', 'HOLD', 'CONFIRMED')
+              AND t.status NOT IN ('CANCELLED', 'REFUNDED')
             """)
     List<Long> findBookedSeatIdsByTripId(@Param("tripId") Long tripId);
 

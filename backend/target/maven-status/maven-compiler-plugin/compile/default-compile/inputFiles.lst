@@ -42,6 +42,7 @@ D:\pus\BUS\backend\src\main\java\com\business\busmanagement\config\JwtAuthentica
 D:\pus\BUS\backend\src\main\java\com\business\busmanagement\controller\CargoController.java
 D:\pus\BUS\backend\src\main\java\com\business\busmanagement\dto\admin\UpdateBusRequest.java
 D:\pus\BUS\backend\src\main\java\com\business\busmanagement\dto\AuthResponse.java
+D:\pus\BUS\backend\src\main\java\com\business\busmanagement\dto\PayTicketRequest.java
 D:\pus\BUS\backend\src\main\java\com\business\busmanagement\util\RoleNormalizer.java
 D:\pus\BUS\backend\src\main\java\com\business\busmanagement\BusManagementApplication.java
 D:\pus\BUS\backend\src\main\java\com\business\busmanagement\controller\TripAssignmentController.java

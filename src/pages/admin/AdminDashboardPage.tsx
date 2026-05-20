@@ -175,7 +175,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="relative min-h-screen">
-      <Snowfall />
+      <Snowfall count={360} />
       
       <div className="relative z-10 space-y-8">
         {/* Hero Section */}

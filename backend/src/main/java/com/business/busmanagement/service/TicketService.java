@@ -34,8 +34,12 @@ public class TicketService {
         Trip trip = tripRepository.findById(safeTripId)
                 .orElseThrow(() -> new IllegalArgumentException("Trip not found"));
 
-        if (trip.getStatus() == Trip.TripStatus.CANCELLED || trip.getStatus() == Trip.TripStatus.COMPLETED) {
-            throw new IllegalStateException("Không thể đặt vé cho chuyến đã hủy hoặc đã hoàn thành");
+        // Chặn đặt vé khi trip đã hủy, hoàn thành, đang chạy hoặc trễ
+        if (trip.getStatus() == Trip.TripStatus.CANCELLED
+                || trip.getStatus() == Trip.TripStatus.COMPLETED
+                || trip.getStatus() == Trip.TripStatus.RUNNING
+                || trip.getStatus() == Trip.TripStatus.DELAYED) {
+            throw new IllegalStateException("Không thể đặt vé cho chuyến đã hủy, đã hoàn thành, đang chạy hoặc bị trễ");
         }
 
         if (trip.getDepartureTime() == null || LocalDateTime.now().isAfter(trip.getDepartureTime().minusMinutes(15))) {
@@ -49,7 +53,8 @@ public class TicketService {
             throw new IllegalStateException("Ghế không thuộc xe của chuyến này");
         }
 
-        Optional<Ticket> existingTicket = ticketRepository.findByTripAndSeat(trip, seat);
+        // Dùng query CÓ LOCK để tránh race condition
+        Optional<Ticket> existingTicket = ticketRepository.findByTripIdAndSeatIdForUpdate(safeTripId, safeSeatId);
         Ticket ticket;
 
         if (existingTicket.isPresent()) {
@@ -74,8 +79,6 @@ public class TicketService {
             ticket.setBookedAt(LocalDateTime.now());
             ticket.setPaidAt(null);
         }
-
-        // Payment sẽ được tạo tự động khi admin xác nhận vé (COD)
 
         if (passengerId != null) {
             Passenger passenger = passengerRepository.findById(passengerId)
