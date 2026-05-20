@@ -201,7 +201,14 @@ public class TicketController {
     public ResponseEntity<List<TicketResponse>> getMyTickets() {
         User currentUser = getCurrentUser();
         List<Ticket> tickets = ticketRepository.findByPassengerUserId(currentUser.getId());
-        return ResponseEntity.ok(tickets.stream().map(this::toTicketResponse).toList());
+        return ResponseEntity.ok(tickets.stream()
+                .map(t -> {
+                    try { return toTicketResponse(t); }
+                    catch (Exception ex) {
+                        return buildFallbackResponse(t);
+                    }
+                })
+                .toList());
     }
 
     // ----------------------------------------------------------------
@@ -316,11 +323,15 @@ public class TicketController {
             }
             depTime = trip.getDepartureTime();
             arrTime = trip.getArrivalTime();
-            Bus bus = trip.getBus();
-            if (bus != null) {
-                licensePlate = bus.getLicensePlate() != null ? bus.getLicensePlate() : "";
-                busType = bus.getBusType() != null ? bus.getBusType().name() : "";
-                busLabel = licensePlate + (busType.isEmpty() ? "" : " - " + busType);
+            if (trip.getBus() != null) {
+                final Long busId = trip.getBus().getId();
+                var busOpt = busRepository.findById(busId);
+                if (busOpt.isPresent()) {
+                    Bus bus = busOpt.get();
+                    licensePlate = bus.getLicensePlate() != null ? bus.getLicensePlate() : "";
+                    busType = bus.getBusType() != null ? bus.getBusType().name() : "";
+                    busLabel = licensePlate + (busType.isEmpty() ? "" : " - " + busType);
+                }
             }
         }
 
@@ -364,6 +375,27 @@ public class TicketController {
                 txCode,
                 txTime,
                 ticketCode
+        );
+    }
+
+    private TicketResponse buildFallbackResponse(Ticket ticket) {
+        return new TicketResponse(
+                ticket.getId(),
+                ticket.getTrip() != null ? ticket.getTrip().getId() : null,
+                "", "",
+                ticket.getTrip() != null ? ticket.getTrip().getDepartureTime() : null,
+                ticket.getTrip() != null ? ticket.getTrip().getArrivalTime() : null,
+                "", "", "",
+                "",   // seatNumber - might be orphaned, skip to avoid lazy-load crash
+                ticket.getPassenger() != null ? ticket.getPassenger().getFullName() : "—",
+                ticket.getPassenger() != null ? ticket.getPassenger().getPhone() : "—",
+                "",
+                ticket.getPrice(),
+                ticket.getStatus().name(),
+                ticket.getBookedAt(),
+                ticket.getPaidAt(),
+                null, null, null, null, null,
+                generateTicketCode(ticket)
         );
     }
 
