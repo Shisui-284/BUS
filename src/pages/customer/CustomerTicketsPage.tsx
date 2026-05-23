@@ -2,6 +2,16 @@ import { useEffect, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import { getMyTickets, cancelTicket, mockPayment, TicketRecord } from "../../api/customer";
+import { X } from "lucide-react"; // Import icon nút tắt cho QR Modal
+
+const BANK_ID = "VCB"; // Tên viết tắt ngân hàng (VD: MB, VCB, TCB...)
+const ACCOUNT_NO = "0987654321"; // Số tài khoản của nhà xe
+const ACCOUNT_NAME = "LE VU HAO"; // Tên chủ tài khoản 
+
+const generateVietQRUrl = (amount: number, ticketCode: string) => {
+  const transferContent = `THANH TOAN VE ${ticketCode}`;
+  return `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(transferContent)}&accountName=${encodeURIComponent(ACCOUNT_NAME)}`;
+};
 
 // ─── Status & payment config ──────────────────────────────────────────
 const STATUS_MAP: Record<string, { label: string; style: string; dot: string }> = {
@@ -18,7 +28,7 @@ const PAYMENT_METHOD_LABEL: Record<string, string> = {
   CASH: "Tiền mặt",
   CARD: "Thẻ ngân hàng",
   MOMO: "MoMo",
-  BANK: "Chuyển khoản",
+  BANK: "Chuyển khoản QR",
 };
 
 // ─── Helpers ────────────────────────────────────────────────────────
@@ -47,17 +57,14 @@ const fmtTime = (dt: string | null | undefined) => {
 const fmtPrice = (p: number) =>
   p.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
-// ─── QR Code component (SVG-based, no library needed) ──────────────
+// ─── QR Code component (Cho QR Check-in) ──────────────
 function QRCodeSVG({ value, size = 120 }: { value: string; size?: number }) {
-  // Simple visual placeholder — real QR would need a library
-  // We generate a deterministic pattern from the string
   const hash = value.split("").reduce((acc, c) => ((acc << 5) - acc + c.charCodeAt(0)) | 0, 0);
   const cells: boolean[][] = [];
   const grid = 21;
   for (let r = 0; r < grid; r++) {
     cells[r] = [];
     for (let c = 0; c < grid; c++) {
-      // Corner finder patterns (3x3 squares at corners)
       const isCorner =
         (r < 7 && c < 7) ||
         (r < 7 && c > grid - 8) ||
@@ -93,19 +100,66 @@ function QRCodeSVG({ value, size = 120 }: { value: string; size?: number }) {
   );
 }
 
+// ─── QR Payment Modal (VietQR) ───────────────────────────────────────
+function QRCodePaymentModal({ 
+  ticket, 
+  onClose, 
+  onConfirm, 
+  isConfirming 
+}: { 
+  ticket: TicketRecord; 
+  onClose: () => void; 
+  onConfirm: () => void; 
+  isConfirming: boolean 
+}) {
+  const qrUrl = generateVietQRUrl(ticket.price, ticket.ticketCode);
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+         onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden text-center">
+        <div className="bg-gradient-to-r from-pink-500 to-rose-500 px-6 py-4 flex justify-between items-center text-white">
+           <h2 className="text-lg font-bold">Thanh toán chuyển khoản</h2>
+           <button onClick={onClose} className="hover:bg-white/20 p-1.5 rounded-full transition"><X size={20} /></button>
+        </div>
+        <div className="p-6">
+          <div className="mb-2 text-slate-500 text-sm">Tổng tiền thanh toán</div>
+          <div className="text-3xl font-bold text-pink-600 mb-6">{fmtPrice(ticket.price)}</div>
+          
+          <div className="flex justify-center mb-6">
+             <div className="p-3 border-2 border-pink-100 rounded-2xl bg-white shadow-sm inline-block">
+               <img src={qrUrl} alt="VietQR" className="w-56 h-56 object-contain" />
+             </div>
+          </div>
+          
+          <p className="text-sm text-slate-500 mb-6 px-2">
+             Mở ứng dụng ngân hàng và quét mã QR trên để chuyển khoản. Nội dung và số tiền đã được điền tự động.
+          </p>
+          
+          <button
+            onClick={onConfirm}
+            disabled={isConfirming}
+            className="w-full flex justify-center items-center gap-2 rounded-xl bg-emerald-500 px-4 py-3.5 text-sm font-semibold text-white hover:bg-emerald-600 disabled:opacity-50 transition-colors shadow-lg shadow-emerald-200"
+          >
+            {isConfirming ? "Đang xử lý..." : "✓ Tôi đã chuyển khoản xong"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Invoice Modal ───────────────────────────────────────────────────
 interface InvoiceModalProps {
   ticket: TicketRecord;
   onClose: () => void;
   onCancel: (id: number) => Promise<void>;
-  onPay: (ticket: TicketRecord) => Promise<void>;
+  onPay: (ticket: TicketRecord) => void;
   cancellingId: number | null;
-  payingId: number | null;
 }
 
-function InvoiceModal({ ticket, onClose, onCancel, onPay, cancellingId, payingId }: InvoiceModalProps) {
+function InvoiceModal({ ticket, onClose, onCancel, onPay, cancellingId }: InvoiceModalProps) {
   const s = STATUS_MAP[ticket.status] ?? { label: ticket.status, style: "bg-slate-50", dot: "bg-slate-400" };
-  const isPaid = ticket.status === "PAID";
   const canPay = ticket.status === "HOLD";
   const canCancel = ticket.status === "HOLD" || ticket.status === "BOOKED";
 
@@ -124,7 +178,7 @@ function InvoiceModal({ ticket, onClose, onCancel, onPay, cancellingId, payingId
               <div className="text-xs opacity-75 mb-0.5">VÉ XE KHÁCH HÀNG</div>
               <div className="text-xl font-bold tracking-wide">{ticket.ticketCode}</div>
             </div>
-            <span className={`rounded-full px-3 py-1 text-xs font-semibold bg-white/20 border border-white/30 ${s.label === "Đã thanh toán" ? "text-white" : "text-white"}`}>
+            <span className={`rounded-full px-3 py-1 text-xs font-semibold bg-white/20 border border-white/30 text-white`}>
               {s.label}
             </span>
           </div>
@@ -132,7 +186,6 @@ function InvoiceModal({ ticket, onClose, onCancel, onPay, cancellingId, payingId
 
         {/* ── Invoice body ───────────────────────────────────── */}
         <div className="px-6 py-5 space-y-5">
-
           {/* Route */}
           <div className="bg-slate-50 rounded-xl p-4">
             <div className="text-xs text-slate-400 uppercase tracking-wider mb-3">Tuyến đường</div>
@@ -257,9 +310,8 @@ function InvoiceModal({ ticket, onClose, onCancel, onPay, cancellingId, payingId
           )}
           {canPay && (
             <button onClick={() => onPay(ticket)}
-              disabled={payingId === ticket.id}
-              className="flex-1 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-600 disabled:opacity-50 transition-colors">
-              {payingId === ticket.id ? "Đang thanh toán..." : "💳 Thanh toán ngay"}
+              className="flex-1 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-600 transition-colors">
+              💳 Thanh toán ngay
             </button>
           )}
           <button onClick={onClose}
@@ -269,7 +321,6 @@ function InvoiceModal({ ticket, onClose, onCancel, onPay, cancellingId, payingId
         </div>
       </div>
 
-      {/* Print-only: hide modal overlay */}
       <style>{`@media print { body > *:not(#invoice-print-area) { display:none !important; } #invoice-print-area { position:fixed; top:0; left:0; width:100%; max-width:100%; max-height:100%; overflow:visible; border-radius:0; box-shadow:none; } }`}</style>
     </div>
   );
@@ -293,11 +344,8 @@ function TicketCard({ ticket, onViewDetail }: TicketCardProps) {
       className={`rounded-2xl border bg-white transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-md
         ${isCancelled ? "border-red-100 opacity-70" : isPaid ? "border-emerald-200" : "border-slate-100"}`}
     >
-      {/* Top stripe */}
       <div className={`h-1.5 rounded-t-2xl ${isCancelled ? "bg-red-400" : isPaid ? "bg-emerald-400" : "bg-pink-400"}`} />
-
       <div className="p-4">
-        {/* Header row */}
         <div className="flex items-center justify-between mb-3">
           <div className="font-mono text-xs font-semibold text-pink-500 tracking-wider">
             {ticket.ticketCode}
@@ -307,14 +355,12 @@ function TicketCard({ ticket, onViewDetail }: TicketCardProps) {
           </span>
         </div>
 
-        {/* Route */}
         <div className="flex items-center gap-2 mb-3">
           <div className="text-sm font-semibold text-slate-800 truncate">{ticket.origin}</div>
           <div className="text-slate-300 shrink-0">→</div>
           <div className="text-sm font-semibold text-slate-800 truncate">{ticket.destination}</div>
         </div>
 
-        {/* Info grid */}
         <div className="grid grid-cols-3 gap-2 mb-3">
           <div className="text-center bg-slate-50 rounded-xl py-2">
             <div className="text-xs text-slate-400 mb-0.5">Giờ đi</div>
@@ -333,7 +379,6 @@ function TicketCard({ ticket, onViewDetail }: TicketCardProps) {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-between">
           <div className="text-xs text-slate-400 truncate mr-2">{ticket.busLabel || ticket.busLicensePlate}</div>
           <div className="text-right shrink-0">
@@ -355,6 +400,9 @@ export default function CustomerTicketsPage() {
   const [cancellingId, setCancellingId] = useState<number | null>(null);
   const [payingId, setPayingId] = useState<number | null>(null);
   const [selectedTicket, setSelectedTicket] = useState<TicketRecord | null>(null);
+  
+  // State quản lý việc hiển thị modal QR
+  const [qrTicket, setQrTicket] = useState<TicketRecord | null>(null);
 
   const load = useCallback(() => {
     getMyTickets()
@@ -380,15 +428,20 @@ export default function CustomerTicketsPage() {
     }
   };
 
-  const handlePayNow = async (ticket: TicketRecord) => {
+  // Hàm này giờ sẽ chạy khi khách bấm "Tôi đã chuyển khoản xong" trên Modal QR
+  const handleConfirmTransfer = async (ticket: TicketRecord) => {
     setPayingId(ticket.id);
     try {
-      await mockPayment({ ticketId: ticket.id, paymentMethod: "CASH" });
+      // Gọi API cập nhật phương thức là BANK (Chuyển khoản)
+      await mockPayment({ ticketId: ticket.id, paymentMethod: "BANK" }); 
       const updated = await getMyTickets();
       setTickets(updated);
+      
       const refreshed = updated.find(t => t.id === ticket.id);
       if (refreshed && selectedTicket?.id === ticket.id) setSelectedTicket(refreshed);
-      toast.success("Thanh toán thành công!");
+      
+      toast.success("Đã ghi nhận thanh toán! Hệ thống sẽ cập nhật trạng thái sớm nhất.");
+      setQrTicket(null); // Đóng modal QR
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Thanh toán thất bại");
     } finally {
@@ -416,7 +469,6 @@ export default function CustomerTicketsPage() {
 
   return (
     <>
-      {/* Print layout */}
       <div className="rounded-2xl bg-white shadow-sm overflow-hidden print:shadow-none">
         <div className="border-b border-slate-100 px-6 py-4 flex items-center justify-between print:hidden">
           <div>
@@ -425,7 +477,6 @@ export default function CustomerTicketsPage() {
           </div>
         </div>
 
-        {/* Ticket grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 p-4 print:grid-cols-2">
           {tickets.map(ticket => (
             <TicketCard key={ticket.id} ticket={ticket} onViewDetail={setSelectedTicket} />
@@ -433,15 +484,24 @@ export default function CustomerTicketsPage() {
         </div>
       </div>
 
-      {/* Invoice Modal */}
+      {/* Invoice Modal (Chi tiết vé) */}
       {selectedTicket && (
         <InvoiceModal
           ticket={selectedTicket}
           onClose={() => setSelectedTicket(null)}
           onCancel={handleCancel}
-          onPay={handlePayNow}
+          onPay={(t) => setQrTicket(t)} // Mở QR Modal thay vì gọi API ngay
           cancellingId={cancellingId}
-          payingId={payingId}
+        />
+      )}
+
+      {/* QR Code Payment Modal (Lớp đè lên trên Invoice Modal) */}
+      {qrTicket && (
+        <QRCodePaymentModal
+          ticket={qrTicket}
+          onClose={() => setQrTicket(null)}
+          onConfirm={() => handleConfirmTransfer(qrTicket)}
+          isConfirming={payingId === qrTicket.id}
         />
       )}
     </>
