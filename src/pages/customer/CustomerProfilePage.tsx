@@ -33,12 +33,11 @@ export default function CustomerProfilePage() {
       .catch(() => toast.error("Không tải được hồ sơ"))
       .finally(() => setLoading(false));
 
-    // Load trip history (PAID tickets only)
+    // Load trip history (chỉ những vé đã được admin xác nhận → coi như chuyến đã hoàn thành)
     getMyTickets()
       .then((tickets) => {
-        // Filter only PAID tickets for trip history
-        const paidTickets = tickets.filter((t) => t.status === "PAID");
-        setTripHistory(paidTickets);
+        const confirmedTickets = tickets.filter((t) => t.status === "CONFIRMED");
+        setTripHistory(confirmedTickets);
       })
       .catch(() => {})
       .finally(() => setLoadingHistory(false));
@@ -146,14 +145,7 @@ export default function CustomerProfilePage() {
           <div className="p-10 text-center text-sm text-pink-400">
             Đang tải lịch sử...
           </div>
-        ) : tripHistory.length === 0 ? (
-          <div className="p-10 text-center">
-            <p className="text-pink-500 mb-2">Bạn chưa có chuyến đi nào.</p>
-            <p className="text-xs text-pink-400">
-              Vé đã thanh toán sẽ hiển thị tại đây.
-            </p>
-          </div>
-        ) : (
+        ) : tripHistory.length === 0 ? null : (
           <div className="divide-y divide-slate-100">
             {tripHistory.map((ticket) => (
               <div

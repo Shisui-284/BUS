@@ -360,16 +360,15 @@ interface TicketCardProps {
 function TicketCard({ ticket, onViewDetail }: TicketCardProps) {
   const s = STATUS_MAP[ticket.status] ?? { label: ticket.status, style: "bg-slate-50", dot: "bg-slate-400" };
 
-  const isPaid = ticket.status === "PAID";
   const isCancelled = ticket.status === "CANCELLED";
 
   return (
     <div
       onClick={() => onViewDetail(ticket)}
       className={`rounded-2xl border bg-white transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-md
-        ${isCancelled ? "border-red-100 opacity-70" : isPaid ? "border-emerald-200" : "border-slate-100"}`}
+        ${isCancelled ? "border-red-100 opacity-70" : "border-slate-100"}`}
     >
-      <div className={`h-1.5 rounded-t-2xl ${isCancelled ? "bg-red-400" : isPaid ? "bg-emerald-400" : "bg-pink-400"}`} />
+      <div className={`h-1.5 rounded-t-2xl ${isCancelled ? "bg-red-400" : "bg-pink-400"}`} />
       <div className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="font-mono text-xs font-semibold text-pink-500 tracking-wider">
@@ -386,7 +385,7 @@ function TicketCard({ ticket, onViewDetail }: TicketCardProps) {
           <div className="text-sm font-semibold text-slate-800 truncate">{ticket.destination}</div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-3">
+        <div className="grid grid-cols-2 gap-2 mb-3">
           <div className="text-center bg-slate-50 rounded-xl py-2">
             <div className="text-xs text-slate-400 mb-0.5">Giờ đi</div>
             <div className="text-sm font-semibold text-slate-700">{fmtTime(ticket.departureTime)}</div>
@@ -395,12 +394,6 @@ function TicketCard({ ticket, onViewDetail }: TicketCardProps) {
           <div className="text-center bg-pink-50 rounded-xl py-2 border border-pink-100">
             <div className="text-xs text-pink-400 mb-0.5">Ghế</div>
             <div className="text-lg font-bold text-pink-700">{ticket.seatNumber || "—"}</div>
-          </div>
-          <div className="text-center bg-slate-50 rounded-xl py-2">
-            <div className="text-xs text-slate-400 mb-0.5">Thanh toán</div>
-            <div className={`text-sm font-semibold ${isPaid ? "text-emerald-600" : isCancelled ? "text-red-400" : "text-amber-600"}`}>
-              {isPaid ? "✓ Đã TT" : isCancelled ? "— Đã hủy" : "⏳ Chưa TT"}
-            </div>
           </div>
         </div>
 
@@ -424,9 +417,6 @@ function TicketCard({ ticket, onViewDetail }: TicketCardProps) {
           </div>
           <div className="text-right shrink-0">
             <div className="font-bold text-pink-600">{fmtPrice(ticket.price)}</div>
-            {isPaid && ticket.transactionCode && (
-              <div className="text-xs text-emerald-500">#{ticket.transactionCode.split("-")[1] ?? ticket.transactionCode}</div>
-            )}
           </div>
         </div>
       </div>
