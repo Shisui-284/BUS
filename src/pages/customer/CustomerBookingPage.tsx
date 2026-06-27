@@ -3,6 +3,7 @@ import { Check, X, ChevronRight, ChevronDown, ChevronUp, Phone, MapPin, CreditCa
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
+import BookingHero from "../../components/customer/BookingHero";
 import {
   searchTrips,
   getAllUpcomingTrips,
@@ -626,18 +627,16 @@ export default function CustomerBookingPage() {
           STEP 1: TÌM CHUYẾN
       ══════════════════════════════════════════ */}
       {step === "search" && (
-        <div className="space-y-4">
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <h2 className="mb-4 text-base font-semibold text-pink-900">
-              Tìm chuyến xe
-            </h2>
+        <BookingHero>
+          <div className="booking-hero-search-card">
+            <h2 className="booking-hero-search-title">Tìm chuyến xe</h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <label className="block text-sm font-medium text-pink-700">
+              <label className="block text-sm font-semibold text-pink-900">
                 Điểm đi
                 <select
                   value={origin}
                   onChange={(e) => setOrigin(e.target.value)}
-                  className="customer-input mt-1 w-full px-3 py-2 text-sm"
+                  className="customer-input mt-1.5 w-full px-3 py-2 text-sm font-medium text-slate-800"
                 >
                   <option value="">-- Tất cả --</option>
                   {LOCATIONS.map((l) => (
@@ -645,12 +644,12 @@ export default function CustomerBookingPage() {
                   ))}
                 </select>
               </label>
-              <label className="block text-sm font-medium text-pink-700">
+              <label className="block text-sm font-semibold text-pink-900">
                 Điểm đến
                 <select
                   value={destination}
                   onChange={(e) => setDestination(e.target.value)}
-                  className="customer-input mt-1 w-full px-3 py-2 text-sm"
+                  className="customer-input mt-1.5 w-full px-3 py-2 text-sm font-medium text-slate-800"
                 >
                   <option value="">-- Tất cả --</option>
                   {LOCATIONS.filter((l) => l !== origin).map((l) => (
@@ -658,23 +657,23 @@ export default function CustomerBookingPage() {
                   ))}
                 </select>
               </label>
-              <label className="block text-sm font-medium text-pink-700">
+              <label className="block text-sm font-semibold text-pink-900">
                 Ngày đi
                 <input
                   type="date"
                   value={date}
                   min={new Date().toISOString().split("T")[0]}
                   onChange={(e) => setDate(e.target.value)}
-                  className="customer-input mt-1 w-full px-3 py-2 text-sm"
+                  className="customer-input mt-1.5 w-full px-3 py-2 text-sm font-medium text-slate-800"
                 />
               </label>
             </div>
-            <div className="flex gap-3 mt-4">
+            <div className="flex flex-wrap gap-3 mt-4">
               <button
                 onClick={handleSearch}
-                className="customer-btn-primary py-2.5 text-sm font-semibold text-white px-6"
+                className="customer-btn-primary py-2.5 text-sm font-bold text-white px-7 shadow-lg shadow-pink-500/30"
               >
-                Tìm kiếm
+                🔍 Tìm kiếm
               </button>
               <button
                 onClick={() => {
@@ -682,34 +681,35 @@ export default function CustomerBookingPage() {
                   setDestination("");
                   loadTrips();
                 }}
-                className="rounded-xl border border-pink-200 px-4 py-2 text-sm text-pink-600 hover:bg-pink-50"
+                className="rounded-xl border-2 border-pink-300 bg-white/70 backdrop-blur-sm px-5 py-2.5 text-sm font-semibold text-pink-800 hover:bg-white hover:border-pink-500 transition-all"
               >
                 Xem tất cả
               </button>
             </div>
           </div>
 
-          {/* Danh sách chuyến */}
+          {/* Danh sách chuyến - bên trong hero bottom */}
+          <div className="mt-4 space-y-2">
           {loadingTrips ? (
-            <div className="rounded-2xl bg-white p-12 text-center shadow-sm">
+            <div className="rounded-2xl bg-white/85 backdrop-blur-md p-12 text-center shadow-md border border-pink-100">
               <div className="animate-spin h-8 w-8 border-2 border-pink-500 border-t-transparent rounded-full mx-auto mb-3" />
-              <p className="text-pink-500">Đang tải danh sách chuyến...</p>
+              <p className="text-pink-700 font-semibold">Đang tải danh sách chuyến...</p>
             </div>
           ) : trips.length === 0 ? (
-            <div className="rounded-2xl bg-white p-10 text-center shadow-sm">
+            <div className="rounded-2xl bg-white/85 backdrop-blur-md p-10 text-center shadow-md border border-pink-100">
               <div className="text-4xl mb-3">🚌</div>
-              <p className="text-pink-600 font-medium mb-1">Không có chuyến nào trong khoảng thời gian này.</p>
-              <p className="text-sm text-pink-400">Hãy thử chọn ngày khác.</p>
+              <p className="text-pink-700 font-bold mb-1">Không có chuyến nào trong khoảng thời gian này.</p>
+              <p className="text-sm text-pink-500">Hãy thử chọn ngày khác.</p>
             </div>
           ) : (
-            <div className="space-y-2">
-              <p className="text-sm text-pink-500 font-medium">
+            <>
+              <p className="text-sm font-bold text-pink-900">
                 {trips.length} chuyến khả dụng
               </p>
               {trips.map((trip) => (
                 <div
                   key={trip.id}
-                  className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm hover:shadow-md transition cursor-pointer"
+                  className="flex items-center justify-between rounded-2xl bg-white/90 backdrop-blur-md p-4 shadow-md hover:shadow-lg hover:bg-white transition cursor-pointer border border-pink-100"
                   onClick={() => handleSelectTrip(trip)}
                 >
                   <div className="space-y-1 flex-1 min-w-0">
@@ -794,9 +794,10 @@ export default function CustomerBookingPage() {
                   </div>
                 </div>
               ))}
-            </div>
+            </>
           )}
-        </div>
+          </div>
+        </BookingHero>
       )}
 
       {/* ══════════════════════════════════════════
