@@ -38,10 +38,14 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class VnpayServiceTest {
 
-    @Mock private TicketRepository ticketRepository;
-    @Mock private PaymentRepository paymentRepository;
-    @Mock private AdminNotificationService notificationService;
-    @Mock private HttpServletRequest httpRequest;
+    @Mock
+    private TicketRepository ticketRepository;
+    @Mock
+    private PaymentRepository paymentRepository;
+    @Mock
+    private AdminNotificationService notificationService;
+    @Mock
+    private HttpServletRequest httpRequest;
 
     private VnpayService vnpayService;
     private VnpayConfig vnpayConfig;
@@ -182,10 +186,12 @@ class VnpayServiceTest {
             hashInUrl = hashInUrl.substring(0, hashInUrl.indexOf("&"));
         }
 
-        // Hash should be 128 hex characters (SHA-512 = 512 bits = 64 bytes = 128 hex chars)
+        // Hash should be 128 hex characters (SHA-512 = 512 bits = 64 bytes = 128 hex
+        // chars)
         assertThat(hashInUrl).matches("^[a-f0-9]{128}$");
 
-        // Verify the hash is non-empty and unique per call (timestamp in txnRef causes different hash)
+        // Verify the hash is non-empty and unique per call (timestamp in txnRef causes
+        // different hash)
         assertThat(hashInUrl).isNotEmpty();
     }
 
