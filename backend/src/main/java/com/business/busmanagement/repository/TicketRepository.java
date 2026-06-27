@@ -79,8 +79,9 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
    @Query("SELECT new com.business.busmanagement.dto.AdminTicketDTO(" +
            "t.id, r.origin, r.destination, tr.departureTime, " +
-           "b.licensePlate, b.busType, s.seatNumber, " + // Bỏ CAST ở b.busType
-           "p.fullName, p.phone, t.bookedAt, t.price, t.status) " + // Bỏ CAST ở t.status
+           "b.licensePlate, b.busType, s.seatNumber, " +
+           "p.fullName, p.phone, t.bookedAt, t.price, t.status, " +
+           "t.pickupPoint, t.dropoffPoint) " +
            "FROM Ticket t " +
            "LEFT JOIN t.trip tr " +
            "LEFT JOIN tr.route r " +

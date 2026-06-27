@@ -1,2 +1,25 @@
 node_modules
 backend/target/
+
+# Logs
+*.log
+*.err.log
+backend-backend-*.log
+backend/backend-*.log
+cloudflared-*.log
+ngrok-*.log
+
+# Build outputs
+dist/
+build/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+backend/.vscode/
+
+# Env (keep .env.example, ignore real env)
+.env
+.env.local
+.env.*.local

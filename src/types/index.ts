@@ -119,6 +119,8 @@ export interface AdminTicket {
   bookedAt: string;
   price: number;
   status: 'BOOKED' | 'HOLD' | 'CONFIRMED' | 'EXPIRED' | 'PAID' | 'CANCELLED' | 'REFUNDED';
+  pickupPoint: string | null;
+  dropoffPoint: string | null;
 }
 export interface Employee {
   id: number;

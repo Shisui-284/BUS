@@ -214,62 +214,74 @@ export default function AdminAssignmentsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <section className="admin-panel p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Staff Management</p>
-            <h1 className="admin-title text-3xl">Phân công &amp; Quản lý Nhân sự</h1>
-            <p className="admin-subtitle mt-2 text-sm">
-              Thêm mới, quản lý nhân sự và gán Tài xế / Phụ xe cho các chuyến xe đang hoạt động.
-            </p>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-50 via-indigo-50/80 to-purple-50">
+      <div className="relative z-10 space-y-6 p-6">
+        {/* Header — gradient xanh tím sáng, đồng bộ với AdminTicketsPage */}
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 p-7 shadow-xl shadow-indigo-200/40">
+          <div className="absolute inset-0 opacity-20">
+            <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <path d="M0,50 Q25,30 50,50 T100,50 L100,100 L0,100 Z" fill="white" />
+            </svg>
           </div>
-          <div className="flex gap-2">
-            <button onClick={loadData} className="admin-button-secondary inline-flex items-center gap-2 px-4 py-2 text-sm">
-              <CheckCircle className="h-4 w-4" /> Làm mới
-            </button>
-            <button onClick={() => setShowAddModal(true)} className="admin-button-primary inline-flex items-center gap-2 px-4 py-2 text-sm">
-              <Plus className="h-4 w-4" /> Thêm nhân sự
-            </button>
+          <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-blue-100 text-xs font-bold uppercase tracking-widest mb-1">Staff Management</p>
+              <h1 className="text-3xl md:text-4xl font-bold text-white">Phân công &amp; Quản lý Nhân sự</h1>
+              <p className="text-blue-50/90 text-sm mt-2">
+                Thêm mới, quản lý nhân sự và gán Tài xế / Phụ xe cho các chuyến xe đang hoạt động.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={loadData}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white text-sm font-semibold rounded-2xl backdrop-blur-sm transition-colors"
+              >
+                <CheckCircle className="h-4 w-4" /> Làm mới
+              </button>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-indigo-600 text-sm font-semibold rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+              >
+                <Plus className="h-4 w-4" /> Thêm nhân sự
+              </button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        <div className="admin-panel p-4">
+        <div className="rounded-2xl bg-white border border-indigo-100 p-4 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-blue-50 p-3"><Truck className="h-5 w-5 text-blue-600" /></div>
+            <div className="rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 p-3"><Truck className="h-5 w-5 text-blue-600" /></div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">{activeTrips.length}</p>
+              <p className="text-2xl font-bold text-slate-800">{activeTrips.length}</p>
               <p className="text-xs text-slate-500">Chuyến đang hoạt động</p>
             </div>
           </div>
         </div>
-        <div className="admin-panel p-4">
+        <div className="rounded-2xl bg-white border border-indigo-100 p-4 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-green-50 p-3"><Shield className="h-5 w-5 text-green-600" /></div>
+            <div className="rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-200 p-3"><Shield className="h-5 w-5 text-emerald-600" /></div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">{drivers.length}</p>
+              <p className="text-2xl font-bold text-slate-800">{drivers.length}</p>
               <p className="text-xs text-slate-500">Tài xế</p>
             </div>
           </div>
         </div>
-        <div className="admin-panel p-4">
+        <div className="rounded-2xl bg-white border border-indigo-100 p-4 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-purple-50 p-3"><Users className="h-5 w-5 text-purple-600" /></div>
+            <div className="rounded-xl bg-gradient-to-br from-purple-100 to-purple-200 p-3"><Users className="h-5 w-5 text-purple-600" /></div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">{assistants.length}</p>
+              <p className="text-2xl font-bold text-slate-800">{assistants.length}</p>
               <p className="text-xs text-slate-500">Phụ xe</p>
             </div>
           </div>
         </div>
-        <div className="admin-panel p-4">
+        <div className="rounded-2xl bg-white border border-indigo-100 p-4 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-amber-50 p-3"><AlertCircle className="h-5 w-5 text-amber-600" /></div>
+            <div className="rounded-xl bg-gradient-to-br from-amber-100 to-amber-200 p-3"><AlertCircle className="h-5 w-5 text-amber-600" /></div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">{activeTrips.length - assignedCount}</p>
+              <p className="text-2xl font-bold text-slate-800">{activeTrips.length - assignedCount}</p>
               <p className="text-xs text-slate-500">Chưa phân công đủ</p>
             </div>
           </div>
@@ -281,13 +293,13 @@ export default function AdminAssignmentsPage() {
         {/* Left: Staff List */}
         <div className="lg:col-span-2 space-y-4">
           {/* Tabs */}
-          <div className="mb-2 flex rounded-xl bg-white p-1.5 shadow-md border border-pink-100">
+          <div className="mb-2 flex rounded-xl bg-white p-1.5 shadow-md border border-indigo-100">
             <button
               onClick={() => { setActiveTab("drivers"); setSelectedEmployee(null); }}
               className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-3 font-semibold transition-all ${
                 activeTab === "drivers"
-                  ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md"
-                  : "text-slate-600 hover:bg-pink-50"
+                  ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md"
+                  : "text-slate-600 hover:bg-indigo-50"
               }`}
             >
               <Shield className="h-5 w-5" /> Tài xế ({drivers.length})
@@ -296,8 +308,8 @@ export default function AdminAssignmentsPage() {
               onClick={() => { setActiveTab("assistants"); setSelectedEmployee(null); }}
               className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-3 font-semibold transition-all ${
                 activeTab === "assistants"
-                  ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md"
-                  : "text-slate-600 hover:bg-pink-50"
+                  ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md"
+                  : "text-slate-600 hover:bg-indigo-50"
               }`}
             >
               <Users className="h-5 w-5" /> Phụ xe ({assistants.length})
@@ -307,10 +319,10 @@ export default function AdminAssignmentsPage() {
           {/* Staff List */}
           <div className="space-y-2">
             {staffList.length === 0 ? (
-              <div className="admin-panel p-8 text-center text-slate-400">
-                <Users className="h-10 w-10 mx-auto mb-2 opacity-30" />
+              <div className="rounded-2xl bg-white border border-indigo-100 p-8 text-center text-slate-500 shadow-sm">
+                <Users className="h-10 w-10 mx-auto mb-2 opacity-30 text-indigo-300" />
                 <p>Chưa có {activeTab === "drivers" ? "tài xế" : "phụ xe"} nào.</p>
-                <button onClick={() => setShowAddModal(true)} className="mt-3 text-sm text-pink-600 underline hover:text-pink-700">
+                <button onClick={() => setShowAddModal(true)} className="mt-3 text-sm text-indigo-600 underline hover:text-indigo-700">
                   + Thêm nhân sự mới
                 </button>
               </div>
@@ -322,16 +334,16 @@ export default function AdminAssignmentsPage() {
                   onClick={() => handleEmployeeClick(emp)}
                   className={`group cursor-pointer rounded-xl border-2 p-4 transition-all hover:shadow-lg ${
                     selectedEmployee?.id === emp.id
-                      ? "border-pink-400 bg-gradient-to-r from-rose-50 to-pink-50 shadow-md"
-                      : "border-pink-100 bg-white hover:border-pink-300"
+                      ? "border-indigo-400 bg-gradient-to-r from-indigo-50 to-purple-50 shadow-md"
+                      : "border-indigo-100 bg-white hover:border-indigo-300"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={`${
                         emp.employeeType === "DRIVER"
-                          ? "bg-gradient-to-br from-rose-400 to-pink-500"
-                          : "bg-gradient-to-br from-pink-400 to-fuchsia-500"
+                          ? "bg-gradient-to-br from-blue-500 to-indigo-500"
+                          : "bg-gradient-to-br from-indigo-500 to-purple-500"
                       } h-12 w-12 rounded-full flex items-center justify-center shadow-md`}>
                         <span className="text-lg font-bold text-white">
                           {emp.fullName.split(" ").pop()?.charAt(0)}
@@ -339,9 +351,9 @@ export default function AdminAssignmentsPage() {
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h4 className="font-bold text-slate-800 group-hover:text-pink-700">{emp.fullName}</h4>
+                          <h4 className="font-bold text-slate-800 group-hover:text-indigo-700">{emp.fullName}</h4>
                           {emp.status === "ACTIVE" ? (
-                            <span className="inline-flex items-center gap-0.5 rounded-full bg-green-50 px-1.5 py-0.5 text-[10px] font-semibold text-green-600 border border-green-200">
+                            <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 border border-emerald-200">
                               <CheckSquare className="h-2.5 w-2.5" /> ACTIVE
                             </span>
                           ) : (
@@ -366,7 +378,7 @@ export default function AdminAssignmentsPage() {
                           <Award className="h-3 w-3" />{emp.experienceYears} năm KN
                         </span>
                       ) : null}
-                      <ChevronRight className={`h-5 w-5 text-pink-400 transition-transform ${selectedEmployee?.id === emp.id ? "rotate-90" : ""}`} />
+                      <ChevronRight className={`h-5 w-5 text-indigo-400 transition-transform ${selectedEmployee?.id === emp.id ? "rotate-90" : ""}`} />
                     </div>
                   </div>
                 </div>
@@ -375,16 +387,16 @@ export default function AdminAssignmentsPage() {
           </div>
 
           {/* Trips Table Below */}
-          <div className="mt-6 admin-panel overflow-hidden">
+          <div className="mt-6 rounded-2xl bg-white border border-indigo-100 overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
-              <table className="admin-table min-w-full divide-y divide-slate-200 text-left text-sm">
+              <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
                 <thead>
-                  <tr>
-                    <th className="px-5 py-4 font-semibold text-slate-600">Chuyến</th>
-                    <th className="px-5 py-4 font-semibold text-slate-600">Tuyến</th>
-                    <th className="px-5 py-4 font-semibold text-slate-600">Giờ khởi hành</th>
-                    <th className="px-5 py-4 font-semibold text-slate-600">Trạng thái</th>
-                    <th className="px-5 py-4 text-right font-semibold text-slate-600">Phân công</th>
+                  <tr className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-indigo-100">
+                    <th className="px-5 py-4 font-semibold text-indigo-700">Chuyến</th>
+                    <th className="px-5 py-4 font-semibold text-indigo-700">Tuyến</th>
+                    <th className="px-5 py-4 font-semibold text-indigo-700">Giờ khởi hành</th>
+                    <th className="px-5 py-4 font-semibold text-indigo-700">Trạng thái</th>
+                    <th className="px-5 py-4 text-right font-semibold text-indigo-700">Phân công</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -396,7 +408,7 @@ export default function AdminAssignmentsPage() {
                     const driverAssignment = trip.assignments?.find((a) => a.role === "DRIVER");
                     const assistantAssignment = trip.assignments?.find((a) => a.role === "ASSISTANT");
                     return (
-                      <tr key={trip.id} className="hover:bg-slate-50 transition-colors">
+                      <tr key={trip.id} className="hover:bg-indigo-50/40 transition-colors">
                         <td className="px-5 py-4">
                           <div className="font-semibold text-slate-800">#{trip.id}</div>
                           <div className="text-xs text-slate-400">{trip.busLabel}</div>
@@ -434,7 +446,7 @@ export default function AdminAssignmentsPage() {
                             <select
                               value={selectedTripAssignments[trip.id]?.driverId || ""}
                               onChange={(e) => handleAssignmentChange(trip.id, "driverId", e.target.value)}
-                              className="admin-select text-xs px-2 py-1"
+                              className="text-xs px-2 py-1 border border-slate-200 bg-slate-50 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                             >
                               <option value="">TX</option>
                               {drivers.map((d) => (
@@ -444,7 +456,7 @@ export default function AdminAssignmentsPage() {
                             <select
                               value={selectedTripAssignments[trip.id]?.assistantId || ""}
                               onChange={(e) => handleAssignmentChange(trip.id, "assistantId", e.target.value)}
-                              className="admin-select text-xs px-2 py-1"
+                              className="text-xs px-2 py-1 border border-slate-200 bg-slate-50 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                             >
                               <option value="">PX</option>
                               {assistants.map((a) => (
@@ -454,7 +466,7 @@ export default function AdminAssignmentsPage() {
                             <button
                               onClick={() => handleAssign(trip.id)}
                               disabled={isSaving === trip.id}
-                              className="admin-button-primary inline-flex items-center gap-1 px-3 py-1 text-xs"
+                              className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-sm disabled:opacity-60 transition-all"
                             >
                               {isSaving === trip.id ? (
                                 <span className="loading loading-spinner loading-xs"></span>
@@ -482,31 +494,31 @@ export default function AdminAssignmentsPage() {
             const isDriver = selectedEmployee.employeeType === "DRIVER";
 
             return (
-              <div className="sticky top-4 rounded-2xl bg-gradient-to-br from-white via-rose-50 to-pink-50 p-6 shadow-xl border border-pink-200">
+              <div className="sticky top-4 rounded-2xl bg-gradient-to-br from-white via-indigo-50 to-purple-50 p-6 shadow-xl border border-indigo-200">
                 {/* Avatar & Name */}
                 <div className="text-center mb-5">
                   <div className={`mx-auto mb-3 h-20 w-20 rounded-full flex items-center justify-center shadow-lg ${
-                    isDriver ? "bg-gradient-to-br from-rose-400 to-pink-500" : "bg-gradient-to-br from-pink-400 to-fuchsia-500"
+                    isDriver ? "bg-gradient-to-br from-blue-500 to-indigo-500" : "bg-gradient-to-br from-indigo-500 to-purple-500"
                   }`}>
                     <span className="text-2xl font-bold text-white">
                       {selectedEmployee.fullName.split(" ").pop()?.charAt(0)}
                     </span>
                   </div>
                   <h3 className="text-lg font-bold text-slate-800">{selectedEmployee.fullName}</h3>
-                  <p className="text-sm text-pink-600 flex items-center justify-center gap-1 mt-1">
+                  <p className="text-sm text-indigo-600 flex items-center justify-center gap-1 mt-1">
                     <Phone className="h-3.5 w-3.5" />{selectedEmployee.phone}
                   </p>
                   <div className="flex items-center justify-center gap-2 mt-2">
                     <span className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium ${
                       isDriver
-                        ? "bg-rose-100 text-rose-700 border-rose-200"
-                        : "bg-pink-100 text-pink-700 border-pink-200"
+                        ? "bg-blue-100 text-blue-700 border-blue-200"
+                        : "bg-purple-100 text-purple-700 border-purple-200"
                     }`}>
                       {isDriver ? "Tài xế" : "Phụ xe"}
                     </span>
                     <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${
                       selectedEmployee.status === "ACTIVE"
-                        ? "bg-green-50 text-green-700 border-green-200"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                         : "bg-slate-100 text-slate-500 border-slate-200"
                     }`}>
                       <UserCheck className="h-3 w-3" />
@@ -517,7 +529,7 @@ export default function AdminAssignmentsPage() {
 
                 {/* Email */}
                 {badge.email && badge.email !== "—" && (
-                  <div className="flex items-center gap-3 rounded-xl bg-white p-4 border border-pink-100 mb-3">
+                  <div className="flex items-center gap-3 rounded-xl bg-white p-4 border border-indigo-100 mb-3 shadow-sm">
                     <div className="rounded-full bg-blue-100 p-2 flex-shrink-0"><Mail className="h-4 w-4 text-blue-600" /></div>
                     <div className="min-w-0">
                       <p className="text-xs text-slate-500">Email</p>
@@ -527,7 +539,7 @@ export default function AdminAssignmentsPage() {
                 )}
 
                 {/* Chuyến hiện tại */}
-                <div className="flex items-center gap-3 rounded-xl bg-white p-4 border border-pink-100 mb-3">
+                <div className="flex items-center gap-3 rounded-xl bg-white p-4 border border-indigo-100 mb-3 shadow-sm">
                   <div className="rounded-full bg-amber-100 p-2 flex-shrink-0"><Truck className="h-4 w-4 text-amber-600" /></div>
                   <div className="min-w-0">
                     <p className="text-xs text-slate-500">Chuyến hiện tại</p>
@@ -538,7 +550,7 @@ export default function AdminAssignmentsPage() {
                 </div>
 
                 {/* Địa chỉ / Quê quán */}
-                <div className="flex items-center gap-3 rounded-xl bg-white p-4 border border-pink-100 mb-3">
+                <div className="flex items-center gap-3 rounded-xl bg-white p-4 border border-indigo-100 mb-3 shadow-sm">
                   <div className="rounded-full bg-rose-100 p-2 flex-shrink-0"><MapPin className="h-4 w-4 text-rose-600" /></div>
                   <div className="min-w-0">
                     <p className="text-xs text-slate-500">Địa chỉ / Quê quán</p>
@@ -547,7 +559,7 @@ export default function AdminAssignmentsPage() {
                 </div>
 
                 {/* Giấy phép */}
-                <div className="flex items-center gap-3 rounded-xl bg-white p-4 border border-pink-100 mb-3">
+                <div className="flex items-center gap-3 rounded-xl bg-white p-4 border border-indigo-100 mb-3 shadow-sm">
                   <div className="rounded-full bg-blue-100 p-2 flex-shrink-0"><FileText className="h-4 w-4 text-blue-600" /></div>
                   <div className="min-w-0">
                     <p className="text-xs text-slate-500">Giấy phép lái xe</p>
@@ -556,8 +568,8 @@ export default function AdminAssignmentsPage() {
                 </div>
 
                 {/* Ngày sinh */}
-                <div className="flex items-center gap-3 rounded-xl bg-white p-4 border border-pink-100 mb-3">
-                  <div className="rounded-full bg-green-100 p-2 flex-shrink-0"><Calendar className="h-4 w-4 text-green-600" /></div>
+                <div className="flex items-center gap-3 rounded-xl bg-white p-4 border border-indigo-100 mb-3 shadow-sm">
+                  <div className="rounded-full bg-emerald-100 p-2 flex-shrink-0"><Calendar className="h-4 w-4 text-emerald-600" /></div>
                   <div className="min-w-0">
                     <p className="text-xs text-slate-500">Ngày sinh</p>
                     <p className="font-semibold text-slate-800 text-sm">{badge.birthday}</p>
@@ -565,7 +577,7 @@ export default function AdminAssignmentsPage() {
                 </div>
 
                 {/* Ngày gia nhập */}
-                <div className="flex items-center gap-3 rounded-xl bg-white p-4 border border-pink-100 mb-3">
+                <div className="flex items-center gap-3 rounded-xl bg-white p-4 border border-indigo-100 mb-3 shadow-sm">
                   <div className="rounded-full bg-purple-100 p-2 flex-shrink-0"><Briefcase className="h-4 w-4 text-purple-600" /></div>
                   <div className="min-w-0">
                     <p className="text-xs text-slate-500">Ngày gia nhập</p>
@@ -574,7 +586,7 @@ export default function AdminAssignmentsPage() {
                 </div>
 
                 {/* Kinh nghiệm */}
-                <div className="flex items-center gap-3 rounded-xl bg-white p-4 border border-pink-100 mb-3">
+                <div className="flex items-center gap-3 rounded-xl bg-white p-4 border border-indigo-100 mb-3 shadow-sm">
                   <div className="rounded-full bg-amber-100 p-2 flex-shrink-0"><Award className="h-4 w-4 text-amber-600" /></div>
                   <div className="min-w-0">
                     <p className="text-xs text-slate-500">Kinh nghiệm</p>
@@ -585,7 +597,7 @@ export default function AdminAssignmentsPage() {
                 </div>
 
                 {/* Tổng chuyến */}
-                <div className="flex items-center gap-3 rounded-xl bg-white p-4 border border-pink-100 mb-3">
+                <div className="flex items-center gap-3 rounded-xl bg-white p-4 border border-indigo-100 mb-3 shadow-sm">
                   <div className="rounded-full bg-cyan-100 p-2 flex-shrink-0"><TrendingUp className="h-4 w-4 text-cyan-600" /></div>
                   <div className="min-w-0">
                     <p className="text-xs text-slate-500">Tổng chuyến đã hoàn thành</p>
@@ -594,15 +606,15 @@ export default function AdminAssignmentsPage() {
                 </div>
 
                 {/* Thành tích */}
-                <div className="rounded-xl bg-gradient-to-r from-pink-50 to-fuchsia-50 p-4 border border-pink-200">
-                  <p className="text-xs font-medium text-pink-700 mb-2 flex items-center gap-1">
+                <div className="rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 p-4 border border-indigo-200">
+                  <p className="text-xs font-medium text-indigo-700 mb-2 flex items-center gap-1">
                     <Star className="h-3.5 w-3.5" />Thành tích nổi bật
                   </p>
                   <div className="flex flex-wrap gap-1">
                     {badge.achievements.map((ach, idx) => (
                       <span
                         key={idx}
-                        className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-pink-600 border border-pink-200"
+                        className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-indigo-600 border border-indigo-200"
                       >
                         <Star className="h-3 w-3 text-amber-400" />{ach}
                       </span>
@@ -612,15 +624,15 @@ export default function AdminAssignmentsPage() {
               </div>
             );
           })() : (
-            <div className="sticky top-4 rounded-2xl bg-gradient-to-br from-slate-50 to-pink-50 p-8 text-center border border-pink-200 shadow-lg">
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-pink-100 flex items-center justify-center">
-                <Users className="h-8 w-8 text-pink-400" />
+            <div className="sticky top-4 rounded-2xl bg-gradient-to-br from-white to-indigo-50 p-8 text-center border border-indigo-200 shadow-lg">
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center">
+                <Users className="h-8 w-8 text-indigo-400" />
               </div>
               <h4 className="text-lg font-bold text-slate-700 mb-2">Chọn nhân viên</h4>
               <p className="text-sm text-slate-500 mb-4">Click vào tên bên trái để xem thông tin chi tiết</p>
               <button
                 onClick={() => setShowAddModal(true)}
-                className="mx-auto admin-button-primary inline-flex items-center gap-2 px-4 py-2 text-sm"
+                className="mx-auto inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-md transition-all"
               >
                 <Plus className="h-4 w-4" /> Thêm nhân sự mới
               </button>
@@ -631,12 +643,12 @@ export default function AdminAssignmentsPage() {
 
       {/* Modal Thêm Nhân Sự */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl border border-pink-100 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-indigo-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl border border-indigo-100 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                  <Users className="h-5 w-5 text-pink-500" /> Thêm Nhân Sự Mới
+                  <Users className="h-5 w-5 text-indigo-500" /> Thêm Nhân Sự Mới
                 </h2>
                 <p className="text-sm text-slate-500 mt-0.5">Nhập thông tin đầy đủ để thêm tài xế hoặc phụ xe</p>
               </div>
@@ -657,7 +669,7 @@ export default function AdminAssignmentsPage() {
                 <input
                   type="text"
                   placeholder="VD: Nguyễn Văn A"
-                  className="w-full p-3 border border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-pink-400 outline-none transition-all"
+                  className="w-full p-3 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition-all"
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                 />
@@ -671,7 +683,7 @@ export default function AdminAssignmentsPage() {
                 <input
                   type="text"
                   placeholder="VD: 0987654321"
-                  className="w-full p-3 border border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-pink-400 outline-none transition-all"
+                  className="w-full p-3 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition-all"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 />
@@ -682,7 +694,7 @@ export default function AdminAssignmentsPage() {
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Vai trò</label>
                   <select
-                    className="w-full p-3 border border-pink-200 rounded-xl bg-white focus:ring-2 focus:ring-pink-400 focus:border-pink-400 outline-none transition-all"
+                    className="w-full p-3 border border-indigo-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition-all"
                     value={formData.employeeType}
                     onChange={(e) => setFormData({ ...formData, employeeType: e.target.value as "DRIVER" | "ASSISTANT" })}
                   >
@@ -693,7 +705,7 @@ export default function AdminAssignmentsPage() {
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Trạng thái</label>
                   <select
-                    className="w-full p-3 border border-pink-200 rounded-xl bg-white focus:ring-2 focus:ring-pink-400 focus:border-pink-400 outline-none transition-all"
+                    className="w-full p-3 border border-indigo-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition-all"
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as "ACTIVE" | "INACTIVE" })}
                   >
@@ -710,7 +722,7 @@ export default function AdminAssignmentsPage() {
                   <input
                     type="text"
                     placeholder="VD: Hà Nội"
-                    className="w-full p-3 border border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-pink-400 outline-none transition-all"
+                    className="w-full p-3 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition-all"
                     value={formData.hometown}
                     onChange={(e) => setFormData({ ...formData, hometown: e.target.value })}
                   />
@@ -721,7 +733,7 @@ export default function AdminAssignmentsPage() {
                     type="number"
                     min="0"
                     placeholder="VD: 5"
-                    className="w-full p-3 border border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-pink-400 outline-none transition-all"
+                    className="w-full p-3 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition-all"
                     value={formData.experienceYears}
                     onChange={(e) => setFormData({ ...formData, experienceYears: e.target.value })}
                   />
@@ -740,7 +752,7 @@ export default function AdminAssignmentsPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold rounded-xl hover:from-rose-600 hover:to-pink-600 transition-all shadow-md disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center gap-2"
+                  className="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-indigo-600 transition-all shadow-md disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center gap-2"
                 >
                   {isSubmitting ? <span className="loading loading-spinner loading-xs"></span> : <Plus className="h-4 w-4" />}
                   {isSubmitting ? "Đang lưu..." : "Lưu thông tin"}
@@ -750,6 +762,7 @@ export default function AdminAssignmentsPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

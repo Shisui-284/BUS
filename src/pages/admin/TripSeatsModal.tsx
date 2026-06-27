@@ -25,21 +25,21 @@ interface Props {
 const fmtPrice = (n: number) => n.toLocaleString("vi-VN") + " đ";
 
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
-  BOOKED:    { label: "Đã đặt",         color: "text-blue-300",   bg: "bg-blue-500/30"     },
-  HOLD:      { label: "Chờ xác nhận",   color: "text-amber-300",  bg: "bg-amber-500/30"    },
-  CONFIRMED: { label: "Đã xác nhận",    color: "text-emerald-300",bg: "bg-emerald-500/30"  },
-  PAID:      { label: "Đã thanh toán",  color: "text-emerald-300",bg: "bg-emerald-500/30"  },
-  CANCELLED: { label: "Đã hủy",         color: "text-red-300",    bg: "bg-red-500/30"      },
-  REFUNDED:  { label: "Đã hoàn tiền",   color: "text-slate-300",  bg: "bg-slate-500/30"    },
-  EXPIRED:   { label: "Hết hạn",        color: "text-slate-400",  bg: "bg-slate-500/30"    },
+  BOOKED:    { label: "Đã đặt",         color: "text-blue-700",     bg: "bg-blue-100"     },
+  HOLD:      { label: "Chờ xác nhận",   color: "text-amber-700",    bg: "bg-amber-100"    },
+  CONFIRMED: { label: "Đã xác nhận",    color: "text-emerald-700",  bg: "bg-emerald-100"  },
+  PAID:      { label: "Đã thanh toán",  color: "text-emerald-700",  bg: "bg-emerald-100"  },
+  CANCELLED: { label: "Đã hủy",         color: "text-rose-700",     bg: "bg-rose-100"     },
+  REFUNDED:  { label: "Đã hoàn tiền",   color: "text-slate-700",    bg: "bg-slate-100"    },
+  EXPIRED:   { label: "Hết hạn",        color: "text-slate-500",    bg: "bg-slate-100"    },
 };
 
 const PAYMENT_LABELS: Record<string, { label: string; color: string; bg: string }> = {
-  CASH:   { label: "Tiền mặt (COD)",  color: "text-emerald-300", bg: "bg-emerald-500/30" },
-  VNPAY:  { label: "VNPay",           color: "text-blue-300",    bg: "bg-blue-500/30"    },
-  CARD:   { label: "Thẻ ngân hàng",   color: "text-purple-300",  bg: "bg-purple-500/30"  },
-  MOMO:   { label: "MoMo",            color: "text-pink-300",    bg: "bg-pink-500/30"    },
-  BANK:   { label: "Chuyển khoản",    color: "text-amber-300",   bg: "bg-amber-500/30"   },
+  CASH:   { label: "Tiền mặt (COD)",  color: "text-emerald-700", bg: "bg-emerald-100" },
+  VNPAY:  { label: "VNPay",           color: "text-blue-700",    bg: "bg-blue-100"    },
+  CARD:   { label: "Thẻ ngân hàng",   color: "text-purple-700",  bg: "bg-purple-100"  },
+  MOMO:   { label: "MoMo",            color: "text-pink-700",    bg: "bg-pink-100"    },
+  BANK:   { label: "Chuyển khoản",    color: "text-amber-700",   bg: "bg-amber-100"   },
 };
 
 // Các phương thức online — dùng để sắp xếp vé online lên đầu + highlight riêng
@@ -134,24 +134,24 @@ export default function TripSeatsModal({ tripId, tripLabel, onClose, onChanged }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-indigo-900/40 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative w-full max-w-6xl max-h-[95vh] overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 rounded-3xl shadow-2xl border border-white/10 flex flex-col">
+      <div className="relative w-full max-w-6xl max-h-[95vh] overflow-hidden bg-gradient-to-br from-sky-50 via-white to-indigo-50 rounded-3xl shadow-2xl border border-indigo-100 flex flex-col">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 to-indigo-600 p-5 flex items-center justify-between">
+        <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 p-5 flex items-center justify-between shadow-md">
           <div>
-            <p className="text-blue-200 text-xs font-bold uppercase tracking-widest">Sơ đồ ghế</p>
+            <p className="text-blue-100 text-xs font-bold uppercase tracking-widest">Sơ đồ ghế</p>
             <h2 className="text-xl font-bold text-white">{tripLabel}</h2>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={loadDetail}
-              className="p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white"
+              className="p-2 bg-white/20 hover:bg-white/30 rounded-xl text-white transition-colors"
               title="Tải lại"
             >
               <RefreshCw className="w-5 h-5" />
             </button>
-            <button onClick={onClose} className="p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white">
+            <button onClick={onClose} className="p-2 bg-white/20 hover:bg-white/30 rounded-xl text-white transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -162,14 +162,14 @@ export default function TripSeatsModal({ tripId, tripLabel, onClose, onChanged }
           {/* Cột trái: Sơ đồ ghế */}
           <div className="lg:col-span-2 space-y-3">
             {loading ? (
-              <div className="p-12 text-center text-slate-400">
-                <div className="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-3" />
+              <div className="p-12 text-center text-slate-500">
+                <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-500 rounded-full animate-spin mx-auto mb-3" />
                 Đang tải sơ đồ ghế...
               </div>
             ) : !detail ? (
-              <div className="p-12 text-center text-red-300">Không tải được dữ liệu</div>
+              <div className="p-12 text-center text-rose-500">Không tải được dữ liệu</div>
             ) : detail.totalSeats === 0 ? (
-              <div className="p-12 text-center text-slate-400">
+              <div className="p-12 text-center text-slate-500">
                 <Bus className="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <p>Chuyến này chưa được gán xe, không có sơ đồ ghế</p>
               </div>
@@ -195,10 +195,10 @@ export default function TripSeatsModal({ tripId, tripLabel, onClose, onChanged }
                 onCancel={handleCancel}
               />
             ) : (
-              <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center text-slate-400">
-                <MapPin className="w-10 h-10 mx-auto mb-3 opacity-50" />
+              <div className="p-6 rounded-2xl bg-white border border-indigo-100 text-center text-slate-500 shadow-sm">
+                <MapPin className="w-10 h-10 mx-auto mb-3 opacity-50 text-indigo-400" />
                 <p className="text-sm">Click vào 1 ghế để xem chi tiết</p>
-                <p className="text-xs mt-2 text-slate-500">
+                <p className="text-xs mt-2 text-slate-400">
                   Ghế xanh = trống · Ghế đỏ = đã đặt
                 </p>
               </div>
@@ -206,8 +206,8 @@ export default function TripSeatsModal({ tripId, tripLabel, onClose, onChanged }
 
             {/* Danh sách tóm tắt */}
             {detail && detail.tickets.length > 0 && (
-              <div className="rounded-2xl bg-white/5 border border-white/10 p-3">
-                <h4 className="text-xs font-semibold text-slate-300 mb-2 uppercase">
+              <div className="rounded-2xl bg-white border border-indigo-100 p-3 shadow-sm">
+                <h4 className="text-xs font-semibold text-indigo-700 mb-2 uppercase">
                   Tóm tắt vé đã đặt ({detail.bookedSeats}/{detail.totalSeats})
                 </h4>
                 <div className="space-y-1.5 max-h-48 overflow-y-auto">
@@ -233,24 +233,24 @@ export default function TripSeatsModal({ tripId, tripLabel, onClose, onChanged }
                           }}
                           className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left text-xs transition-colors ${
                             online
-                              ? "bg-blue-500/15 hover:bg-blue-500/30 border border-blue-400/30 ring-1 ring-blue-400/20"
-                              : "hover:bg-white/10"
+                              ? "bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border border-blue-300 ring-1 ring-blue-200"
+                              : "hover:bg-slate-50"
                           }`}
                         >
                           <span className={`w-7 h-7 rounded-md flex items-center justify-center font-bold shrink-0 ${
                             online
-                              ? "bg-blue-500/40 text-blue-50 ring-1 ring-blue-300/50"
-                              : "bg-blue-500/30 text-blue-100"
+                              ? "bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-sm"
+                              : "bg-slate-200 text-slate-700"
                           }`}>
                             {t.seatNumber}
                           </span>
-                          <span className="flex-1 truncate text-white">{t.passengerName || "—"}</span>
+                          <span className="flex-1 truncate text-slate-800">{t.passengerName || "—"}</span>
                           {online && methodInfo && (
                             <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${methodInfo.bg} ${methodInfo.color} ring-1 ring-current/20`}>
                               {methodInfo.label}
                             </span>
                           )}
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${STATUS_LABELS[t.status]?.bg ?? "bg-slate-500/30"} ${STATUS_LABELS[t.status]?.color ?? "text-slate-300"}`}>
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${STATUS_LABELS[t.status]?.bg ?? "bg-slate-200"} ${STATUS_LABELS[t.status]?.color ?? "text-slate-700"}`}>
                             {STATUS_LABELS[t.status]?.label ?? t.status}
                           </span>
                         </button>
@@ -284,11 +284,11 @@ function SeatGrid({
   });
 
   return (
-    <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
+    <div className="rounded-2xl bg-white border border-indigo-100 p-4 shadow-sm">
       {/* Mũi xe */}
       <div className="flex justify-center mb-4">
-        <div className="px-6 py-1.5 rounded-t-3xl bg-slate-700/50 border border-slate-600 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-          ▸ Mũi xe ◂
+        <div className="px-6 py-1.5 rounded-t-3xl bg-gradient-to-r from-indigo-100 to-purple-100 border border-indigo-200 text-[10px] font-bold text-indigo-700 uppercase tracking-widest">
+          Mũi xe
         </div>
       </div>
 
@@ -298,12 +298,12 @@ function SeatGrid({
           let cls = "";
           if (seat.booked) {
             cls = isSelected
-              ? "bg-red-500 text-white ring-2 ring-yellow-300 shadow-lg"
-              : "bg-red-500/70 hover:bg-red-500 text-white";
+              ? "bg-gradient-to-br from-rose-500 to-red-500 text-white ring-2 ring-amber-300 shadow-md"
+              : "bg-rose-100 hover:bg-rose-200 text-rose-700 border border-rose-200";
           } else {
             cls = isSelected
-              ? "bg-emerald-500 text-white ring-2 ring-yellow-300 shadow-lg"
-              : "bg-emerald-500/40 hover:bg-emerald-500/70 text-emerald-100";
+              ? "bg-gradient-to-br from-emerald-500 to-green-500 text-white ring-2 ring-amber-300 shadow-md"
+              : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200";
           }
           return (
             <button
@@ -319,10 +319,10 @@ function SeatGrid({
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center justify-center gap-3 mt-4 text-xs text-slate-300">
-        <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded bg-emerald-500/40 border border-emerald-400" /> Trống</span>
-        <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded bg-red-500/70" /> Đã đặt</span>
-        <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded bg-emerald-500 ring-2 ring-yellow-300" /> Đang chọn</span>
+      <div className="flex flex-wrap items-center justify-center gap-3 mt-4 text-xs text-slate-600">
+        <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded bg-emerald-50 border border-emerald-300" /> Trống</span>
+        <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded bg-rose-100 border border-rose-300" /> Đã đặt</span>
+        <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded bg-gradient-to-br from-emerald-500 to-green-500 ring-2 ring-amber-300" /> Đang chọn</span>
       </div>
     </div>
   );
@@ -343,22 +343,22 @@ function SeatInfoPanel({
 }) {
   if (loading) {
     return (
-      <div className="rounded-2xl bg-white/5 border border-white/10 p-6 text-center text-slate-400">
-        <div className="w-8 h-8 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto" />
+      <div className="rounded-2xl bg-white border border-indigo-100 p-6 text-center text-slate-500 shadow-sm">
+        <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-500 rounded-full animate-spin mx-auto" />
         <p className="text-xs mt-3">Đang tải chi tiết vé...</p>
       </div>
     );
   }
 
   const t = ticket.detail;
-  const status = STATUS_LABELS[t.status] ?? { label: t.status, color: "text-slate-300", bg: "bg-slate-500/30" };
+  const status = STATUS_LABELS[t.status] ?? { label: t.status, color: "text-slate-700", bg: "bg-slate-100" };
   const isConfirmable = t.status === "HOLD";
   const isCancellable = t.status === "HOLD" || t.status === "CONFIRMED" || t.status === "BOOKED";
 
   return (
-    <div className="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-3">
+    <div className="rounded-2xl bg-white border border-indigo-100 p-4 space-y-3 shadow-sm">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-bold text-white">Ghế {seat.seatNumber}</h4>
+        <h4 className="text-sm font-bold text-slate-800">Ghế {seat.seatNumber}</h4>
         <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${status.bg} ${status.color}`}>
           {status.label}
         </span>
@@ -380,21 +380,21 @@ function SeatInfoPanel({
       </div>
 
       {/* Điểm đón / trả */}
-      <div className="space-y-2 text-xs pt-2 border-t border-white/10">
+      <div className="space-y-2 text-xs pt-2 border-t border-slate-200">
         <div className="flex items-start gap-2">
-          <MapPin className="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0" />
+          <MapPin className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
           <div className="flex-1 min-w-0">
-            <div className="text-[10px] text-slate-400 uppercase tracking-wide">Điểm đón</div>
-            <div className="text-emerald-200 font-medium break-words">
+            <div className="text-[10px] text-slate-500 uppercase tracking-wide">Điểm đón</div>
+            <div className="text-emerald-700 font-medium break-words">
               {ticket.pickup || "—"}
             </div>
           </div>
         </div>
         <div className="flex items-start gap-2">
-          <MapPin className="w-3.5 h-3.5 text-amber-400 mt-0.5 shrink-0" />
+          <MapPin className="w-3.5 h-3.5 text-amber-500 mt-0.5 shrink-0" />
           <div className="flex-1 min-w-0">
-            <div className="text-[10px] text-slate-400 uppercase tracking-wide">Điểm trả</div>
-            <div className="text-amber-200 font-medium break-words">
+            <div className="text-[10px] text-slate-500 uppercase tracking-wide">Điểm trả</div>
+            <div className="text-amber-700 font-medium break-words">
               {ticket.dropoff || "—"}
             </div>
           </div>
@@ -404,28 +404,28 @@ function SeatInfoPanel({
       {/* Thanh toán */}
       <div className={`space-y-2 text-xs pt-2 border-t rounded-lg p-2 ${
         t.payment?.paymentMethod === "VNPAY"
-          ? "border-blue-400/40 bg-blue-500/10 ring-1 ring-blue-400/30"
-          : "border-white/10"
+          ? "border-blue-300 bg-gradient-to-br from-blue-50 to-indigo-50 ring-1 ring-blue-200"
+          : "border-slate-200"
       }`}>
         <div className="flex items-center justify-between">
-          <span className="text-slate-400 flex items-center gap-1">
+          <span className="text-slate-500 flex items-center gap-1">
             {t.payment?.paymentMethod === "VNPAY"
-              ? <CreditCard className="w-3.5 h-3.5 text-blue-300" />
-              : <Wallet className="w-3.5 h-3.5" />}
+              ? <CreditCard className="w-3.5 h-3.5 text-blue-600" />
+              : <Wallet className="w-3.5 h-3.5 text-slate-500" />}
             Phương thức
           </span>
           <span className={`font-semibold flex items-center gap-1 ${
             t.payment?.paymentMethod === "VNPAY"
-              ? "text-blue-200"
-              : "text-white"
+              ? "text-blue-700"
+              : "text-slate-800"
           }`}>
             {t.payment?.paymentMethod
               ? (
                 <>
                   {PAYMENT_LABELS[t.payment.paymentMethod]?.label ?? t.payment.paymentMethod}
                   {t.payment.paymentMethod === "VNPAY" && (
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-500/30 text-blue-100 border border-blue-300/40 ml-1">
-                      💳 Online
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-sm ml-1">
+                      Online
                     </span>
                   )}
                 </>
@@ -436,11 +436,11 @@ function SeatInfoPanel({
 {t.payment && (
               <>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Trạng thái TT</span>
+                  <span className="text-slate-500">Trạng thái TT</span>
                   <span className={`font-semibold ${
-                    t.payment.status === "SUCCESS" ? "text-emerald-300" :
-                    t.payment.status === "FAILED"  ? "text-red-300"     :
-                                                    "text-amber-300"
+                    t.payment.status === "SUCCESS" ? "text-emerald-600" :
+                    t.payment.status === "FAILED"  ? "text-rose-600"     :
+                                                    "text-amber-600"
                   }`}>
                     {t.payment.status}
                   </span>
@@ -449,8 +449,8 @@ function SeatInfoPanel({
             )}
         <InfoRow icon={<Hash className="w-3.5 h-3.5" />} label="Mã GD" value={t.payment?.transactionCode || "—"} />
         <div className="flex items-center justify-between">
-          <span className="text-slate-400">Giá vé</span>
-          <span className="font-bold text-emerald-300">{fmtPrice(t.price)}</span>
+          <span className="text-slate-500">Giá vé</span>
+          <span className="font-bold text-emerald-600">{fmtPrice(t.price)}</span>
         </div>
         {t.bookedAt && (
           <InfoRow icon={<Calendar className="w-3.5 h-3.5" />} label="Đặt lúc" value={new Date(t.bookedAt).toLocaleString("vi-VN")} />
@@ -461,11 +461,11 @@ function SeatInfoPanel({
       </div>
 
       {/* Nút hành động */}
-      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10">
+      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
         <button
           onClick={onConfirm}
           disabled={!isConfirmable || acting}
-          className="px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+          className="px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white text-xs font-bold shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 transition-all"
         >
           <Check className="w-3.5 h-3.5" />
           {acting ? "..." : "Xác nhận"}
@@ -473,7 +473,7 @@ function SeatInfoPanel({
         <button
           onClick={onCancel}
           disabled={!isCancellable || acting}
-          className="px-3 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+          className="px-3 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-600 hover:to-red-600 text-white text-xs font-bold shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 transition-all"
         >
           <XCircle className="w-3.5 h-3.5" />
           {acting ? "..." : "Hủy vé"}
@@ -481,7 +481,7 @@ function SeatInfoPanel({
       </div>
 
       {isConfirmable && (
-        <p className="text-[10px] text-slate-400 italic text-center pt-1">
+        <p className="text-[10px] text-slate-500 italic text-center pt-1">
           Vé chờ admin gọi điện xác nhận điểm đón/trả rồi bấm Xác nhận.
         </p>
       )}
@@ -492,8 +492,8 @@ function SeatInfoPanel({
 function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="text-slate-400 flex items-center gap-1.5">{icon}{label}</span>
-      <span className="font-medium text-white text-right truncate">{value}</span>
+      <span className="text-slate-500 flex items-center gap-1.5">{icon}{label}</span>
+      <span className="font-medium text-slate-800 text-right truncate">{value}</span>
     </div>
   );
 }

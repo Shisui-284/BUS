@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AdminTicket } from '../../types';
 import { getAllTicketsForAdmin, confirmTicket, cancelTicketByAdmin } from '../../api/admin';
 import StatusBadge from '../../components/ui/StatusBadge';
-import { Search, Download, Filter, Check, X, Loader2 } from 'lucide-react';
+import { Search, Download, Filter, Check, X, Loader2, MapPin, Flag } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
@@ -72,126 +72,168 @@ const AdminTicketsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-xs font-semibold text-gray-500 tracking-wider uppercase mb-1">TICKET MANAGEMENT</h2>
-          <h1 className="text-2xl font-bold text-gray-900">Quản lý vé đặt</h1>
-          <p className="text-sm text-gray-500 mt-1">Theo dõi, kiểm tra thông tin hành khách và vé trên toàn hệ thống.</p>
-        </div>
-        <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-          <Download size={20} />
-          Xuất dữ liệu
-        </button>
-      </div>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-50 via-indigo-50/80 to-purple-50">
+      <div className="relative z-10 space-y-6 p-6">
+        {/* Header — gradient xanh tím sáng, đồng bộ với AdminTripsPage */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 p-7 shadow-xl shadow-indigo-200/40">
+          <div className="absolute inset-0 opacity-20">
+            <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <path d="M0,50 Q25,30 50,50 T100,50 L100,100 L0,100 Z" fill="white" />
+            </svg>
+          </div>
 
-      {/* Thanh tìm kiếm và Bộ lọc */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-4">
-        {/* Ô tìm kiếm */}
-        <div className="relative flex-1 w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-          <input 
-            type="text" 
-            placeholder="Tìm kiếm theo tên khách, SĐT, mã vé..." 
-            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <p className="text-blue-100 text-xs font-bold uppercase tracking-widest mb-1">Ticket Management</p>
+              <h1 className="text-3xl md:text-4xl font-bold text-white">Quản lý vé đặt</h1>
+              <p className="text-blue-50/90 text-sm mt-2">
+                Theo dõi, kiểm tra thông tin hành khách và xác nhận thanh toán trên toàn hệ thống.
+              </p>
+            </div>
+
+            <button className="inline-flex items-center gap-2 px-5 py-3 bg-white text-indigo-600 font-semibold rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+              <Download className="w-5 h-5" />
+              <span>Xuất dữ liệu</span>
+            </button>
+          </div>
         </div>
 
-        {/* Dropdown Lọc trạng thái */}
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <Filter className="text-gray-400" size={20} />
-          <select
-            className="w-full md:w-auto py-2 px-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 bg-white"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="ALL">Tất cả trạng thái</option>
-            <option value="HOLD">Chờ xác nhận (HOLD)</option>
-            <option value="CONFIRMED">Đã xác nhận (CONFIRMED)</option>
-            <option value="PAID">Đã thanh toán (PAID)</option>
-            <option value="CANCELLED">Đã hủy (CANCELLED)</option>
-            <option value="REFUNDED">Đã hoàn tiền (REFUNDED)</option>
-            <option value="BOOKED">Đã giữ chỗ (BOOKED)</option>
-            <option value="EXPIRED">Hết hạn (EXPIRED)</option>
-          </select>
-        </div>
-      </div>
+        {/* Thanh tìm kiếm và Bộ lọc */}
+        <div className="bg-white rounded-2xl p-4 shadow-md border border-indigo-100/60 flex flex-col md:flex-row items-center gap-4">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-400" size={20} />
+            <input
+              type="text"
+              placeholder="Tìm kiếm theo tên khách, SĐT, mã vé..."
+              className="w-full pl-10 pr-4 py-2.5 border border-slate-200 bg-slate-50 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-white transition-colors"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
 
-      {/* Bảng dữ liệu */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b text-sm text-gray-500">
-                <th className="px-6 py-4 font-medium">Mã vé</th>
-                <th className="px-6 py-4 font-medium">Khách hàng & Liên hệ</th>
-                <th className="px-6 py-4 font-medium">Chuyến đi & Thời gian</th>
-                <th className="px-6 py-4 font-medium">Xe & Ghế</th>
-                <th className="px-6 py-4 font-medium">Giờ đặt</th>
-                <th className="px-6 py-4 font-medium">Trạng thái</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 text-sm">
-              {loading ? (
-                <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-500">Đang tải dữ liệu...</td></tr>
-              ) : filteredTickets.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-500">Không tìm thấy vé nào phù hợp.</td></tr>
-              ) : (
-                filteredTickets.map((ticket) => (
-                  <tr key={ticket.ticketId} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-gray-900">#{ticket.ticketId}</td>
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">{ticket.passengerName}</div>
-                      <div className="text-gray-500">{ticket.passengerPhone}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-blue-600">{ticket.routeName}</div>
-                      <div className="text-gray-500">{format(new Date(ticket.departureTime), 'HH:mm dd/MM/yyyy')}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">{ticket.busInfo}</div>
-                      <div className="text-gray-500">Ghế: <span className="font-bold">{ticket.seatNumber}</span></div>
-                    </td>
-                    <td className="px-6 py-4 text-gray-500">
-                      {format(new Date(ticket.bookedAt), 'HH:mm dd/MM/yyyy')}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-2">
-                        <StatusBadge status={ticket.status} />
-                        {ticket.status === 'HOLD' && (
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleConfirm(ticket.ticketId)}
-                              disabled={actionTicketId === ticket.ticketId}
-                              className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 text-white text-xs font-semibold rounded-lg hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            >
-                              {actionTicketId === ticket.ticketId ? (
-                                <Loader2 size={12} className="animate-spin" />
-                              ) : (
-                                <Check size={12} />
-                              )}
-                              Xác nhận
-                            </button>
-                            <button
-                              onClick={() => handleCancel(ticket.ticketId)}
-                              disabled={actionTicketId === ticket.ticketId}
-                              className="flex items-center gap-1 px-3 py-1.5 bg-red-500 text-white text-xs font-semibold rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            >
-                              <X size={12} />
-                              Hủy
-                            </button>
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <Filter className="text-indigo-400" size={20} />
+            <select
+              className="w-full md:w-auto py-2.5 px-3 border border-slate-200 bg-slate-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-slate-700"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="ALL">Tất cả trạng thái</option>
+              <option value="HOLD">Chờ xác nhận (HOLD)</option>
+              <option value="CONFIRMED">Đã xác nhận (CONFIRMED)</option>
+              <option value="PAID">Đã thanh toán (PAID)</option>
+              <option value="CANCELLED">Đã hủy (CANCELLED)</option>
+              <option value="REFUNDED">Đã hoàn tiền (REFUNDED)</option>
+              <option value="BOOKED">Đã giữ chỗ (BOOKED)</option>
+              <option value="EXPIRED">Hết hạn (EXPIRED)</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Bảng dữ liệu */}
+        <div className="bg-white rounded-2xl shadow-md border border-indigo-100/60 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-indigo-100 text-sm text-indigo-700">
+                  <th className="px-6 py-4 font-semibold">Mã vé</th>
+                  <th className="px-6 py-4 font-semibold">Khách hàng & Liên hệ</th>
+                  <th className="px-6 py-4 font-semibold">Chuyến đi & Thời gian</th>
+                  <th className="px-6 py-4 font-semibold">Điểm đón / Điểm trả</th>
+                  <th className="px-6 py-4 font-semibold">Xe & Ghế</th>
+                  <th className="px-6 py-4 font-semibold">Giờ đặt</th>
+                  <th className="px-6 py-4 font-semibold">Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-sm">
+                {loading ? (
+                  <tr><td colSpan={7} className="px-6 py-8 text-center text-slate-500">Đang tải dữ liệu...</td></tr>
+                ) : filteredTickets.length === 0 ? (
+                  <tr><td colSpan={7} className="px-6 py-8 text-center text-slate-500">Không tìm thấy vé nào phù hợp.</td></tr>
+                ) : (
+                  filteredTickets.map((ticket) => (
+                    <tr key={ticket.ticketId} className="hover:bg-indigo-50/40 transition-colors">
+                      <td className="px-6 py-4 font-semibold text-indigo-700 align-top">#{ticket.ticketId}</td>
+                      <td className="px-6 py-4 align-top">
+                        <div className="font-medium text-slate-900">{ticket.passengerName}</div>
+                        <div className="text-slate-500">{ticket.passengerPhone}</div>
+                      </td>
+                      <td className="px-6 py-4 align-top">
+                        <div className="font-medium text-blue-600">{ticket.routeName}</div>
+                        <div className="text-slate-500">{format(new Date(ticket.departureTime), 'HH:mm dd/MM/yyyy')}</div>
+                      </td>
+                      <td className="px-6 py-4 align-top">
+                        {(ticket.pickupPoint || ticket.dropoffPoint) ? (
+                          <div className="space-y-1.5 max-w-xs">
+                            {ticket.pickupPoint && (
+                              <div className="flex items-start gap-1.5">
+                                <MapPin className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
+                                <div className="min-w-0">
+                                  <div className="text-[10px] uppercase tracking-wide text-emerald-600 font-semibold">Đón</div>
+                                  <div className="text-slate-700 text-xs leading-snug break-words">
+                                    {ticket.pickupPoint}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            {ticket.dropoffPoint && (
+                              <div className="flex items-start gap-1.5">
+                                <Flag className="w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" />
+                                <div className="min-w-0">
+                                  <div className="text-[10px] uppercase tracking-wide text-amber-600 font-semibold">Trả</div>
+                                  <div className="text-slate-700 text-xs leading-snug break-words">
+                                    {ticket.dropoffPoint}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
+                        ) : (
+                          <span className="text-xs text-slate-400 italic">Chưa chọn</span>
                         )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                      </td>
+                      <td className="px-6 py-4 align-top">
+                        <div className="font-medium text-slate-900">{ticket.busInfo}</div>
+                        <div className="text-slate-500">Ghế: <span className="font-bold text-indigo-600">{ticket.seatNumber}</span></div>
+                      </td>
+                      <td className="px-6 py-4 align-top text-slate-500">
+                        {format(new Date(ticket.bookedAt), 'HH:mm dd/MM/yyyy')}
+                      </td>
+                      <td className="px-6 py-4 align-top">
+                        <div className="flex flex-col gap-2">
+                          <StatusBadge status={ticket.status} />
+                          {ticket.status === 'HOLD' && (
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleConfirm(ticket.ticketId)}
+                                disabled={actionTicketId === ticket.ticketId}
+                                className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow-md hover:from-emerald-600 hover:to-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                              >
+                                {actionTicketId === ticket.ticketId ? (
+                                  <Loader2 size={12} className="animate-spin" />
+                                ) : (
+                                  <Check size={12} />
+                                )}
+                                Xác nhận
+                              </button>
+                              <button
+                                onClick={() => handleCancel(ticket.ticketId)}
+                                disabled={actionTicketId === ticket.ticketId}
+                                className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-rose-500 to-red-500 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow-md hover:from-rose-600 hover:to-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                              >
+                                <X size={12} />
+                                Hủy
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

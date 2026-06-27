@@ -833,11 +833,20 @@ public class AdminService {
         boolean canCancel = ticket.getStatus() != Ticket.TicketStatus.CANCELLED
                 && ticket.getStatus() != Ticket.TicketStatus.REFUNDED;
 
+        String seatNumber = "";
+        try {
+            if (ticket.getSeat() != null) {
+                seatNumber = ticket.getSeat().getSeatNumber();
+            }
+        } catch (jakarta.persistence.EntityNotFoundException ex) {
+            seatNumber = "";
+        }
+
         return new TicketListResponse(
                 ticket.getId(),
                 new TicketListResponse.TripInfo(ticket.getTrip() != null ? ticket.getTrip().getId() : null,
                         routeName, busLabel, departureTime, tripStatus),
-                ticket.getSeat() != null ? ticket.getSeat().getSeatNumber() : "",
+                seatNumber,
                 passengerName,
                 passengerPhone,
                 passengerEmail,
@@ -846,7 +855,9 @@ public class AdminService {
                 bookedBy,
                 ticket.getBookedAt(),
                 paymentInfo,
-                canCancel
+                canCancel,
+                ticket.getPickupPoint(),
+                ticket.getDropoffPoint()
         );
     }
 

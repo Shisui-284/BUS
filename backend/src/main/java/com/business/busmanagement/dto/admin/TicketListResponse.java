@@ -24,6 +24,8 @@ public class TicketListResponse {
     private LocalDateTime bookedAt;
     private PaymentInfo payment;
     private boolean canCancel;
+    private String pickupPoint;
+    private String dropoffPoint;
 
     @Data
     @NoArgsConstructor
