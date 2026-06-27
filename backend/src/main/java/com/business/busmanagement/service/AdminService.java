@@ -15,12 +15,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,6 +44,8 @@ public class AdminService {
     private final TripService tripService;
     private final SeatRepository seatRepository;
     private final PaymentRepository paymentRepository;
+    private final EmployeeRepository employeeRepository;
+    private final TripAssignmentRepository tripAssignmentRepository;
     private final PasswordEncoder passwordEncoder;
 
     // ==================== DASHBOARD ====================
@@ -761,6 +770,282 @@ public class AdminService {
         Ticket saved = ticketRepository.save(ticket);
 
         return toTicketDetailResponse(saved);
+    }
+
+    // ==================== REVENUE STATISTICS ====================
+
+    /**
+     * Trả về thống kê doanh thu cho admin.
+     *
+     * Quy tắc (theo yêu cầu):
+     *  - Vé đã được admin "xác nhận" (status = CONFIRMED và có paidAt) HOẶC vé đã
+     *    thanh toán online qua VNPay (status = PAID) → được tính vào doanh thu.
+     *  - Vé đang HOLD (chờ admin xác nhận) → không tính.
+     *  - Vé CANCELLED / REFUNDED / EXPIRED / BOOKED → không tính.
+     *
+     * Thời điểm dùng để ghi nhận doanh thu = {@code ticket.paidAt} (admin xác
+     * nhận lúc nào / VNPay success lúc nào), fallback về bookedAt nếu thiếu.
+     */
+    @Transactional(readOnly = true)
+    public RevenueStatsResponse getRevenueStats() {
+        List<Ticket> confirmedTickets = ticketRepository.findAll().stream()
+                .filter(t -> t.getStatus() == Ticket.TicketStatus.CONFIRMED
+                        || t.getStatus() == Ticket.TicketStatus.PAID)
+                .collect(Collectors.toList());
+
+        List<Ticket> pendingTickets = ticketRepository.findAll().stream()
+                .filter(t -> t.getStatus() == Ticket.TicketStatus.HOLD)
+                .collect(Collectors.toList());
+
+        List<Ticket> cancelledTickets = ticketRepository.findAll().stream()
+                .filter(t -> t.getStatus() == Ticket.TicketStatus.CANCELLED
+                        || t.getStatus() == Ticket.TicketStatus.REFUNDED)
+                .collect(Collectors.toList());
+
+        BigDecimal totalRevenue = confirmedTickets.stream()
+                .map(Ticket::getPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // ===== Daily revenue: 7 ngày gần nhất =====
+        LocalDate today = LocalDate.now();
+        List<RevenueStatsResponse.DailyRevenue> dailyRevenue = new ArrayList<>();
+        for (int i = 6; i >= 0; i--) {
+            LocalDate day = today.minusDays(i);
+            dailyRevenue.add(new RevenueStatsResponse.DailyRevenue(
+                    day.toString(),
+                    String.format("%02d/%02d", day.getDayOfMonth(), day.getMonthValue()),
+                    BigDecimal.ZERO));
+        }
+        Map<String, BigDecimal> dailyMap = dailyRevenue.stream()
+                .collect(Collectors.toMap(
+                        RevenueStatsResponse.DailyRevenue::getDate,
+                        RevenueStatsResponse.DailyRevenue::getAmount,
+                        (a, b) -> a,
+                        LinkedHashMap::new));
+        for (Ticket t : confirmedTickets) {
+            LocalDate paidDay = resolveRevenueDate(t).toLocalDate();
+            if (!paidDay.isBefore(today.minusDays(6)) && !paidDay.isAfter(today)) {
+                dailyMap.merge(paidDay.toString(),
+                        t.getPrice() == null ? BigDecimal.ZERO : t.getPrice(),
+                        BigDecimal::add);
+            }
+        }
+        dailyRevenue = dailyMap.entrySet().stream()
+                .map(e -> new RevenueStatsResponse.DailyRevenue(
+                        e.getKey(),
+                        LocalDate.parse(e.getKey())
+                                .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM")),
+                        e.getValue()))
+                .collect(Collectors.toList());
+
+        // ===== Weekly revenue: 12 tuần gần nhất =====
+        LocalDate currentWeekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        List<RevenueStatsResponse.WeeklyRevenue> weeklyRevenue = new ArrayList<>();
+        for (int i = 11; i >= 0; i--) {
+            LocalDate ws = currentWeekStart.minusWeeks(i);
+            weeklyRevenue.add(new RevenueStatsResponse.WeeklyRevenue(
+                    ws.toString(),
+                    "Tuần " + ws.get(java.time.temporal.WeekFields.ISO.weekOfWeekBasedYear()),
+                    BigDecimal.ZERO));
+        }
+        Map<LocalDate, BigDecimal> weeklyMap = new TreeMap<>();
+        for (RevenueStatsResponse.WeeklyRevenue w : weeklyRevenue) {
+            weeklyMap.put(LocalDate.parse(w.getWeekStart()), w.getAmount());
+        }
+        for (Ticket t : confirmedTickets) {
+            LocalDate paidDay = resolveRevenueDate(t).toLocalDate();
+            LocalDate ws = paidDay.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+            if (!ws.isBefore(currentWeekStart.minusWeeks(11)) && !ws.isAfter(currentWeekStart)) {
+                weeklyMap.merge(ws, t.getPrice() == null ? BigDecimal.ZERO : t.getPrice(),
+                        BigDecimal::add);
+            }
+        }
+        weeklyRevenue = weeklyMap.entrySet().stream()
+                .map(e -> new RevenueStatsResponse.WeeklyRevenue(
+                        e.getKey().toString(),
+                        "Tuần " + e.getKey().get(java.time.temporal.WeekFields.ISO.weekOfWeekBasedYear()),
+                        e.getValue()))
+                .collect(Collectors.toList());
+
+        // ===== Monthly revenue: 12 tháng gần nhất =====
+        java.time.YearMonth currentMonth = java.time.YearMonth.from(today);
+        List<RevenueStatsResponse.MonthlyRevenue> monthlyRevenue = new ArrayList<>();
+        for (int i = 11; i >= 0; i--) {
+            java.time.YearMonth ym = currentMonth.minusMonths(i);
+            monthlyRevenue.add(new RevenueStatsResponse.MonthlyRevenue(
+                    ym.toString(),
+                    String.format("T%02d/%d", ym.getMonthValue(), ym.getYear()),
+                    BigDecimal.ZERO));
+        }
+        Map<String, BigDecimal> monthlyMap = new LinkedHashMap<>();
+        for (RevenueStatsResponse.MonthlyRevenue m : monthlyRevenue) {
+            monthlyMap.put(m.getMonth(), m.getAmount());
+        }
+        for (Ticket t : confirmedTickets) {
+            LocalDateTime dt = resolveRevenueDate(t);
+            java.time.YearMonth ym = java.time.YearMonth.from(dt.toLocalDate());
+            if (!ym.isBefore(currentMonth.minusMonths(11)) && !ym.isAfter(currentMonth)) {
+                monthlyMap.merge(ym.toString(),
+                        t.getPrice() == null ? BigDecimal.ZERO : t.getPrice(),
+                        BigDecimal::add);
+            }
+        }
+        monthlyRevenue = monthlyMap.entrySet().stream()
+                .map(e -> {
+                    java.time.YearMonth ym = java.time.YearMonth.parse(e.getKey());
+                    return new RevenueStatsResponse.MonthlyRevenue(
+                            e.getKey(),
+                            String.format("T%02d/%d", ym.getMonthValue(), ym.getYear()),
+                            e.getValue());
+                })
+                .collect(Collectors.toList());
+
+        // ===== Yearly revenue: 5 năm gần nhất =====
+        int currentYear = today.getYear();
+        List<RevenueStatsResponse.YearlyRevenue> yearlyRevenue = new ArrayList<>();
+        for (int i = 4; i >= 0; i--) {
+            int y = currentYear - i;
+            yearlyRevenue.add(new RevenueStatsResponse.YearlyRevenue(
+                    String.valueOf(y),
+                    String.valueOf(y),
+                    BigDecimal.ZERO));
+        }
+        Map<String, BigDecimal> yearlyMap = new LinkedHashMap<>();
+        for (RevenueStatsResponse.YearlyRevenue y : yearlyRevenue) {
+            yearlyMap.put(y.getYear(), y.getAmount());
+        }
+        for (Ticket t : confirmedTickets) {
+            int y = resolveRevenueDate(t).getYear();
+            if (y >= currentYear - 4 && y <= currentYear) {
+                yearlyMap.merge(String.valueOf(y),
+                        t.getPrice() == null ? BigDecimal.ZERO : t.getPrice(),
+                        BigDecimal::add);
+            }
+        }
+        yearlyRevenue = yearlyMap.entrySet().stream()
+                .map(e -> new RevenueStatsResponse.YearlyRevenue(
+                        e.getKey(), e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
+
+        // ===== Top xe: gom theo trip.bus.id, đếm số chuyến và doanh thu =====
+        Map<Long, BusRevenueAccumulator> busAgg = new HashMap<>();
+        for (Ticket t : confirmedTickets) {
+            if (t.getTrip() == null || t.getTrip().getBus() == null) continue;
+            Bus b = t.getTrip().getBus();
+            busAgg.computeIfAbsent(b.getId(), k -> new BusRevenueAccumulator())
+                    .add(t.getPrice() == null ? BigDecimal.ZERO : t.getPrice());
+        }
+        // Cộng số chuyến theo trip.bus
+        for (Trip trip : tripRepository.findAll()) {
+            if (trip.getBus() == null) continue;
+            busAgg.computeIfAbsent(trip.getBus().getId(), k -> new BusRevenueAccumulator())
+                    .addTrip();
+        }
+        List<RevenueStatsResponse.TopBusRevenue> topBuses = busAgg.entrySet().stream()
+                .map(e -> {
+                    Bus b = busRepository.findById(e.getKey()).orElse(null);
+                    if (b == null) return null;
+                    return new RevenueStatsResponse.TopBusRevenue(
+                            b.getId(),
+                            b.getLicensePlate(),
+                            b.getBusType() != null ? b.getBusType().name() : "",
+                            e.getValue().tripCount,
+                            e.getValue().ticketCount,
+                            e.getValue().revenue);
+                })
+                .filter(java.util.Objects::nonNull)
+                .sorted(Comparator.comparing(RevenueStatsResponse.TopBusRevenue::getRevenue).reversed())
+                .limit(10)
+                .collect(Collectors.toList());
+
+        // ===== Top tài xế: theo trip_assignments với role = DRIVER =====
+        List<TripAssignment> assignments = tripAssignmentRepository.findAll();
+        Map<Long, DriverAccumulator> driverAgg = new HashMap<>();
+        // Đếm số chuyến được phân công
+        for (TripAssignment a : assignments) {
+            if (a.getAssignmentRole() != TripAssignment.AssignmentRole.DRIVER) continue;
+            driverAgg.computeIfAbsent(a.getEmployeeId(), k -> new DriverAccumulator()).addTrip();
+        }
+        // Cộng doanh thu theo trip_id gắn với tài xế đó
+        for (TripAssignment a : assignments) {
+            if (a.getAssignmentRole() != TripAssignment.AssignmentRole.DRIVER) continue;
+            long tripId = a.getTripId();
+            BigDecimal tripRevenue = confirmedTickets.stream()
+                    .filter(t -> t.getTrip() != null && t.getTrip().getId().equals(tripId))
+                    .map(Ticket::getPrice)
+                    .filter(java.util.Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            long ticketCount = confirmedTickets.stream()
+                    .filter(t -> t.getTrip() != null && t.getTrip().getId().equals(tripId))
+                    .count();
+            DriverAccumulator acc = driverAgg.get(a.getEmployeeId());
+            if (acc != null) {
+                acc.addRevenue(tripRevenue, ticketCount);
+            }
+        }
+        List<RevenueStatsResponse.TopDriverRevenue> topDrivers = driverAgg.entrySet().stream()
+                .map(e -> {
+                    Employee emp = employeeRepository.findById(e.getKey()).orElse(null);
+                    if (emp == null) return null;
+                    return new RevenueStatsResponse.TopDriverRevenue(
+                            emp.getId(),
+                            emp.getFullName(),
+                            e.getValue().tripCount,
+                            e.getValue().ticketCount,
+                            e.getValue().revenue);
+                })
+                .filter(java.util.Objects::nonNull)
+                .sorted(Comparator.comparing(RevenueStatsResponse.TopDriverRevenue::getRevenue).reversed())
+                .limit(10)
+                .collect(Collectors.toList());
+
+        return new RevenueStatsResponse(
+                totalRevenue,
+                dailyRevenue,
+                weeklyRevenue,
+                monthlyRevenue,
+                yearlyRevenue,
+                topBuses,
+                topDrivers,
+                confirmedTickets.size(),
+                pendingTickets.size(),
+                cancelledTickets.size());
+    }
+
+    private LocalDateTime resolveRevenueDate(Ticket t) {
+        if (t.getPaidAt() != null) return t.getPaidAt();
+        if (t.getBookedAt() != null) return t.getBookedAt();
+        return LocalDateTime.now();
+    }
+
+    private static class BusRevenueAccumulator {
+        long tripCount = 0;
+        long ticketCount = 0;
+        BigDecimal revenue = BigDecimal.ZERO;
+
+        void add(BigDecimal amount) {
+            revenue = revenue.add(amount == null ? BigDecimal.ZERO : amount);
+            ticketCount++;
+        }
+
+        void addTrip() {
+            tripCount++;
+        }
+    }
+
+    private static class DriverAccumulator {
+        long tripCount = 0;
+        long ticketCount = 0;
+        BigDecimal revenue = BigDecimal.ZERO;
+
+        void addTrip() {
+            tripCount++;
+        }
+
+        void addRevenue(BigDecimal amount, long tickets) {
+            revenue = revenue.add(amount == null ? BigDecimal.ZERO : amount);
+            ticketCount += tickets;
+        }
     }
 
     /**

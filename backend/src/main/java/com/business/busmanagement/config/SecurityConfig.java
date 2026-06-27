@@ -72,6 +72,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/private/tickets/*/pay").hasRole("CUSTOMER")
                         // PRIVATE — VNPay tạo URL thanh toán (cần đăng nhập CUSTOMER)
                         .requestMatchers(HttpMethod.POST, "/api/private/payment/vnpay/create").hasRole("CUSTOMER")
+                        // PRIVATE — Feedback (customer gửi / xem / reply / đóng)
+                        .requestMatchers("/api/private/feedbacks/**").hasRole("CUSTOMER")
                         // PRIVATE — profile (mọi role đã đăng nhập)
                         .requestMatchers(HttpMethod.PUT, "/api/auth/profile").authenticated()
                         // ADMIN — quản lý hệ thống

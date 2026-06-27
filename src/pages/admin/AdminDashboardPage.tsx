@@ -18,6 +18,7 @@ import { Link } from "react-router-dom";
 import { getAdminDashboard, AdminDashboardData } from "../../api/admin";
 import { extractApiErrorMessage } from "../../utils/apiError";
 import Snowfall from "../../components/ui/Snowfall";
+import AdminRevenueStats from "./AdminRevenueStats";
 
 const ROLE_LABELS: Record<string, string> = {
   ADMIN: "Quản trị",
@@ -487,6 +488,9 @@ export default function AdminDashboardPage() {
             </div>
           )}
         </section>
+
+        {/* Revenue Statistics */}
+        <AdminRevenueStats />
       </div>
     </div>
   );

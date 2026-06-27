@@ -22,12 +22,12 @@ export interface AssignTripPayload {
 }
 
 export async function getTrips(filter?: TripFilter): Promise<Trip[]> {
-  const response = await apiClient.get<Trip[]>("/trips", { params: filter });
+  const response = await apiClient.get<Trip[]>("/api/admin/trips", { params: filter });
   return response.data;
 }
 
 export async function createTrip(payload: CreateTripPayload): Promise<Trip> {
-  const response = await apiClient.post<Trip>("/trips", payload);
+  const response = await apiClient.post<Trip>("/api/admin/trips", payload);
   return response.data;
 }
 
@@ -35,7 +35,7 @@ export async function assignTripRequest(
   payload: AssignTripPayload,
 ): Promise<TripAssignment> {
   const response = await apiClient.post<TripAssignment>(
-    "/trip-assignments",
+    "/api/admin/trip-assignments",
     payload,
   );
   return response.data;
@@ -46,7 +46,7 @@ export async function getAvailableEmployees(params: {
   to: string;
   role: EmployeeRole;
 }): Promise<Employee[]> {
-  const response = await apiClient.get<Employee[]>("/employees/available", {
+  const response = await apiClient.get<Employee[]>("/api/admin/employees/available", {
     params,
   });
   return response.data;

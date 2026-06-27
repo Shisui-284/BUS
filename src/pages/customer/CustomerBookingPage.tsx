@@ -399,7 +399,6 @@ export default function CustomerBookingPage() {
   useEffect(() => {
     const handleAuthExpired = (e: Event) => {
       const customEvent = e as CustomEvent;
-      console.warn("Auth expired event:", customEvent.detail);
       toast.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
       setTimeout(() => { window.location.href = "/auth/login"; }, 2000);
     };

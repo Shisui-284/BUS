@@ -22,8 +22,8 @@ const AdminTicketsPage: React.FC = () => {
       try {
         const data = await getAllTicketsForAdmin();
         setTickets(data);
-      } catch (error) {
-        console.error("Lỗi khi tải danh sách vé:", error);
+      } catch {
+        toast.error("Lỗi khi tải danh sách vé. Vui lòng thử lại.");
       } finally {
         setLoading(false);
       }

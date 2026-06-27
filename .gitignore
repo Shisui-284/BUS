@@ -1,6 +1,9 @@
 node_modules
 backend/target/
 
+# Vite cache
+.vite/
+
 # Logs
 *.log
 *.err.log

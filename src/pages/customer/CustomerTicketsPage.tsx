@@ -1,8 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
+import { MessageCircle, X } from "lucide-react";
 import { getMyTickets, cancelTicket, TicketRecord } from "../../api/customer";
-import { X } from "lucide-react"; // Import icon nút tắt cho QR Modal
+import { getMyFeedbacks } from "../../api/feedback";
+import FeedbackModal from "../../components/feedback/FeedbackModal";
 
 const QR_CODE_INFO = {
   bankId: "VCB",
@@ -159,16 +161,19 @@ function QRCodePaymentModal({
 // ─── Invoice Modal ───────────────────────────────────────────────────
 interface InvoiceModalProps {
   ticket: TicketRecord;
+  hasFeedback: boolean;
   onClose: () => void;
   onCancel: (id: number) => Promise<void>;
   onPay: (ticket: TicketRecord) => void;
+  onOpenFeedback: (t: TicketRecord) => void;
   cancellingId: number | null;
 }
 
-function InvoiceModal({ ticket, onClose, onCancel, onPay, cancellingId }: InvoiceModalProps) {
+function InvoiceModal({ ticket, hasFeedback, onClose, onCancel, onPay, onOpenFeedback, cancellingId }: InvoiceModalProps) {
   const s = STATUS_MAP[ticket.status] ?? { label: ticket.status, style: "bg-slate-50", dot: "bg-slate-400" };
   const canPay = ticket.status === "HOLD";
   const canCancel = ticket.status === "HOLD" || ticket.status === "BOOKED";
+  const canFeedback = ticket.status !== "CANCELLED" && ticket.status !== "REFUNDED";
 
   const handlePrint = () => window.print();
 
@@ -346,8 +351,19 @@ function InvoiceModal({ ticket, onClose, onCancel, onPay, cancellingId }: Invoic
               💳 Thanh toán ngay
             </button>
           )}
+          {canFeedback && (
+            <button onClick={() => onOpenFeedback(ticket)}
+              className={`flex-1 inline-flex items-center justify-center gap-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${
+                hasFeedback
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
+                  : "bg-pink-500 text-white hover:bg-pink-600"
+              }`}>
+              <MessageCircle className="h-4 w-4" />
+              {hasFeedback ? "Đã gửi phản hồi" : "💬 Gửi phản hồi"}
+            </button>
+          )}
           <button onClick={onClose}
-            className="flex-1 rounded-xl bg-pink-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-pink-600 transition-colors">
+            className="flex-1 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-200 transition-colors">
             Đóng
           </button>
         </div>
@@ -361,18 +377,20 @@ function InvoiceModal({ ticket, onClose, onCancel, onPay, cancellingId }: Invoic
 // ─── Ticket Card ────────────────────────────────────────────────────
 interface TicketCardProps {
   ticket: TicketRecord;
+  hasFeedback: boolean;
   onViewDetail: (t: TicketRecord) => void;
+  onOpenFeedback: (t: TicketRecord) => void;
 }
 
-function TicketCard({ ticket, onViewDetail }: TicketCardProps) {
+function TicketCard({ ticket, hasFeedback, onViewDetail, onOpenFeedback }: TicketCardProps) {
   const s = STATUS_MAP[ticket.status] ?? { label: ticket.status, style: "bg-slate-50", dot: "bg-slate-400" };
 
   const isCancelled = ticket.status === "CANCELLED";
+  const canFeedback = !isCancelled; // Cho phép feedback với mọi vé chưa hủy
 
   return (
     <div
-      onClick={() => onViewDetail(ticket)}
-      className={`rounded-2xl border bg-white transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-md
+      className={`rounded-2xl border bg-white transition-all hover:-translate-y-0.5 hover:shadow-md
         ${isCancelled ? "border-red-100 opacity-70" : "border-slate-100"}`}
     >
       <div className={`h-1.5 rounded-t-2xl ${isCancelled ? "bg-red-400" : "bg-pink-400"}`} />
@@ -426,6 +444,33 @@ function TicketCard({ ticket, onViewDetail }: TicketCardProps) {
             <div className="font-bold text-pink-600">{fmtPrice(ticket.price)}</div>
           </div>
         </div>
+
+        {/* Action row */}
+        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+          <button
+            onClick={() => onViewDetail(ticket)}
+            className="text-xs font-semibold text-pink-600 hover:text-pink-700 hover:underline"
+          >
+            Xem chi tiết vé →
+          </button>
+
+          {canFeedback && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenFeedback(ticket);
+              }}
+              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                hasFeedback
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
+                  : "bg-pink-50 text-pink-700 border border-pink-200 hover:bg-pink-100"
+              }`}
+            >
+              <MessageCircle className="h-3 w-3" />
+              {hasFeedback ? "Đã gửi phản hồi" : "Gửi phản hồi"}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -437,9 +482,30 @@ export default function CustomerTicketsPage() {
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<number | null>(null);
   const [selectedTicket, setSelectedTicket] = useState<TicketRecord | null>(null);
-  
+
   // State quản lý việc hiển thị modal QR
   const [qrTicket, setQrTicket] = useState<TicketRecord | null>(null);
+
+  // State feedback
+  const [feedbackTicketIds, setFeedbackTicketIds] = useState<Set<number>>(new Set());
+  const [feedbackTripIds, setFeedbackTripIds] = useState<Set<number>>(new Set());
+  /** null = chưa mở; undefined = mở form mới (không gắn vé); TicketRecord = mở gắn vé cụ thể */
+  const [feedbackModalTarget, setFeedbackModalTarget] = useState<TicketRecord | null | undefined>(null);
+
+  const loadFeedbackMap = useCallback(async () => {
+    try {
+      const list = await getMyFeedbacks();
+      const ticketIds = new Set<number>();
+      const tripIds = new Set<number>();
+      list.forEach((f) => {
+        if (f.relatedTripId) tripIds.add(f.relatedTripId);
+      });
+      setFeedbackTicketIds(ticketIds);
+      setFeedbackTripIds(tripIds);
+    } catch {
+      // Im lặng nếu fail — không block UX
+    }
+  }, []);
 
   const load = useCallback(() => {
     getMyTickets()
@@ -449,6 +515,7 @@ export default function CustomerTicketsPage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => { loadFeedbackMap(); }, [loadFeedbackMap]);
 
   const handleCancel = async (id: number) => {
     if (!window.confirm("Bạn chắc chắn muốn hủy vé này?")) return;
@@ -465,13 +532,12 @@ export default function CustomerTicketsPage() {
     }
   };
 
-  // Hàm này chạy khi khách bấm "Tôi đã chuyển khoản xong" trên Modal QR.
-  // KHÔNG tự động xác nhận thanh toán — chỉ hiện disclaimer, đóng modal.
-  // Admin sẽ xác minh và xác nhận thủ công.
   const handleConfirmTransfer = async (ticket: TicketRecord) => {
-    setQrTicket(null); // đóng modal QR
+    setQrTicket(null);
     toast.success("Đã ghi nhận! Nhân viên sẽ xác minh và xác nhận thanh toán trong thời gian sớm nhất.");
   };
+
+  const ticketHasFeedback = (t: TicketRecord) => feedbackTripIds.has(t.tripId);
 
   if (loading)
     return (
@@ -497,13 +563,26 @@ export default function CustomerTicketsPage() {
         <div className="border-b border-slate-100 px-6 py-4 flex items-center justify-between print:hidden">
           <div>
             <h1 className="text-base font-semibold text-pink-900">Vé của tôi</h1>
-            <p className="text-sm text-pink-400">{tickets.length} vé</p>
+            <p className="text-sm text-pink-400">{tickets.length} vé · Bấm vào vé để xem chi tiết</p>
           </div>
+          <button
+            onClick={() => setFeedbackModalTarget(undefined)}
+            className="inline-flex items-center gap-2 rounded-full bg-pink-500 px-4 py-2 text-xs font-semibold text-white hover:bg-pink-600 transition-colors shadow-sm shadow-pink-200"
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            Gửi phản hồi mới
+          </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 p-4 print:grid-cols-2">
           {tickets.map(ticket => (
-            <TicketCard key={ticket.id} ticket={ticket} onViewDetail={setSelectedTicket} />
+            <TicketCard
+              key={ticket.id}
+              ticket={ticket}
+              hasFeedback={ticketHasFeedback(ticket)}
+              onViewDetail={setSelectedTicket}
+              onOpenFeedback={setFeedbackModalTarget}
+            />
           ))}
         </div>
       </div>
@@ -512,9 +591,14 @@ export default function CustomerTicketsPage() {
       {selectedTicket && (
         <InvoiceModal
           ticket={selectedTicket}
+          hasFeedback={ticketHasFeedback(selectedTicket)}
           onClose={() => setSelectedTicket(null)}
           onCancel={handleCancel}
-          onPay={(t) => setQrTicket(t)} // Mở QR Modal thay vì gọi API ngay
+          onPay={(t) => setQrTicket(t)}
+          onOpenFeedback={(t) => {
+            setSelectedTicket(null);
+            setFeedbackModalTarget(t);
+          }}
           cancellingId={cancellingId}
         />
       )}
@@ -525,6 +609,19 @@ export default function CustomerTicketsPage() {
           ticket={qrTicket}
           onClose={() => setQrTicket(null)}
           onConfirm={() => handleConfirmTransfer(qrTicket)}
+        />
+      )}
+
+      {/* Feedback Modal — feedbackModalTarget !== null = đang mở (null = chưa; undefined = form mới không gắn vé) */}
+      {feedbackModalTarget !== null && (
+        <FeedbackModal
+          tickets={tickets}
+          initialTicket={feedbackModalTarget ?? undefined}
+          onClose={() => setFeedbackModalTarget(null)}
+          onCreated={() => {
+            loadFeedbackMap();
+            load();
+          }}
         />
       )}
     </>

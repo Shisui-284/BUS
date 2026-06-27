@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Plus, Pencil, Trash2, X, MapPin, Clock, Bus, Users, Search, RefreshCw, Armchair, Bell, BellRing, CreditCard } from "lucide-react";
+import { Plus, Pencil, Trash2, X, MapPin, Clock, Bus, Users, Search, RefreshCw, Armchair, Bell, BellRing, CreditCard, MessageCircle, MessageSquare } from "lucide-react";
 import toast from "react-hot-toast";
 import Snowfall from "../../components/ui/Snowfall";
+import FeedbackInboxModal from "../../components/admin/FeedbackInboxModal";
 import {
   AdminBus,
   AdminRoute,
@@ -18,7 +19,9 @@ import {
   connectAdminNotifications,
   AdminBookingEvent,
   AdminPaymentEvent,
+  AdminFeedbackEvent,
 } from "../../api/admin";
+import { getAdminFeedbackStats } from "../../api/feedback";
 import TripSeatsModal from "./TripSeatsModal";
 import { Employee, TripStatus } from "../../types";
 import { extractApiErrorMessage } from "../../utils/apiError";
@@ -67,6 +70,11 @@ export default function AdminTripsPage() {
   const [seatsTripId, setSeatsTripId] = useState<number | null>(null);
   const [pendingBookings, setPendingBookings] = useState<AdminBookingEvent[]>([]);
   const [pendingPayments, setPendingPayments] = useState<AdminPaymentEvent[]>([]);
+  const [pendingFeedbacks, setPendingFeedbacks] = useState<AdminFeedbackEvent[]>([]);
+  const [feedbackStats, setFeedbackStats] = useState<{ newCount: number } | null>(null);
+  const [showFeedbackInbox, setShowFeedbackInbox] = useState(false);
+  const [feedbackFilterTripId, setFeedbackFilterTripId] = useState<number | null>(null);
+  const [initialFeedbackId, setInitialFeedbackId] = useState<number | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const loadTrips = useCallback(async () => {
@@ -109,7 +117,20 @@ export default function AdminTripsPage() {
     loadTrips();
   }, [loadTrips]);
 
-  // ─── SSE subscription: nhận notification booking mới + payment VNPay ───
+  // Load feedback stats (để hiển thị badge)
+  const loadFeedbackStats = useCallback(async () => {
+    try {
+      const stats = await getAdminFeedbackStats();
+      setFeedbackStats({ newCount: stats.newCount });
+    } catch {
+      // ignore
+    }
+  }, []);
+  useEffect(() => {
+    loadFeedbackStats();
+  }, [loadFeedbackStats]);
+
+  // ─── SSE subscription: nhận notification booking mới + payment VNPay + feedback ───
   useEffect(() => {
     let cancelled = false;
 
@@ -135,9 +156,18 @@ export default function AdminTripsPage() {
           );
           loadTrips();
         },
+        (feedback) => {
+          if (cancelled) return;
+          console.debug("[SSE] feedback.created", feedback);
+          setPendingFeedbacks((prev) => [feedback, ...prev].slice(0, 50));
+          toast(
+            `📬 Phản hồi mới từ ${feedback.userFullName || feedback.username}: "${feedback.subject}"`,
+            { duration: 8000 }
+          );
+          loadFeedbackStats();
+        },
         (err) => {
-          console.warn("[SSE] error, will reconnect in 3s", err);
-          // Tự reconnect sau 3s
+          // Tự reconnect sau 3s — không log noise ra console production
           setTimeout(() => { if (!cancelled) setup(); }, 3000);
         }
       );
@@ -265,6 +295,24 @@ export default function AdminTripsPage() {
                   )}
                 </div>
               )}
+
+              {/* Feedback Inbox button */}
+              <button
+                onClick={() => {
+                  setFeedbackFilterTripId(null);
+                  setInitialFeedbackId(null);
+                  setShowFeedbackInbox(true);
+                }}
+                className="relative inline-flex items-center gap-2 px-5 py-3 bg-white/10 backdrop-blur-md text-white font-semibold rounded-2xl border border-white/20 hover:bg-white/20 transition-all"
+              >
+                <MessageSquare className="w-5 h-5" />
+                <span>Phản hồi</span>
+                {(feedbackStats?.newCount ?? 0) > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] px-1 rounded-full bg-rose-500 text-white text-[11px] font-bold flex items-center justify-center shadow-lg animate-pulse">
+                    {feedbackStats!.newCount}
+                  </span>
+                )}
+              </button>
 
               <button
                 onClick={() => { setEditingTrip(null); setShowModal(true); }}
@@ -463,6 +511,17 @@ export default function AdminTripsPage() {
                             <Armchair className="w-4 h-4" />
                           </button>
                           <button
+                            onClick={() => {
+                              setFeedbackFilterTripId(trip.id);
+                              setInitialFeedbackId(null);
+                              setShowFeedbackInbox(true);
+                            }}
+                            className="p-2 bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 rounded-xl transition-all"
+                            title={`Xem phản hồi liên quan đến chuyến #${trip.id}`}
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                          </button>
+                          <button
                             onClick={async () => {
                               try {
                                 const assignments = await getStaffByTrip(trip.id);
@@ -527,6 +586,22 @@ export default function AdminTripsPage() {
             // Xóa pending notification cho trip này
             setPendingBookings((prev) => prev.filter((b) => b.tripId !== seatsTripId));
             setPendingPayments((prev) => prev.filter((p) => p.tripId !== seatsTripId));
+          }}
+        />
+      )}
+
+      {/* Feedback Inbox Modal */}
+      {showFeedbackInbox && (
+        <FeedbackInboxModal
+          initialTripId={feedbackFilterTripId}
+          initialFeedbackId={initialFeedbackId}
+          onClose={() => {
+            setShowFeedbackInbox(false);
+            setFeedbackFilterTripId(null);
+            setInitialFeedbackId(null);
+          }}
+          onChanged={() => {
+            loadFeedbackStats();
           }}
         />
       )}

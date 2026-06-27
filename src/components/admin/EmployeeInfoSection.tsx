@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import {
   User,
   MapPin,
@@ -154,9 +155,9 @@ export default function EmployeeInfoSection() {
       setEmployees(allEmployees);
       setTopDrivers(experiencedDrivers.filter(d => d.experienceYears).slice(0, 5) as TopDriver[]);
       setSelectedEmployee(null);
-    } catch (err) {
-      console.error("Failed to load employees:", err);
-    } finally {
+      } catch {
+        toast.error("Không thể tải danh sách nhân viên. Vui lòng thử lại.");
+      } finally {
       setIsLoading(false);
     }
   }, []);

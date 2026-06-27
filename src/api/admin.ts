@@ -453,12 +453,74 @@ export async function getAdminTicketById(id: number): Promise<AdminTicketDetail>
   return res.data;
 }
 
+// ==================== REVENUE STATISTICS ====================
+
+export interface RevenueDailyPoint {
+  date: string;
+  label: string;
+  amount: number;
+}
+
+export interface RevenueWeeklyPoint {
+  weekStart: string;
+  label: string;
+  amount: number;
+}
+
+export interface RevenueMonthlyPoint {
+  month: string;
+  label: string;
+  amount: number;
+}
+
+export interface RevenueYearlyPoint {
+  year: string;
+  label: string;
+  amount: number;
+}
+
+export interface TopBusRevenue {
+  busId: number;
+  licensePlate: string;
+  busType: string;
+  tripCount: number;
+  ticketCount: number;
+  revenue: number;
+}
+
+export interface TopDriverRevenue {
+  employeeId: number;
+  fullName: string;
+  tripCount: number;
+  ticketCount: number;
+  revenue: number;
+}
+
+export interface AdminRevenueStats {
+  totalRevenue: number;
+  dailyRevenue: RevenueDailyPoint[];
+  weeklyRevenue: RevenueWeeklyPoint[];
+  monthlyRevenue: RevenueMonthlyPoint[];
+  yearlyRevenue: RevenueYearlyPoint[];
+  topBuses: TopBusRevenue[];
+  topDrivers: TopDriverRevenue[];
+  confirmedTicketCount: number;
+  pendingTicketCount: number;
+  cancelledTicketCount: number;
+}
+
+export async function getAdminRevenueStats(): Promise<AdminRevenueStats> {
+  const res = await apiClient.get<AdminRevenueStats>("/admin/revenue");
+  return res.data;
+}
+
 // ==================== SSE NOTIFICATIONS ====================
 
 /** Mở kết nối SSE tới admin notifications. */
 export function connectAdminNotifications(
   onBookingCreated: (data: AdminBookingEvent) => void,
   onPaymentVnpay: (data: AdminPaymentEvent) => void,
+  onFeedbackCreated?: (data: AdminFeedbackEvent) => void,
   onError?: (err: Event) => void,
 ): EventSource {
   // EventSource không gửi được Authorization header tự động, nhưng endpoint
@@ -474,18 +536,28 @@ export function connectAdminNotifications(
   es.addEventListener("booking.created", (e) => {
     try {
       onBookingCreated(JSON.parse((e as MessageEvent).data));
-    } catch (err) {
-      console.warn("Failed to parse booking.created event", err);
+    } catch {
+      // Bỏ qua event lỗi parse — UI sẽ tự refresh qua API call khác
     }
   });
 
   es.addEventListener("payment.vnpay.success", (e) => {
     try {
       onPaymentVnpay(JSON.parse((e as MessageEvent).data));
-    } catch (err) {
-      console.warn("Failed to parse payment.vnpay.success event", err);
+    } catch {
+      // Bỏ qua event lỗi parse
     }
   });
+
+  if (onFeedbackCreated) {
+    es.addEventListener("feedback.created", (e) => {
+      try {
+        onFeedbackCreated(JSON.parse((e as MessageEvent).data));
+      } catch {
+        // Bỏ qua event lỗi parse
+      }
+    });
+  }
 
   if (onError) es.addEventListener("error", onError);
 
@@ -519,4 +591,15 @@ export interface AdminPaymentEvent {
   paidAt: string;
   pickupPoint: string | null;
   dropoffPoint: string | null;
+}
+
+/** SSE event khi user gửi feedback mới. */
+export interface AdminFeedbackEvent {
+  feedbackId: number;
+  username: string;
+  userFullName: string;
+  category: string;
+  subject: string;
+  rating: number | null;
+  createdAt: string;
 }

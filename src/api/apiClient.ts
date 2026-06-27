@@ -58,11 +58,10 @@ apiClient.interceptors.response.use(
     //   (vd: PaymentReturnPage đang poll getMyTickets() sau khi redirect từ VNPay).
     //   Nếu cần logout, App-level listener sẽ quyết định.
     if (status === 401 && isPrivateRequest && !isAuthEndpoint) {
-      console.warn(`Auth error (${status}) for ${url} - dispatching auth:expired event`);
       try {
         window.dispatchEvent(new CustomEvent("auth:expired", { detail: { status, url } }));
       } catch (e) {
-        console.debug("Failed to dispatch auth:expired:", e);
+        // best-effort: nếu dispatch thất bại thì bỏ qua, UI sẽ tự handle khi thấy 401
       }
     }
 

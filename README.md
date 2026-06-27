@@ -416,11 +416,7 @@ BUS/
 ├── 📄 tsconfig.json
 ├── 📄 vite.config.ts
 ├── 📄 tailwind.config.js
-├── 📄 test-api.ps1                           # 🧪 PowerShell test scripts
-├── 📄 test-auth-flow.ps1
-├── 📄 test-public.ps1
-├── 📄 test-vnpay-flow.ps1
-├── 📄 test-vnpay-e2e.ps1
+├── 📄 test-vnpay-e2e.ps1                     # 🧪 End-to-end VNPay test
 └── 📄 README.md                              # ← YOU ARE HERE
 ```
 
@@ -863,20 +859,8 @@ Content-Type: application/json
 ### Test scripts (PowerShell)
 
 ```powershell
-# Test các API public
-.\test-public.ps1
-
-# Test luồng authentication
-.\test-auth-flow.ps1
-
-# Test VNPay flow (sandbox)
-.\test-vnpay-flow.ps1
-
-# Test VNPay end-to-end (full IPN flow)
+# Test VNPay end-to-end (full IPN flow — register → book → create payment URL)
 .\test-vnpay-e2e.ps1
-
-# Test các API khác
-.\test-api.ps1
 ```
 
 ### Test với cURL

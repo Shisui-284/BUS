@@ -9,6 +9,7 @@ import AdminBusesPage from "../../pages/admin/AdminBusesPage";
 import AdminTripsPage from "../../pages/admin/AdminTripsPage";
 import AdminTicketsPage from "../../pages/admin/AdminTicketsPage";
 import AdminAssignmentsPage from "../../pages/admin/AdminAssignmentsPage";
+import AdminRevenuePage from "../../pages/admin/AdminRevenuePage";
 
 import CustomerBookingPage from "../../pages/customer/CustomerBookingPage";
 import CustomerTicketsPage from "../../pages/customer/CustomerTicketsPage";
@@ -17,6 +18,7 @@ import CustomerProfilePage from "../../pages/customer/CustomerProfilePage";
 const menuConfig = {
   ADMIN: [
     { label: "Dashboard", to: "/admin/dashboard", icon: "📊" },
+    { label: "Thống kê doanh thu", to: "/admin/revenue", icon: "💰" },
     { label: "Quản lý tài khoản", to: "/admin/users", icon: "👥" },
     { label: "Quản lý nhân sự", to: "/admin/assignments", icon: "👔" },
     { label: "Quản lý xe", to: "/admin/buses", icon: "🚌" },
@@ -173,6 +175,7 @@ function MainLayout() {
             <Routes>
               {/* ADMIN ROUTES */}
               <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+              <Route path="/admin/revenue" element={<AdminRevenuePage />} />
               <Route path="/admin/users" element={<AdminUsersPage />} />
               <Route path="/admin/assignments" element={<AdminAssignmentsPage />} />
               <Route path="/admin/buses" element={<AdminBusesPage />} />

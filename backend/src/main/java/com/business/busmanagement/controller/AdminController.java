@@ -4,17 +4,20 @@ import com.business.busmanagement.dto.AdminTicketDTO;
 import com.business.busmanagement.dto.TripCreateRequest;
 import com.business.busmanagement.dto.TripResponse;
 import com.business.busmanagement.dto.admin.*;
+import com.business.busmanagement.dto.feedback.*;
+import com.business.busmanagement.model.Feedback;
 import com.business.busmanagement.model.Trip;
 import com.business.busmanagement.repository.TicketRepository;
 import com.business.busmanagement.service.AdminNotificationService;
 import com.business.busmanagement.service.AdminService;
+import com.business.busmanagement.service.FeedbackService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -26,16 +29,23 @@ import java.util.Map;
 @RequiredArgsConstructor
 @CrossOrigin(origins = "${app.cors.allowed-origins}")
 public class AdminController {
-    @Autowired
-    private TicketRepository ticketRepository;
+    private final TicketRepository ticketRepository;
     private final AdminService adminService;
     private final AdminNotificationService notificationService;
+    private final FeedbackService feedbackService;
 
     // ==================== DASHBOARD ====================
 
     @GetMapping("/dashboard")
     public ResponseEntity<AdminDashboardResponse> getDashboard() {
         return ResponseEntity.ok(adminService.getDashboard());
+    }
+
+    // ==================== REVENUE STATISTICS ====================
+
+    @GetMapping("/revenue")
+    public ResponseEntity<RevenueStatsResponse> getRevenueStats() {
+        return ResponseEntity.ok(adminService.getRevenueStats());
     }
 
     // ==================== USER MANAGEMENT ====================
@@ -235,11 +245,54 @@ public ResponseEntity<List<AdminTicketDTO>> getAllTickets() {
      * Event names:
      *   - "booking.created"   — user đặt vé mới (COD), admin cần gọi điện xác nhận
      *   - "payment.vnpay.success" — user thanh toán VNPay thành công, admin cần xác nhận lại
+     *   - "feedback.created"  — user gửi feedback mới, admin cần xem và phản hồi
      *
      * Kết nối bằng EventSource('/api/admin/notifications/stream') trên browser.
      */
     @GetMapping(value = "/notifications/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter streamNotifications() {
         return notificationService.register();
+    }
+
+    // ==================== FEEDBACK MANAGEMENT ====================
+
+    @GetMapping("/feedbacks")
+    public ResponseEntity<List<FeedbackResponse>> getFeedbacks(
+            @RequestParam(required = false) Feedback.Status status,
+            @RequestParam(required = false) Feedback.Category category,
+            @RequestParam(required = false) Long tripId,
+            @RequestParam(required = false) String keyword) {
+        return ResponseEntity.ok(feedbackService.getAllForAdmin(status, category, tripId, keyword));
+    }
+
+    @GetMapping("/feedbacks/stats")
+    public ResponseEntity<FeedbackStatsResponse> getFeedbackStats() {
+        return ResponseEntity.ok(feedbackService.getStats());
+    }
+
+    @GetMapping("/feedbacks/{id}")
+    public ResponseEntity<FeedbackResponse> getFeedbackById(@PathVariable Long id) {
+        return ResponseEntity.ok(feedbackService.getByIdForAdmin(id));
+    }
+
+    @PatchMapping("/feedbacks/{id}/status")
+    public ResponseEntity<FeedbackResponse> updateFeedbackStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateFeedbackStatusRequest request) {
+        return ResponseEntity.ok(feedbackService.updateStatus(id, request));
+    }
+
+    @PostMapping("/feedbacks/{id}/reply")
+    public ResponseEntity<FeedbackResponse> replyFeedback(
+            @PathVariable Long id,
+            @Valid @RequestBody CreateReplyRequest request) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(feedbackService.replyAsAdminByUsername(username, id, request));
+    }
+
+    @DeleteMapping("/feedbacks/{id}")
+    public ResponseEntity<Map<String, String>> deleteFeedback(@PathVariable Long id) {
+        feedbackService.softDelete(id);
+        return ResponseEntity.ok(Map.of("message", "Feedback deleted"));
     }
 }
