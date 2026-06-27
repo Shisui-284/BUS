@@ -39,9 +39,24 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, message);
     }
 
-    @ExceptionHandler(SecurityException.class)
-    public ResponseEntity<ApiErrorResponse> handleUnauthorized(SecurityException ex) {
+    /**
+     * 401 Unauthorized — chưa đăng nhập / token không hợp lệ / user không tồn tại.
+     * Dùng khi xác thực thất bại (authentication failure).
+     */
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiErrorResponse> handleUnauthorized(UnauthorizedException ex) {
         return build(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
+
+    /**
+     * 403 Forbidden — đã đăng nhập nhưng KHÔNG CÓ QUYỀN thực hiện hành động.
+     * Ví dụ: user cố truy cập vé của người khác, cố truy cập admin endpoint.
+     */
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<ApiErrorResponse> handleForbidden(SecurityException ex) {
+        // SecurityException từ application code = authorization error = 403 Forbidden
+        // (không phải 401 vì 401 = chưa đăng nhập)
+        return build(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)

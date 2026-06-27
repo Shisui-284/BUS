@@ -6,14 +6,17 @@ import com.business.busmanagement.dto.TripResponse;
 import com.business.busmanagement.dto.admin.*;
 import com.business.busmanagement.model.Trip;
 import com.business.busmanagement.repository.TicketRepository;
+import com.business.busmanagement.service.AdminNotificationService;
 import com.business.busmanagement.service.AdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.Map;
@@ -26,6 +29,7 @@ public class AdminController {
     @Autowired
     private TicketRepository ticketRepository;
     private final AdminService adminService;
+    private final AdminNotificationService notificationService;
 
     // ==================== DASHBOARD ====================
 
@@ -221,5 +225,21 @@ public ResponseEntity<List<AdminTicketDTO>> getAllTickets() {
     @PutMapping("/tickets/{id}/admin-cancel")
     public ResponseEntity<TicketDetailResponse> adminCancelTicket(@PathVariable Long id) {
         return ResponseEntity.ok(adminService.adminCancelTicket(id));
+    }
+
+    // ==================== REAL-TIME NOTIFICATION (SSE) ====================
+
+    /**
+     * SSE endpoint cho admin nhận notification real-time.
+     *
+     * Event names:
+     *   - "booking.created"   — user đặt vé mới (COD), admin cần gọi điện xác nhận
+     *   - "payment.vnpay.success" — user thanh toán VNPay thành công, admin cần xác nhận lại
+     *
+     * Kết nối bằng EventSource('/api/admin/notifications/stream') trên browser.
+     */
+    @GetMapping(value = "/notifications/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamNotifications() {
+        return notificationService.register();
     }
 }

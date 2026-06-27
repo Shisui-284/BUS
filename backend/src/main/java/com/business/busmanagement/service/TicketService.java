@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -21,6 +23,7 @@ public class TicketService {
     private final SeatRepository seatRepository;
     private final PassengerRepository passengerRepository;
     private final UserRepository userRepository;
+    private final AdminNotificationService notificationService;
 
     @Transactional
     public Ticket bookTicket(Long tripId, Long seatId, Long passengerId, Long bookedById, BigDecimal price) {
@@ -94,9 +97,40 @@ public class TicketService {
 
         try {
             Ticket savedTicket = ticketRepository.save(ticket);
+
+            // Đẩy notification tới admin: có vé mới ở trạng thái HOLD
+            // cần admin gọi điện xác nhận điểm đón/trả.
+            notifyNewBooking(savedTicket);
+
             return savedTicket;
         } catch (DataIntegrityViolationException ex) {
             throw new IllegalStateException("Ghế đã được đặt bởi người khác. Vui lòng thử ghế khác.", ex);
+        }
+    }
+
+    /**
+     * Publish SSE event "booking.created" cho admin.
+     * Payload ngắn gọn để admin hiện toast + click vào mở modal chi tiết.
+     */
+    private void notifyNewBooking(Ticket ticket) {
+        try {
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("ticketId", ticket.getId());
+            payload.put("tripId", ticket.getTrip() != null ? ticket.getTrip().getId() : null);
+            payload.put("seatNumber", ticket.getSeat() != null ? ticket.getSeat().getSeatNumber() : "");
+            payload.put("passengerName", ticket.getPassenger() != null ? ticket.getPassenger().getFullName() : "");
+            payload.put("passengerPhone", ticket.getPassenger() != null ? ticket.getPassenger().getPhone() : "");
+            payload.put("price", ticket.getPrice());
+            payload.put("status", ticket.getStatus().name());
+            payload.put("pickupPoint", ticket.getPickupPoint());
+            payload.put("dropoffPoint", ticket.getDropoffPoint());
+            payload.put("bookedAt", ticket.getBookedAt() != null ? ticket.getBookedAt().toString() : null);
+
+            notificationService.broadcast("booking.created", payload);
+        } catch (Exception ex) {
+            // Không để lỗi notification làm hỏng flow đặt vé
+            org.slf4j.LoggerFactory.getLogger(TicketService.class)
+                    .warn("Failed to broadcast booking.created", ex);
         }
     }
 }

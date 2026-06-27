@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
+import java.util.TreeMap;
 /**
  * Service xử lý tích hợp VNPay:
  * <ul>
@@ -39,6 +39,7 @@ public class VnpayService {
     private final VnpayConfig vnpayConfig;
     private final TicketRepository ticketRepository;
     private final PaymentRepository paymentRepository;
+    private final AdminNotificationService notificationService;
 
     /** Format ngày giờ chuẩn VNPay: yyyyMMddHHmmss (theo GMT+7) */
     private static final DateTimeFormatter VNP_DATETIME_FORMAT =
@@ -71,7 +72,6 @@ public class VnpayService {
         String txnRef = "TICKET" + ticketId + "_" + System.currentTimeMillis();
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expireAt = now.plusMinutes(vnpayConfig.getExpireMinutes());
 
         Map<String, String> vnpParams = new HashMap<>();
         vnpParams.put("vnp_Version", vnpayConfig.getVersion());
@@ -88,9 +88,12 @@ public class VnpayService {
         vnpParams.put("vnp_ReturnUrl", vnpayConfig.getReturnUrl());
         vnpParams.put("vnp_IpAddr", VnpayUtil.getClientIp(request));
         vnpParams.put("vnp_CreateDate", formatVnpDatetime(now));
-        vnpParams.put("vnp_ExpireDate", formatVnpDatetime(expireAt));
 
-        // Tạo / cập nhật Payment record ở trạng thái PENDING trước khi redirect
+        // URL thanh toán hết hạn sau expireMinutes phút (VNPay sẽ reject nếu user truy cập sau thời điểm này)
+        String expireAt = formatVnpDatetime(now.plusMinutes(vnpayConfig.getExpireMinutes()));
+        vnpParams.put("vnp_ExpireDate", expireAt);
+
+        // Tạo / cập nhật Payment record
         Payment payment = existingPayment.orElseGet(Payment::new);
         payment.setTicket(ticket);
         payment.setAmount(ticket.getPrice());
@@ -109,12 +112,13 @@ public class VnpayService {
         ticketRepository.save(ticket);
 
         String paymentUrl = VnpayUtil.buildPaymentUrl(vnpayConfig, vnpParams);
-        log.info("Created VNPay URL for ticket #{} txnRef={} amount={}", ticketId, txnRef, amount);
+        log.info("Created VNPay URL for ticket #{} txnRef={} amount={} expiresAt={}",
+                ticketId, txnRef, amount, expireAt);
 
         return VnpayPaymentResponse.builder()
                 .paymentUrl(paymentUrl)
                 .txnRef(txnRef)
-                .expireAt(expireAt.toString())
+                .expireAt(expireAt)
                 .build();
     }
 
@@ -139,8 +143,30 @@ public class VnpayService {
         verifyParams.remove("vnp_SecureHash");
         verifyParams.remove("vnp_SecureHashType");
 
-        if (!VnpayUtil.verifySecureHash(verifyParams, secureHash, vnpayConfig.getHashSecret())) {
+        // Validate vnp_TmnCode khớp với cấu hình merchant (chống spoof từ domain khác)
+        String incomingTmnCode = vnpParams.get("vnp_TmnCode");
+        if (incomingTmnCode == null || !incomingTmnCode.equals(vnpayConfig.getTmnCode())) {
+            log.warn("VNPay IPN invalid vnp_TmnCode: incoming={} expected={}",
+                    incomingTmnCode, vnpayConfig.getTmnCode());
+            return ipnError("02", "Invalid TmnCode");
+        }
+
+        // Verify chữ ký HMAC-SHA512
+        String recomputedHash = VnpayUtil.hmacSHA512(
+                vnpayConfig.getHashSecret(),
+                VnpayUtil.buildHashData(verifyParams));
+        boolean hashValid = recomputedHash.equalsIgnoreCase(secureHash != null ? secureHash : "");
+
+        if (!hashValid) {
+            // Log chi tiết để debug
             log.warn("VNPay IPN invalid checksum for txnRef={}", txnRef);
+            log.warn("  received secureHash  = {}", secureHash);
+            log.warn("  recomputed           = {}", recomputedHash);
+            log.warn("  hashData (signed)    = {}", VnpayUtil.buildHashData(verifyParams));
+            log.warn("  verifyParams (sorted) = {}", new TreeMap<>(verifyParams));
+            log.warn("  hashSecret (first 4) = {}...",
+                    vnpayConfig.getHashSecret() != null && vnpayConfig.getHashSecret().length() >= 4
+                            ? vnpayConfig.getHashSecret().substring(0, 4) : "null");
             return ipnError("97", "Invalid signature");
         }
 
@@ -195,6 +221,28 @@ public class VnpayService {
             ticket.setStatus(Ticket.TicketStatus.PAID);
             ticket.setPaidAt(paidAt);
             log.info("VNPay payment SUCCESS for ticket #{} txnRef={}", ticket.getId(), txnRef);
+
+            // Đẩy notification tới admin: vừa có payment VNPay thành công.
+            // Admin có thể bấm "xác nhận" để chuyển vé sang CONFIRMED (gọi điện cho khách).
+            try {
+                Map<String, Object> payload = new HashMap<>();
+                payload.put("ticketId", ticket.getId());
+                payload.put("tripId", ticket.getTrip() != null ? ticket.getTrip().getId() : null);
+                payload.put("seatNumber", ticket.getSeat() != null ? ticket.getSeat().getSeatNumber() : "");
+                payload.put("passengerName", ticket.getPassenger() != null ? ticket.getPassenger().getFullName() : "");
+                payload.put("passengerPhone", ticket.getPassenger() != null ? ticket.getPassenger().getPhone() : "");
+                payload.put("amount", payment.getAmount());
+                payload.put("vnpTxnRef", txnRef);
+                payload.put("vnpTransactionNo", transactionNo);
+                payload.put("vnpBankCode", vnpParams.get("vnp_BankCode"));
+                payload.put("vnpCardType", vnpParams.get("vnp_CardType"));
+                payload.put("paidAt", paidAt.toString());
+                payload.put("pickupPoint", ticket.getPickupPoint());
+                payload.put("dropoffPoint", ticket.getDropoffPoint());
+                notificationService.broadcast("payment.vnpay.success", payload);
+            } catch (Exception ex) {
+                log.warn("Failed to broadcast payment.vnpay.success", ex);
+            }
         } else {
             // Thanh toán thất bại: KHÔNG đổi ticket status, giữ HOLD để user retry
             payment.setStatus(Payment.PaymentStatus.FAILED);
@@ -233,5 +281,29 @@ public class VnpayService {
             return "VNP" + vnpTransactionNo;
         }
         return txnRef;
+    }
+
+    /**
+     * Xác thực chữ ký trên Return URL (query params từ user browser redirect về).
+     * Dùng để chống spoof — đảm bảo params thực sự do VNPay gửi.
+     * Trả về true nếu hash hợp lệ hoặc không có hash (vẫn kiểm tra format).
+     * Trả về false nếu hash sai (có thể là attempt spoof).
+     */
+    public boolean verifyReturnHash(Map<String, String> params) {
+        String secureHash = params.get("vnp_SecureHash");
+        if (secureHash == null || secureHash.isEmpty()) {
+            log.debug("VNPay return: no secureHash present");
+            return false;
+        }
+        Map<String, String> verifyParams = new HashMap<>(params);
+        verifyParams.remove("vnp_SecureHash");
+        verifyParams.remove("vnp_SecureHashType");
+        String recomputed = VnpayUtil.hmacSHA512(vnpayConfig.getHashSecret(),
+                VnpayUtil.buildHashData(verifyParams));
+        if (!recomputed.equalsIgnoreCase(secureHash)) {
+            log.warn("VNPay return: hash mismatch. txnRef={}", params.get("vnp_TxnRef"));
+            return false;
+        }
+        return true;
     }
 }

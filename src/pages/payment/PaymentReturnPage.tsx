@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Check, X, Loader2, Ticket as TicketIcon, Home } from "lucide-react";
+import { Check, X, Loader2, Ticket as TicketIcon, Home, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
 import { getMyTickets, getVnpayReturnInfo, VnpayReturnInfo } from "../../api/customer";
 
@@ -10,7 +10,10 @@ import { getMyTickets, getVnpayReturnInfo, VnpayReturnInfo } from "../../api/cus
  * Flow:
  * 1. VNPay redirect user về /payment/vnpay-return kèm query params (vnp_ResponseCode, vnp_TxnRef...)
  * 2. Trang này gọi backend /api/public/payment/vnpay/return để xác thực và parse dữ liệu
- * 3. Đồng thời poll getMyTickets() để đợi IPN callback từ VNPay cập nhật trạng thái vé
+ * 3. Nếu thanh toán thành công: hiển thị thông tin + poll getMyTickets() để đợi IPN
+ *    cập nhật trạng thái vé trên DB. Poll sẽ tự động dừng khi thấy PAID hoặc hết max attempts.
+ * 4. Nếu IPN chưa kịp cập nhật (polling timeout): vẫn hiện thành công nhưng kèm cảnh báo
+ *    "vui lòng kiểm tra lại sau" — user có thể refresh trang hoặc vào "Vé của tôi".
  */
 export default function PaymentReturnPage() {
   const [searchParams] = useSearchParams();
@@ -18,9 +21,8 @@ export default function PaymentReturnPage() {
 
   const [returnInfo, setReturnInfo] = useState<VnpayReturnInfo | null>(null);
   const [loadingInfo, setLoadingInfo] = useState(true);
-  const [polling, setPolling] = useState(false);
-  const [ticketUpdated, setTicketUpdated] = useState(false);
-  const pollingTimer = useRef<number | null>(null);
+  const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "found" | "timeout">("idle");
+  const pollingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Bước 1: lấy thông tin return từ VNPay
   useEffect(() => {
@@ -29,8 +31,8 @@ export default function PaymentReturnPage() {
         const queryString = searchParams.toString();
         const info = await getVnpayReturnInfo(queryString ? `?${queryString}` : "");
         setReturnInfo(info);
-      } catch (err) {
-        toast.error("Không đọc được kết quả thanh toán từ VNPay");
+      } catch {
+        // keep returnInfo as null → show error screen
       } finally {
         setLoadingInfo(false);
       }
@@ -38,28 +40,25 @@ export default function PaymentReturnPage() {
     fetchReturnInfo();
   }, [searchParams]);
 
-  // Bước 2: nếu thanh toán thành công, poll getMyTickets để đợi IPN cập nhật DB
+  // Bước 2: nếu thanh toán thành công, poll getMyTickets() để đợi IPN cập nhật DB
   useEffect(() => {
     if (!returnInfo?.success) return;
 
-    setPolling(true);
+    setSyncStatus("syncing");
     let attempts = 0;
-    const maxAttempts = 15; // 15 lần × 1.5s = ~22 giây
+    const maxAttempts = 15; // 15 × 1.5s = ~22 giây
 
     const poll = async () => {
       attempts++;
       try {
         const tickets = await getMyTickets();
-        // Tìm vé theo txnRef — vì IPN đã cập nhật status PAID
+        // Tìm vé khớp txnRef: backend lưu vnpTxnRef dạng "TICKET{id}_{timestamp}"
+        const txnRef = returnInfo.txnRef ?? "";
         const matchingTicket = tickets.find(
-          (t) => t.transactionCode && (
-            t.transactionCode.includes(returnInfo.transactionNo ?? "") ||
-            t.transactionCode.includes(returnInfo.txnRef ?? "")
-          ),
+          (t) => t.transactionCode && t.transactionCode.includes(txnRef),
         );
         if (matchingTicket && matchingTicket.status === "PAID") {
-          setTicketUpdated(true);
-          setPolling(false);
+          setSyncStatus("found");
           toast.success("Thanh toán thành công! Vé đã được cập nhật.");
           return;
         }
@@ -68,19 +67,22 @@ export default function PaymentReturnPage() {
       }
 
       if (attempts < maxAttempts) {
-        pollingTimer.current = window.setTimeout(poll, 1500);
+        pollingTimer.current = setTimeout(poll, 1500);
       } else {
-        setPolling(false);
+        // Hết attempts — IPN chưa kịp cập nhật.
+        // Vẫn hiện thành công vì VNPay đã xác nhận thanh toán,
+        // nhưng thông báo user kiểm tra lại sau.
+        setSyncStatus("timeout");
+        toast("Thanh toán đã được xác nhận bởi VNPay. Vui lòng kiểm tra lại vé trong vài phút.", {
+          icon: "ℹ️", duration: 6000,
+        });
       }
     };
 
-    // Bắt đầu poll sau 800ms
-    pollingTimer.current = window.setTimeout(poll, 800);
+    pollingTimer.current = setTimeout(poll, 800);
 
     return () => {
-      if (pollingTimer.current) {
-        clearTimeout(pollingTimer.current);
-      }
+      if (pollingTimer.current) clearTimeout(pollingTimer.current);
     };
   }, [returnInfo]);
 
@@ -117,47 +119,17 @@ export default function PaymentReturnPage() {
     );
   }
 
-  if (!returnInfo.success) {
-    return (
-      <ResultScreen
-        success={false}
-        title="Thanh toán chưa hoàn tất"
-        subtitle={`Mã phản hồi VNPay: ${returnInfo.responseCode || "—"}`}
-        description={
-          <>
-            Giao dịch không thành công hoặc đã bị hủy. Vé của bạn vẫn ở trạng thái{" "}
-            <span className="font-semibold text-pink-700">chờ thanh toán</span>, bạn có thể thử lại.
-          </>
-        }
-        info={returnInfo}
-        polling={polling}
-        ticketUpdated={ticketUpdated}
-      />
-    );
-  }
-
   return (
     <ResultScreen
-      success={true}
-      title="Thanh toán thành công!"
-      subtitle="Cảm ơn quý khách đã thanh toán qua VNPay"
-      description={
-        polling && !ticketUpdated ? (
-          <span className="inline-flex items-center gap-2 text-blue-600">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Đang đồng bộ trạng thái vé với hệ thống...
-          </span>
-        ) : ticketUpdated ? (
-          <span className="text-emerald-600 font-medium">✓ Vé đã được cập nhật thành công</span>
-        ) : (
-          <span className="text-pink-500">
-            Hệ thống đang xử lý, vui lòng kiểm tra lại trong vài giây.
-          </span>
-        )
+      success={returnInfo.success}
+      title={returnInfo.success ? "Thanh toán thành công!" : "Thanh toán chưa hoàn tất"}
+      subtitle={
+        returnInfo.success
+          ? "Cảm ơn quý khách đã thanh toán qua VNPay"
+          : "Giao dịch không thành công hoặc đã bị hủy"
       }
+      syncStatus={syncStatus}
       info={returnInfo}
-      polling={polling}
-      ticketUpdated={ticketUpdated}
     />
   );
 }
@@ -166,14 +138,40 @@ interface ResultScreenProps {
   success: boolean;
   title: string;
   subtitle: string;
-  description: React.ReactNode;
+  syncStatus: "idle" | "syncing" | "found" | "timeout";
   info: VnpayReturnInfo;
-  polling: boolean;
-  ticketUpdated: boolean;
 }
 
-function ResultScreen({ success, title, subtitle, description, info, polling, ticketUpdated }: ResultScreenProps) {
+function ResultScreen({ success, title, subtitle, syncStatus, info }: ResultScreenProps) {
   const navigate = useNavigate();
+
+  const syncDescription = (() => {
+    if (!success) return null;
+    switch (syncStatus) {
+      case "syncing":
+        return (
+          <span className="inline-flex items-center gap-2 text-blue-600">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Đang đồng bộ trạng thái vé với hệ thống...
+          </span>
+        );
+      case "found":
+        return (
+          <span className="text-emerald-600 font-medium flex items-center gap-1">
+            <Check className="h-4 w-4" /> Vé đã được cập nhật thành công
+          </span>
+        );
+      case "timeout":
+        return (
+          <span className="inline-flex items-center gap-2 text-amber-600">
+            <RefreshCw className="h-4 w-4" />
+            VNPay đã xác nhận thanh toán. Vé sẽ được cập nhật trong vài phút.
+          </span>
+        );
+      default:
+        return null;
+    }
+  })();
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-white to-rose-50 p-4">
       <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden">
@@ -192,21 +190,23 @@ function ResultScreen({ success, title, subtitle, description, info, polling, ti
 
         {/* Body */}
         <div className="p-6 space-y-4">
-          <div className="text-center text-sm">{description}</div>
+          {success && syncDescription && (
+            <div className="text-center text-sm">{syncDescription}</div>
+          )}
 
           {/* Info chi tiết */}
           <div className="rounded-xl bg-slate-50 p-4 space-y-2 text-sm">
             <InfoRow label="Số tiền" value={formatPrice(info.amount)} highlight />
-            <InfoRow label="Mã tham chiếu" value={info.txnRef} mono />
+            <InfoRow label="Mã tham chiếu" value={info.txnRef ?? "—"} mono />
             {info.transactionNo && (
               <InfoRow label="Mã giao dịch VNPay" value={info.transactionNo} mono />
             )}
-            {info.bankCode && <InfoRow label="Ngân hàng" value={info.bankCode} />}
-            {info.cardType && <InfoRow label="Loại thẻ" value={info.cardType} />}
-            {info.payDate && (
+            {info.bankCode ? <InfoRow label="Ngân hàng" value={info.bankCode} /> : null}
+            {info.cardType ? <InfoRow label="Loại thẻ" value={info.cardType} /> : null}
+            {info.payDate ? (
               <InfoRow label="Thời gian" value={formatVNPayDate(info.payDate)} />
-            )}
-            <InfoRow label="Mã phản hồi" value={info.responseCode || "—"} />
+            ) : null}
+            <InfoRow label="Mã phản hồi" value={info.responseCode ?? "—"} />
           </div>
 
           {/* Action buttons */}
@@ -216,7 +216,7 @@ function ResultScreen({ success, title, subtitle, description, info, polling, ti
               className="w-full flex items-center justify-center gap-2 rounded-xl bg-pink-600 px-4 py-3 text-sm font-semibold text-white hover:bg-pink-700 transition"
             >
               <TicketIcon className="h-4 w-4" />
-              {polling && success && !ticketUpdated ? "Đang đồng bộ..." : "Xem vé của tôi"}
+              Xem vé của tôi
             </Link>
             <button
               onClick={() => navigate("/customer/booking")}
@@ -243,6 +243,7 @@ function InfoRow({
   highlight?: boolean;
   mono?: boolean;
 }) {
+  if (!value) return null;
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="text-slate-400 text-xs">{label}</span>
@@ -255,7 +256,8 @@ function InfoRow({
   );
 }
 
-function formatPrice(amount: number): string {
+function formatPrice(amount: number | undefined | null): string {
+  if (amount == null || isNaN(amount)) return "—";
   return amount.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 }
 

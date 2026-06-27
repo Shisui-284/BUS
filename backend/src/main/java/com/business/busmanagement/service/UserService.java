@@ -98,6 +98,15 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
+    /**
+     * Tìm user kèm role đã fetch EAGER.
+     * Dùng TRONG JwtAuthenticationFilter để tránh LazyInitializationException
+     * khi truy cập user.getRole().getName() ngoài Hibernate session.
+     */
+    public Optional<User> findByUsernameWithRole(String username) {
+        return userRepository.findByUsernameWithRole(username);
+    }
+
     public Optional<User> findById(Long id) {
         Long userId = Objects.requireNonNull(id, "id is required");
         return userRepository.findById(userId);

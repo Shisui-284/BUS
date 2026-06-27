@@ -50,6 +50,8 @@ public class VnpayController {
 
         // Đảm bảo vé thuộc về user đang đăng nhập
         User currentUser = getCurrentUser();
+        log.info("VNPay createPayment: userId={}, ticketId={}", currentUser.getId(), request.getTicketId());
+
         var ticket = ticketRepository.findByIdWithDetails(request.getTicketId())
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy vé #" + request.getTicketId()));
         if (ticket.getPassenger() == null
@@ -65,22 +67,32 @@ public class VnpayController {
     // ─────────────────────────────────────────────────────────────
     // PUBLIC — Return URL (user browser redirect về sau khi TT xong)
     // GET /api/public/payment/vnpay/return
-    // Endpoint này chỉ trả về thông tin xác thực để frontend hiển thị.
-    // Xác thực chính thức do IPN xử lý (server-to-server).
+    // Verify hash để chống spoof — đảm bảo params thực sự do VNPay gửi.
+    // Xác thực chính thức để cập nhật DB vẫn do IPN xử lý.
     // ─────────────────────────────────────────────────────────────
     @GetMapping("/public/payment/vnpay/return")
-    public ResponseEntity<Map<String, Object>> paymentReturn(HttpServletRequest request) {
-        Map<String, String> params = extractParams(request);
+    public ResponseEntity<Map<String, Object>> paymentReturn(
+            @RequestParam Map<String, String> allParams) {
+        Map<String, String> params = allParams;
 
         String responseCode = params.get("vnp_ResponseCode");
         String txnRef = params.get("vnp_TxnRef");
         log.info("VNPay return URL hit: txnRef={} responseCode={}", txnRef, responseCode);
 
+        // Chống spoof: verify hash trước khi trả thông tin về frontend
+        if (!vnpayService.verifyReturnHash(params)) {
+            log.warn("VNPay return: hash verification failed for txnRef={}", txnRef);
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("error", "Xác thực không hợp lệ");
+            return ResponseEntity.ok(error);
+        }
+
         Map<String, Object> response = new HashMap<>();
         response.put("txnRef", txnRef);
         response.put("responseCode", responseCode);
         response.put("transactionNo", params.get("vnp_TransactionNo"));
-        response.put("amount", parseVnpAmount(params.get("vnp_Amount")));
+        response.put("amount", parseVnpAmount(params.get("vnp_Amount")).doubleValue());
         response.put("bankCode", params.get("vnp_BankCode"));
         response.put("cardType", params.get("vnp_CardType"));
         response.put("payDate", params.get("vnp_PayDate"));
@@ -94,14 +106,24 @@ public class VnpayController {
     // POST /api/public/payment/vnpay/ipn
     // VNPay gọi endpoint này để thông báo kết quả thanh toán.
     // Quan trọng: VNPay gửi application/x-www-form-urlencoded
+    //
+    // Dùng @RequestParam để Spring tự parse form-urlencoded thành Map
+    // (giá trị đã được URL-decode 1 lần bởi Servlet container).
+    // Trước đây dùng getParameterMap() thủ công nhưng hay bị consume body
+    // do các filter upstream.
     // ─────────────────────────────────────────────────────────────
     @PostMapping(value = "/public/payment/vnpay/ipn",
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, String>> ipnCallback(HttpServletRequest request) {
-        Map<String, String> params = extractParams(request);
-        log.info("VNPay IPN received: txnRef={} responseCode={}",
-                params.get("vnp_TxnRef"), params.get("vnp_ResponseCode"));
+    public ResponseEntity<Map<String, String>> ipnCallback(
+            @RequestParam Map<String, String> allParams) {
+        Map<String, String> params = allParams;
+        log.info("VNPay IPN received: txnRef={} responseCode={} amount={} bankCode={} tmnCode={}",
+                params.get("vnp_TxnRef"),
+                params.get("vnp_ResponseCode"),
+                params.get("vnp_Amount"),
+                params.get("vnp_BankCode"),
+                params.get("vnp_TmnCode"));
 
         Map<String, String> result = vnpayService.processIpn(params);
         return ResponseEntity.ok(result);
@@ -109,21 +131,21 @@ public class VnpayController {
 
     // ── helpers ──
 
-    private Map<String, String> extractParams(HttpServletRequest request) {
-        Map<String, String[]> parameterMap = request.getParameterMap();
-        Map<String, String> params = new HashMap<>();
-        for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
-            if (entry.getValue() != null && entry.getValue().length > 0) {
-                params.put(entry.getKey(), entry.getValue()[0]);
-            }
-        }
-        return params;
-    }
-
     private User getCurrentUser() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
+            log.error("No authenticated user found in security context");
+            throw new SecurityException("Bạn chưa đăng nhập");
+        }
+        log.debug("Current authentication: name={}, authorities={}",
+                authentication.getName(), authentication.getAuthorities());
+
+        String username = authentication.getName();
         return userService.findByUsername(username)
-                .orElseThrow(() -> new SecurityException("User not found"));
+                .orElseThrow(() -> {
+                    log.error("User not found in database: {}", username);
+                    return new SecurityException("User not found");
+                });
     }
 
     private static BigDecimal parseVnpAmount(String vnpAmount) {

@@ -73,7 +73,7 @@ public class TicketDetailResponse {
     public static class PaymentDetail {
         private Long id;
         private BigDecimal amount;
-        private String method;
+        private String paymentMethod;
         private String status;
         private String transactionCode;
         private LocalDateTime paidAt;

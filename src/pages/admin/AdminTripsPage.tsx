@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, X, MapPin, Clock, Bus, Users, Search, RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Plus, Pencil, Trash2, X, MapPin, Clock, Bus, Users, Search, RefreshCw, Armchair, Bell, BellRing, CreditCard } from "lucide-react";
 import toast from "react-hot-toast";
 import Snowfall from "../../components/ui/Snowfall";
 import {
@@ -15,7 +15,11 @@ import {
   getEmployeesByType,
   assignStaffToTrip,
   getStaffByTrip,
+  connectAdminNotifications,
+  AdminBookingEvent,
+  AdminPaymentEvent,
 } from "../../api/admin";
+import TripSeatsModal from "./TripSeatsModal";
 import { Employee, TripStatus } from "../../types";
 import { extractApiErrorMessage } from "../../utils/apiError";
 
@@ -60,6 +64,10 @@ export default function AdminTripsPage() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingTrip, setEditingTrip] = useState<null | any>(null);
+  const [seatsTripId, setSeatsTripId] = useState<number | null>(null);
+  const [pendingBookings, setPendingBookings] = useState<AdminBookingEvent[]>([]);
+  const [pendingPayments, setPendingPayments] = useState<AdminPaymentEvent[]>([]);
+  const eventSourceRef = useRef<EventSource | null>(null);
 
   const loadTrips = useCallback(async () => {
     setIsLoading(true);
@@ -100,6 +108,51 @@ export default function AdminTripsPage() {
   useEffect(() => {
     loadTrips();
   }, [loadTrips]);
+
+  // ─── SSE subscription: nhận notification booking mới + payment VNPay ───
+  useEffect(() => {
+    let cancelled = false;
+
+    const setup = () => {
+      const es = connectAdminNotifications(
+        (booking) => {
+          if (cancelled) return;
+          console.debug("[SSE] booking.created", booking);
+          setPendingBookings((prev) => [booking, ...prev].slice(0, 50));
+          toast(
+            `🆕 Vé mới #${booking.ticketId} · Ghế ${booking.seatNumber} · ${booking.passengerName || "Khách"}`,
+            { duration: 6000 }
+          );
+          loadTrips();
+        },
+        (payment) => {
+          if (cancelled) return;
+          console.debug("[SSE] payment.vnpay.success", payment);
+          setPendingPayments((prev) => [payment, ...prev].slice(0, 50));
+          toast.success(
+            `💳 VNPay thành công · Vé #${payment.ticketId} · Ghế ${payment.seatNumber} · ${payment.passengerName || "Khách"}`,
+            { duration: 8000 }
+          );
+          loadTrips();
+        },
+        (err) => {
+          console.warn("[SSE] error, will reconnect in 3s", err);
+          // Tự reconnect sau 3s
+          setTimeout(() => { if (!cancelled) setup(); }, 3000);
+        }
+      );
+      eventSourceRef.current = es;
+    };
+
+    setup();
+
+    return () => {
+      cancelled = true;
+      eventSourceRef.current?.close();
+      eventSourceRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filteredTrips = trips.filter((trip) => {
     if (!searchKeyword) return true;
@@ -190,13 +243,37 @@ export default function AdminTripsPage() {
               <p className="text-blue-200/80 text-sm mt-2">Tạo và quản lý chuyến xe với tuyến đường linh hoạt</p>
             </div>
 
-            <button
-              onClick={() => { setEditingTrip(null); setShowModal(true); }}
-              className="group relative inline-flex items-center gap-2 px-6 py-3 bg-white text-blue-600 font-semibold rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-            >
-              <Plus className="w-5 h-5" />
-              <span>Tạo chuyến mới</span>
-            </button>
+            <div className="flex items-center gap-3">
+              {/* Pending notifications badge */}
+              {(pendingBookings.length > 0 || pendingPayments.length > 0) && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-200 text-xs font-semibold">
+                  <BellRing className="w-4 h-4 animate-pulse" />
+                  {pendingBookings.length > 0 && (
+                    <span className="flex items-center gap-1">
+                      <span className="inline-block w-2 h-2 rounded-full bg-amber-300" />
+                      {pendingBookings.length} booking mới
+                    </span>
+                  )}
+                  {pendingBookings.length > 0 && pendingPayments.length > 0 && (
+                    <span className="text-amber-400">·</span>
+                  )}
+                  {pendingPayments.length > 0 && (
+                    <span className="flex items-center gap-1">
+                      <CreditCard className="w-3 h-3" />
+                      {pendingPayments.length} VNPay
+                    </span>
+                  )}
+                </div>
+              )}
+
+              <button
+                onClick={() => { setEditingTrip(null); setShowModal(true); }}
+                className="group relative inline-flex items-center gap-2 px-6 py-3 bg-white text-blue-600 font-semibold rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+              >
+                <Plus className="w-5 h-5" />
+                <span>Tạo chuyến mới</span>
+              </button>
+            </div>
           </div>
 
           {/* Stats */}
@@ -379,6 +456,13 @@ export default function AdminTripsPage() {
                       <td className="px-6 py-4">
                         <div className="flex justify-end gap-2">
                           <button
+                            onClick={() => setSeatsTripId(trip.id)}
+                            className="p-2 bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-400 rounded-xl transition-all"
+                            title="Xem sơ đồ ghế & chi tiết vé"
+                          >
+                            <Armchair className="w-4 h-4" />
+                          </button>
+                          <button
                             onClick={async () => {
                               try {
                                 const assignments = await getStaffByTrip(trip.id);
@@ -426,6 +510,24 @@ export default function AdminTripsPage() {
           drivers={drivers}
           assistants={assistants}
           initialData={editingTrip}
+        />
+      )}
+
+      {seatsTripId !== null && (
+        <TripSeatsModal
+          tripId={seatsTripId}
+          tripLabel={(() => {
+            const t = trips.find((x) => x.id === seatsTripId);
+            return t ? `${t.routeName} · ${fmtDateTime(t.departureTime)} · ${t.busLabel}` : `Chuyến #${seatsTripId}`;
+          })()}
+          onClose={() => setSeatsTripId(null)}
+          onChanged={() => {
+            // Reload trips để cập nhật số ghế trống/đã đặt
+            loadTrips();
+            // Xóa pending notification cho trip này
+            setPendingBookings((prev) => prev.filter((b) => b.tripId !== seatsTripId));
+            setPendingPayments((prev) => prev.filter((p) => p.tripId !== seatsTripId));
+          }}
         />
       )}
     </div>

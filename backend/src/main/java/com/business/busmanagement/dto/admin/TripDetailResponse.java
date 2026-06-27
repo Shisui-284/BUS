@@ -77,5 +77,10 @@ public class TripDetailResponse {
         private BigDecimal price;
         private String status;
         private LocalDateTime bookedAt;
+        private String pickupPoint;
+        private String dropoffPoint;
+        private String paymentMethod;   // CASH / VNPAY / null
+        private String paymentStatus;   // PENDING / SUCCESS / FAILED / null
+        private LocalDateTime paidAt;
     }
 }

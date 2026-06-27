@@ -1,34 +1,39 @@
 import { useEffect, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
-import { getMyTickets, cancelTicket, mockPayment, TicketRecord } from "../../api/customer";
+import { getMyTickets, cancelTicket, TicketRecord } from "../../api/customer";
 import { X } from "lucide-react"; // Import icon nút tắt cho QR Modal
 
-const BANK_ID = "VCB"; // Tên viết tắt ngân hàng (VD: MB, VCB, TCB...)
-const ACCOUNT_NO = "0987654321"; // Số tài khoản của nhà xe
-const ACCOUNT_NAME = "LE VU HAO"; // Tên chủ tài khoản 
-
+const QR_CODE_INFO = {
+  bankId: "VCB",
+  accountNo: "0987654321",
+  accountName: "LE VU HAO",
+};
 const generateVietQRUrl = (amount: number, ticketCode: string) => {
   const transferContent = `THANH TOAN VE ${ticketCode}`;
-  return `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(transferContent)}&accountName=${encodeURIComponent(ACCOUNT_NAME)}`;
+  return `https://img.vietqr.io/image/${QR_CODE_INFO.bankId}-${QR_CODE_INFO.accountNo}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(transferContent)}&accountName=${encodeURIComponent(QR_CODE_INFO.accountName)}`;
 };
 
 // ─── Status & payment config ──────────────────────────────────────────
+// Phía customer chỉ quan tâm "Đã xác nhận" hay chưa — không hiển thị chi tiết
+// payment state (PAID/HOLD/CONFIRMED gộp về "Đã xác nhận" vì ý nghĩa tương đương
+// với người dùng: admin đã duyệt, vé dùng được).
 const STATUS_MAP: Record<string, { label: string; style: string; dot: string }> = {
-  BOOKED:    { label: "Đã giữ chỗ",    style: "bg-amber-50 text-amber-700 border border-amber-200",  dot: "bg-amber-400" },
-  HOLD:      { label: "Chờ thanh toán", style: "bg-blue-50 text-blue-700 border border-blue-200",   dot: "bg-blue-400" },
-  CONFIRMED: { label: "Đã xác nhận",   style: "bg-purple-50 text-purple-700 border border-purple-200", dot: "bg-purple-400" },
-  PAID:      { label: "Đã thanh toán",  style: "bg-emerald-50 text-emerald-700 border border-emerald-200", dot: "bg-emerald-400" },
-  CANCELLED: { label: "Đã hủy",         style: "bg-red-50 text-red-600 border border-red-200",     dot: "bg-red-400" },
-  REFUNDED:  { label: "Đã hoàn tiền",   style: "bg-slate-50 text-slate-500 border border-slate-200", dot: "bg-slate-400" },
-  EXPIRED:   { label: "Hết hạn",        style: "bg-slate-50 text-slate-400 border border-slate-200", dot: "bg-slate-400" },
+  CONFIRMED: { label: "Đã xác nhận", style: "bg-emerald-50 text-emerald-700 border border-emerald-200", dot: "bg-emerald-400" },
+  PAID:      { label: "Đã xác nhận", style: "bg-emerald-50 text-emerald-700 border border-emerald-200", dot: "bg-emerald-400" },
+  BOOKED:    { label: "Chờ xác nhận", style: "bg-amber-50 text-amber-700 border border-amber-200",   dot: "bg-amber-400"   },
+  HOLD:      { label: "Chờ xác nhận", style: "bg-amber-50 text-amber-700 border border-amber-200",   dot: "bg-amber-400"   },
+  CANCELLED: { label: "Đã hủy",       style: "bg-red-50 text-red-600 border border-red-200",          dot: "bg-red-400"     },
+  REFUNDED:  { label: "Đã hoàn tiền", style: "bg-slate-50 text-slate-500 border border-slate-200",    dot: "bg-slate-400"   },
+  EXPIRED:   { label: "Hết hạn",      style: "bg-slate-50 text-slate-400 border border-slate-200",    dot: "bg-slate-400"   },
 };
 
 const PAYMENT_METHOD_LABEL: Record<string, string> = {
-  CASH: "Tiền mặt",
-  CARD: "Thẻ ngân hàng",
-  MOMO: "MoMo",
-  BANK: "Chuyển khoản QR",
+  CASH:  "Tiền mặt",
+  CARD:  "Thẻ ngân hàng",
+  MOMO:  "MoMo",
+  BANK:  "Chuyển khoản QR",
+  VNPAY: "VNPay",
 };
 
 // ─── Helpers ────────────────────────────────────────────────────────
@@ -105,12 +110,10 @@ function QRCodePaymentModal({
   ticket, 
   onClose, 
   onConfirm, 
-  isConfirming 
 }: { 
   ticket: TicketRecord; 
   onClose: () => void; 
   onConfirm: () => void; 
-  isConfirming: boolean 
 }) {
   const qrUrl = generateVietQRUrl(ticket.price, ticket.ticketCode);
 
@@ -132,16 +135,20 @@ function QRCodePaymentModal({
              </div>
           </div>
           
-          <p className="text-sm text-slate-500 mb-6 px-2">
+          <p className="text-sm text-slate-500 mb-3 px-2">
              Mở ứng dụng ngân hàng và quét mã QR trên để chuyển khoản. Nội dung và số tiền đã được điền tự động.
           </p>
+          <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700 text-left">
+            <p className="font-semibold mb-1">⚠️ Lưu ý:</p>
+            <p>Sau khi chuyển khoản, vui lòng bấm "Đã chuyển khoản" bên dưới.</p>
+            <p className="mt-1">Nhân viên sẽ xác minh và xác nhận thanh toán trong thời gian sớm nhất.</p>
+          </div>
           
           <button
             onClick={onConfirm}
-            disabled={isConfirming}
-            className="w-full flex justify-center items-center gap-2 rounded-xl bg-emerald-500 px-4 py-3.5 text-sm font-semibold text-white hover:bg-emerald-600 disabled:opacity-50 transition-colors shadow-lg shadow-emerald-200"
+            className="w-full flex justify-center items-center gap-2 rounded-xl bg-emerald-500 px-4 py-3.5 text-sm font-semibold text-white hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-200"
           >
-            {isConfirming ? "Đang xử lý..." : "✓ Tôi đã chuyển khoản xong"}
+            ✓ Đã chuyển khoản
           </button>
         </div>
       </div>
@@ -429,7 +436,6 @@ export default function CustomerTicketsPage() {
   const [tickets, setTickets] = useState<TicketRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<number | null>(null);
-  const [payingId, setPayingId] = useState<number | null>(null);
   const [selectedTicket, setSelectedTicket] = useState<TicketRecord | null>(null);
   
   // State quản lý việc hiển thị modal QR
@@ -459,25 +465,12 @@ export default function CustomerTicketsPage() {
     }
   };
 
-  // Hàm này giờ sẽ chạy khi khách bấm "Tôi đã chuyển khoản xong" trên Modal QR
+  // Hàm này chạy khi khách bấm "Tôi đã chuyển khoản xong" trên Modal QR.
+  // KHÔNG tự động xác nhận thanh toán — chỉ hiện disclaimer, đóng modal.
+  // Admin sẽ xác minh và xác nhận thủ công.
   const handleConfirmTransfer = async (ticket: TicketRecord) => {
-    setPayingId(ticket.id);
-    try {
-      // Gọi API cập nhật phương thức là BANK (Chuyển khoản)
-      await mockPayment({ ticketId: ticket.id, paymentMethod: "BANK" }); 
-      const updated = await getMyTickets();
-      setTickets(updated);
-      
-      const refreshed = updated.find(t => t.id === ticket.id);
-      if (refreshed && selectedTicket?.id === ticket.id) setSelectedTicket(refreshed);
-      
-      toast.success("Đã ghi nhận thanh toán! Hệ thống sẽ cập nhật trạng thái sớm nhất.");
-      setQrTicket(null); // Đóng modal QR
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Thanh toán thất bại");
-    } finally {
-      setPayingId(null);
-    }
+    setQrTicket(null); // đóng modal QR
+    toast.success("Đã ghi nhận! Nhân viên sẽ xác minh và xác nhận thanh toán trong thời gian sớm nhất.");
   };
 
   if (loading)
@@ -532,7 +525,6 @@ export default function CustomerTicketsPage() {
           ticket={qrTicket}
           onClose={() => setQrTicket(null)}
           onConfirm={() => handleConfirmTransfer(qrTicket)}
-          isConfirming={payingId === qrTicket.id}
         />
       )}
     </>

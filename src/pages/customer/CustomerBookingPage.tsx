@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, X, ChevronRight, ChevronDown, ChevronUp, Phone, MapPin, CreditCard, Smartphone } from "lucide-react";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
@@ -180,7 +180,6 @@ interface PointSelectorProps {
   selectedCity: string;
   selectedPoint: PickupPoint | null;
   availableCities: string[];
-  /** Khi true, khóa city theo tuyến (ẩn dropdown chọn city, chỉ hiển thị city cố định). */
   lockedCity?: boolean;
   onCityChange: (city: string) => void;
   onPointChange: (point: PickupPoint | null) => void;
@@ -232,70 +231,56 @@ function PointSelector({
         </div>
       </div>
 
-      {/* City selector — ẩn khi lockedCity (city đã bị khóa theo tuyến) */}
-      {lockedCity ? (
-        <div className="flex items-center gap-2 rounded-xl border border-pink-200 bg-pink-50/60 px-4 py-2.5 text-sm">
-          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-pink-500 text-white text-[10px] font-bold">
-            🔒
-          </span>
-          <span className="text-pink-500">Thành phố cố định theo tuyến:</span>
-          <span className="font-semibold text-pink-800">
+      {/* City selector — collapsible */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setShowCities((o) => !o)}
+          className="flex w-full items-center justify-between rounded-xl border border-pink-200 bg-white px-4 py-2.5 text-sm transition hover:border-pink-400"
+        >
+          <span className={selectedCity ? "text-pink-800 font-medium" : "text-pink-400"}>
             {selectedCity
               ? `${getCityData(selectedCity)?.cityLabel ?? selectedCity}`
-              : "—"}
+              : "— Chọn thành phố / tỉnh thành —"}
           </span>
-        </div>
-      ) : (
-        <div>
-          <button
-            type="button"
-            onClick={() => setShowCities((o) => !o)}
-            className="flex w-full items-center justify-between rounded-xl border border-pink-200 bg-white px-4 py-2.5 text-sm transition hover:border-pink-400"
-          >
-            <span className={selectedCity ? "text-pink-800 font-medium" : "text-pink-400"}>
-              {selectedCity
-                ? `${getCityData(selectedCity)?.cityLabel ?? selectedCity}`
-                : "— Chọn thành phố / tỉnh thành —"}
-            </span>
-            {showCities ? (
-              <ChevronUp className="h-4 w-4 text-pink-400" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-pink-400" />
-            )}
-          </button>
-
-          {showCities && (
-            <div className="mt-1.5 max-h-52 overflow-y-auto rounded-xl border border-pink-200 bg-white shadow-sm">
-              {availableCities.length === 0 ? (
-                <div className="p-3 text-center text-xs text-pink-400">
-                  Vui lòng chọn chuyến trước
-                </div>
-              ) : (
-                availableCities.map((city) => {
-                  const data = getCityData(city);
-                  return (
-                    <button
-                      key={city}
-                      type="button"
-                      onClick={() => handleCitySelect(city)}
-                      className={`flex w-full items-center justify-between px-4 py-2.5 text-sm hover:bg-pink-50 transition ${
-                        selectedCity === city
-                          ? "bg-pink-100 font-semibold text-pink-700"
-                          : "text-pink-700"
-                      }`}
-                    >
-                      <span>{data?.cityLabel ?? city}</span>
-                      <span className="text-xs text-pink-400">
-                        {data?.pickupPoints.length} điểm
-                      </span>
-                    </button>
-                  );
-                })
-              )}
-            </div>
+          {showCities ? (
+            <ChevronUp className="h-4 w-4 text-pink-400" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-pink-400" />
           )}
-        </div>
-      )}
+        </button>
+
+        {showCities && (
+          <div className="mt-1.5 max-h-52 overflow-y-auto rounded-xl border border-pink-200 bg-white shadow-sm">
+            {availableCities.length === 0 ? (
+              <div className="p-3 text-center text-xs text-pink-400">
+                Vui lòng chọn chuyến trước
+              </div>
+            ) : (
+              availableCities.map((city) => {
+                const data = getCityData(city);
+                return (
+                  <button
+                    key={city}
+                    type="button"
+                    onClick={() => handleCitySelect(city)}
+                    className={`flex w-full items-center justify-between px-4 py-2.5 text-sm hover:bg-pink-50 transition ${
+                      selectedCity === city
+                        ? "bg-pink-100 font-semibold text-pink-700"
+                        : "text-pink-700"
+                    }`}
+                  >
+                    <span>{data?.cityLabel ?? city}</span>
+                    <span className="text-xs text-pink-400">
+                      {data?.pickupPoints.length} điểm
+                    </span>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Points list — always visible */}
       <div>
@@ -410,6 +395,19 @@ export default function CustomerBookingPage() {
     loadTrips();
   }, []);
 
+  // Lắng nghe sự kiện auth expired để hiển thị thông báo
+  useEffect(() => {
+    const handleAuthExpired = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      console.warn("Auth expired event:", customEvent.detail);
+      toast.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+      setTimeout(() => { window.location.href = "/auth/login"; }, 2000);
+    };
+
+    window.addEventListener("auth:expired", handleAuthExpired);
+    return () => window.removeEventListener("auth:expired", handleAuthExpired);
+  }, []);
+
   const canGoToStep = (target: Step) => {
     switch (target) {
       case "search": return true;
@@ -465,10 +463,9 @@ export default function CustomerBookingPage() {
     setSelectedTrip(trip);
     setSelectedSeat(null);
     setSeats([]);
-    // Khóa city theo tuyến: pickupCity = origin, dropoffCity = destination
-    setPickupCity(trip.origin);
+    setPickupCity("");
     setPickupPoint(null);
-    setDropoffCity(trip.destination);
+    setDropoffCity("");
     setDropoffPoint(null);
     setStep("pickup");
   };
@@ -538,16 +535,25 @@ export default function CustomerBookingPage() {
         // Thanh toán online qua VNPay: gọi backend tạo URL rồi redirect
         try {
           const vnpayRes = await createVnpayPayment(ticket.id);
-          // Lưu ticketId vào sessionStorage để trang return có thể tham chiếu nếu cần
           sessionStorage.setItem("pendingVnpayTicketId", String(ticket.id));
           window.location.href = vnpayRes.paymentUrl;
-          return; // sẽ redirect, không chuyển sang success step
-        } catch (err: any) {
-          const msg = err?.response?.data?.message ?? err?.message ?? "";
-          toast.error(`Đặt vé thành công nhưng tạo URL thanh toán thất bại: ${msg}`);
-          // Vẫn chuyển sang success để user biết vé đã được tạo (status HOLD)
-          setStep("success");
           return;
+        } catch (err: any) {
+          const status = err?.response?.status;
+          const backendMsg = err?.response?.data?.message ?? err?.message ?? "";
+
+          // Nếu VNPay URL creation thất bại, vé vẫn tồn tại ở trạng thái HOLD.
+          // User có thể retry từ trang "Vé của tôi" — không cần hủy.
+          let displayMsg = `Không tạo được URL thanh toán VNPay.`;
+          if (status === 401) {
+            displayMsg = "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.";
+            setTimeout(() => { window.location.href = "/auth/login"; }, 2000);
+          } else if (status === 403) {
+            displayMsg = backendMsg || "Bạn không có quyền thanh toán vé này.";
+          } else if (backendMsg) {
+            displayMsg = `Lỗi: ${backendMsg}`;
+          }
+          toast.error(displayMsg + " Bạn có thể thử thanh toán lại từ trang 'Vé của tôi'.");
         }
       }
 
@@ -562,15 +568,9 @@ export default function CustomerBookingPage() {
     }
   };
 
-  // Ràng buộc theo tuyến: pickup chỉ được chọn city = trip.origin,
-  // dropoff chỉ được chọn city = trip.destination. Việc này đảm bảo
-  // điểm đón/trả khớp với đầu/cuối tuyến mà admin đã thiết lập.
-  const tripAvailableCities = useMemo(() => {
-    if (!selectedTrip) return LOCATIONS;
-    return LOCATIONS.filter(
-      (l) => l === selectedTrip.origin || l === selectedTrip.destination
-    );
-  }, [selectedTrip]);
+  // Get cities for pickup/dropoff. Hiện vẫn cho phép chọn toàn bộ địa điểm,
+  // nhưng không còn nhấn mạnh "khớp tuyến có sẵn" để tránh gây rối UX.
+  const tripAvailableCities = useMemo(() => LOCATIONS, []);
 
   const stepIndex = STEPS.indexOf(step);
 
@@ -833,12 +833,11 @@ export default function CustomerBookingPage() {
             </h2>
             <PointSelector
               label="Điểm đón"
-              sublabel="Chọn điểm đón cụ thể ở thành phố xuất phát của tuyến"
+              sublabel="Chọn thành phố nếu cần, sau đó chọn trực tiếp điểm đón bên dưới"
               icon="pickup"
               selectedCity={pickupCity}
               selectedPoint={pickupPoint}
               availableCities={tripAvailableCities}
-              lockedCity={!!selectedTrip}
               onCityChange={setPickupCity}
               onPointChange={setPickupPoint}
             />
@@ -1275,7 +1274,7 @@ export default function CustomerBookingPage() {
             <div className="flex justify-between border-t border-blue-200 pt-2 mt-1">
               <span className="font-semibold text-blue-700">Thanh toán</span>
               <span className="font-bold text-blue-600 text-base">
-                COD - Khi lên xe
+                {paymentMethod === "VNPAY" ? "VNPay (Online)" : "COD - Khi lên xe"}
               </span>
             </div>
             <div className="flex justify-between">

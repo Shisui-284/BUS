@@ -1,10 +1,14 @@
 package com.business.busmanagement.config;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -21,9 +25,11 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Value("${app.cors.allowed-origins}")
     private String allowedOrigins;
@@ -34,12 +40,26 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            log.warn("AccessDenied for {} {}: user={}, roles={}, exception={}",
+                                    request.getMethod(), request.getRequestURI(),
+                                    request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : "null",
+                                    request.isUserInRole("CUSTOMER") ? "CUSTOMER" : (request.isUserInRole("ADMIN") ? "ADMIN" : "NONE"),
+                                    accessDeniedException.getMessage());
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            response.setCharacterEncoding("UTF-8");
+                            response.getWriter().write("{\"status\":403,\"error\":\"Forbidden\",\"message\":\"Bạn không có quyền thực hiện thao tác này\"}");
+                        }))
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/api/public/auth/register", "/api/public/auth/login", "/api/health",
                                 "/api/debug/**")
                         .permitAll()
                         // VNPay IPN + Return URL — server-to-server / user redirect, không cần auth
                         .requestMatchers("/api/public/payment/vnpay/**").permitAll()
+                        // SSE endpoint — cần auth admin; đã có rule "/api/admin/**" hasRole("ADMIN") bên dưới
                         .requestMatchers("/api/auth/profile").authenticated()
                         // PUBLIC — tìm chuyến không cần đăng nhập
                         .requestMatchers(HttpMethod.GET, "/api/public/trips/search").permitAll()

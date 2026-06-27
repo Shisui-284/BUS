@@ -595,15 +595,28 @@ public class AdminService {
 
         // Build ticket list
         List<TripDetailResponse.TicketInfo> ticketInfos = allTickets.stream()
-                .map(ticket -> new TripDetailResponse.TicketInfo(
-                        ticket.getId(),
-                        ticket.getSeat() != null ? ticket.getSeat().getSeatNumber() : "",
-                        ticket.getPassenger() != null ? ticket.getPassenger().getFullName() : "",
-                        ticket.getPassenger() != null ? ticket.getPassenger().getPhone() : "",
-                        ticket.getPrice(),
-                        ticket.getStatus().name(),
-                        ticket.getBookedAt()
-                ))
+                .map(ticket -> {
+                    String paymentMethod = null;
+                    String paymentStatus = null;
+                    if (ticket.getPayment() != null) {
+                        paymentMethod = ticket.getPayment().getPaymentMethod().name();
+                        paymentStatus = ticket.getPayment().getStatus().name();
+                    }
+                    return new TripDetailResponse.TicketInfo(
+                            ticket.getId(),
+                            ticket.getSeat() != null ? ticket.getSeat().getSeatNumber() : "",
+                            ticket.getPassenger() != null ? ticket.getPassenger().getFullName() : "",
+                            ticket.getPassenger() != null ? ticket.getPassenger().getPhone() : "",
+                            ticket.getPrice(),
+                            ticket.getStatus().name(),
+                            ticket.getBookedAt(),
+                            ticket.getPickupPoint(),
+                            ticket.getDropoffPoint(),
+                            paymentMethod,
+                            paymentStatus,
+                            ticket.getPaidAt()
+                    );
+                })
                 .toList();
 
         // Revenue calculation
@@ -687,7 +700,11 @@ public class AdminService {
     /**
      * Admin xác nhận vé sau khi gọi điện cho khách.
      * Chỉ vé đang ở trạng thái HOLD mới có thể xác nhận.
-     * Tự động tạo Payment CASH (COD) khi xác nhận.
+     * Logic payment:
+     *   - Nếu vé chưa có payment row → tạo mới Payment CASH (COD) SUCCESS.
+     *   - Nếu vé đã có payment (vd: khách đã mở VNPay URL trước đó nên đã có
+     *     row PENDING) → KHÔNG insert row mới (vi phạm unique constraint trên
+     *     payments.ticket_id), chỉ update status/paidAt để đánh dấu xác nhận.
      */
     @Transactional
     public TicketDetailResponse confirmTicket(Long id) {
@@ -708,21 +725,40 @@ public class AdminService {
             throw new BusinessConflictException("Chuyến xe đã khởi hành, không thể xác nhận vé");
         }
 
+        LocalDateTime now = LocalDateTime.now();
         ticket.setStatus(Ticket.TicketStatus.CONFIRMED);
-        ticket.setPaidAt(LocalDateTime.now());
+        ticket.setPaidAt(now);
 
-        // Tạo Payment COD khi xác nhận thành công
-        Payment payment = new Payment();
-        payment.setTicket(ticket);
-        payment.setAmount(ticket.getPrice());
-        payment.setPaymentMethod(Payment.PaymentMethod.CASH);
-        payment.setStatus(Payment.PaymentStatus.SUCCESS);
-        payment.setTransactionCode("CASH-" + System.currentTimeMillis());
-        payment.setPaidAt(LocalDateTime.now());
-        ticket.setPayment(payment);
+        Payment payment = ticket.getPayment();
+        if (payment == null) {
+            // Vé chưa có payment row → tạo mới CASH (admin xác nhận = thu tiền mặt)
+            payment = new Payment();
+            payment.setTicket(ticket);
+            payment.setAmount(ticket.getPrice());
+            payment.setPaymentMethod(Payment.PaymentMethod.CASH);
+            payment.setStatus(Payment.PaymentStatus.SUCCESS);
+            payment.setTransactionCode("CASH-" + System.currentTimeMillis());
+            payment.setPaidAt(now);
+            ticket.setPayment(payment);
+            paymentRepository.save(payment);
+        } else {
+            // Đã có payment (vd: VNPay PENDING do khách khởi tạo URL trước đó).
+            // Không insert row mới vì payments.ticket_id là UNIQUE — chỉ update.
+            // Nếu payment cũ đang FAILED thì không nên "thành công" lại ở đây:
+            //   - FAILED + admin xác nhận COD → chuyển sang CASH/SUCCESS
+            //   - PENDING (chưa IPN) + admin xác nhận → giữ method cũ, không đánh SUCCESS
+            //     vì tiền chưa thực sự về; vẫn CONFIRMED vì admin đã gọi điện xác nhận.
+            if (payment.getStatus() == Payment.PaymentStatus.FAILED) {
+                payment.setPaymentMethod(Payment.PaymentMethod.CASH);
+                payment.setStatus(Payment.PaymentStatus.SUCCESS);
+                payment.setTransactionCode("CASH-" + System.currentTimeMillis());
+                payment.setPaidAt(now);
+            }
+            // PENDING giữ nguyên — chờ IPN cập nhật cuối cùng
+            paymentRepository.save(payment);
+        }
 
         Ticket saved = ticketRepository.save(ticket);
-        paymentRepository.save(payment);
 
         return toTicketDetailResponse(saved);
     }

@@ -1,8 +1,10 @@
 package com.business.busmanagement.config;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * Cấu hình VNPay được load từ application.properties với prefix {@code app.vnpay}.
@@ -10,16 +12,20 @@ import org.springframework.context.annotation.Configuration;
  */
 @Data
 @Configuration
+@Validated
 @ConfigurationProperties(prefix = "app.vnpay")
 public class VnpayConfig {
 
     /** Mã website (vnp_TmnCode) do VNPay cấp */
+    @NotBlank
     private String tmnCode;
 
     /** Chuỗi bí mật để tạo và xác thực checksum (vnp_HashSecret) */
+    @NotBlank
     private String hashSecret;
 
     /** URL thanh toán của cổng VNPay (sandbox hoặc production) */
+    @NotBlank
     private String url;
 
     /** URL frontend sẽ được redirect về sau khi user thanh toán xong */

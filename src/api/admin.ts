@@ -340,3 +340,183 @@ export const getStaffByTrip = async (tripId: number) => {
   const response = await apiClient.get(`/admin/trip-assignments/${tripId}`);
   return response.data;
 };
+
+// ==================== TRIP DETAIL (modal sơ đồ ghế) ====================
+
+export interface AdminTripDetail {
+  id: number;
+  route: {
+    id: number;
+    origin: string;
+    destination: string;
+    distanceKm: number;
+    estimatedDurationMin: number;
+    basePrice: number;
+  } | null;
+  bus: {
+    id: number;
+    licensePlate: string;
+    busType: string;
+    totalSeats: number;
+    status: string;
+  } | null;
+  departureTime: string;
+  arrivalTime: string;
+  status: string;
+  totalSeats: number;
+  bookedSeats: number;
+  availableSeats: number;
+  seats: AdminTripSeat[];
+  tickets: AdminTripTicket[];
+  estimatedRevenue: number;
+  actualRevenue: number;
+}
+
+export interface AdminTripSeat {
+  id: number;
+  seatNumber: string;
+  positionX: number | null;
+  positionY: number | null;
+  booked: boolean;
+  bookedBy: string;
+  passengerName: string;
+}
+
+export interface AdminTripTicket {
+  id: number;
+  seatNumber: string;
+  passengerName: string;
+  passengerPhone: string;
+  price: number;
+  status: string; // BOOKED / HOLD / CONFIRMED / PAID / CANCELLED / REFUNDED / EXPIRED
+  bookedAt: string | null;
+  pickupPoint: string | null;
+  dropoffPoint: string | null;
+  paymentMethod: string | null; // CASH / VNPAY / null
+  paymentStatus: string | null; // PENDING / SUCCESS / FAILED / null
+  paidAt: string | null;
+}
+
+export async function getAdminTripById(id: number): Promise<AdminTripDetail> {
+  const res = await apiClient.get<AdminTripDetail>(`/admin/trips/${id}`);
+  return res.data;
+}
+
+// ==================== TICKET DETAIL (modal info ghế) ====================
+
+export interface AdminTicketDetail {
+  id: number;
+  trip: {
+    id: number;
+    routeId: number | null;
+    routeName: string;
+    busId: number | null;
+    busLabel: string;
+    departureTime: string | null;
+    arrivalTime: string | null;
+    tripStatus: string;
+  } | null;
+  seat: {
+    id: number;
+    seatNumber: string;
+    positionX: number | null;
+    positionY: number | null;
+  } | null;
+  passenger: {
+    id: number;
+    fullName: string;
+    phone: string;
+    email: string;
+    idCard: string;
+  } | null;
+  price: number;
+  status: string;
+  user: {
+    id: number;
+    username: string;
+    role: string;
+  } | null;
+  bookedAt: string | null;
+  paidAt: string | null;
+  payment: {
+    id: number;
+    amount: number;
+    paymentMethod: string;
+    status: string;
+    transactionCode: string | null;
+    paidAt: string | null;
+  } | null;
+}
+
+export async function getAdminTicketById(id: number): Promise<AdminTicketDetail> {
+  const res = await apiClient.get<AdminTicketDetail>(`/admin/tickets/${id}`);
+  return res.data;
+}
+
+// ==================== SSE NOTIFICATIONS ====================
+
+/** Mở kết nối SSE tới admin notifications. */
+export function connectAdminNotifications(
+  onBookingCreated: (data: AdminBookingEvent) => void,
+  onPaymentVnpay: (data: AdminPaymentEvent) => void,
+  onError?: (err: Event) => void,
+): EventSource {
+  // EventSource không gửi được Authorization header tự động, nhưng endpoint
+  // /api/admin/** yêu cầu ROLE_ADMIN — nên ta truyền token qua query param.
+  // Backend sẽ đọc token từ query string (xem SecurityConfig filter).
+  const token = localStorage.getItem("token");
+  const url = token
+    ? `/api/admin/notifications/stream?access_token=${encodeURIComponent(token)}`
+    : "/api/admin/notifications/stream";
+
+  const es = new EventSource(url);
+
+  es.addEventListener("booking.created", (e) => {
+    try {
+      onBookingCreated(JSON.parse((e as MessageEvent).data));
+    } catch (err) {
+      console.warn("Failed to parse booking.created event", err);
+    }
+  });
+
+  es.addEventListener("payment.vnpay.success", (e) => {
+    try {
+      onPaymentVnpay(JSON.parse((e as MessageEvent).data));
+    } catch (err) {
+      console.warn("Failed to parse payment.vnpay.success event", err);
+    }
+  });
+
+  if (onError) es.addEventListener("error", onError);
+
+  return es;
+}
+
+export interface AdminBookingEvent {
+  ticketId: number;
+  tripId: number | null;
+  seatNumber: string;
+  passengerName: string;
+  passengerPhone: string;
+  price: number;
+  status: string;
+  pickupPoint: string | null;
+  dropoffPoint: string | null;
+  bookedAt: string | null;
+}
+
+export interface AdminPaymentEvent {
+  ticketId: number;
+  tripId: number | null;
+  seatNumber: string;
+  passengerName: string;
+  passengerPhone: string;
+  amount: number;
+  vnpTxnRef: string;
+  vnpTransactionNo: string | null;
+  vnpBankCode: string | null;
+  vnpCardType: string | null;
+  paidAt: string;
+  pickupPoint: string | null;
+  dropoffPoint: string | null;
+}

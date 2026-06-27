@@ -36,14 +36,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
+        // Ưu tiên Authorization header; fallback về query param `access_token`
+        // cho SSE (EventSource API của browser không gửi được custom header).
+        String token = null;
         final String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        } else if (request.getRequestURI().endsWith("/notifications/stream")) {
+            token = request.getParameter("access_token");
+        }
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (token == null) {
             filterChain.doFilter(request, response);
             return;
         }
-
-        final String token = authHeader.substring(7);
 
         try {
             String username = jwtService.extractUsername(token);
@@ -54,24 +60,43 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     (currentAuth == null ||
                             currentAuth instanceof AnonymousAuthenticationToken ||
                             !currentAuth.isAuthenticated())) {
-                Optional<User> userOptional = userService.findByUsername(username);
+                Optional<User> userOptional = userService.findByUsernameWithRole(username);
 
-                if (userOptional.isPresent() && jwtService.isTokenValid(token, userOptional.get())) {
+                if (userOptional.isEmpty()) {
+                    log.warn("JWT auth failed: user '{}' not found in database for token starting with {}",
+                            username, token.length() > 10 ? token.substring(0, 10) + "..." : token);
+                } else if (jwtService.isTokenValid(token, userOptional.get())) {
                     String roleName = RoleNormalizer.normalize(jwtService.extractRole(token));
+                    String dbRoleName = RoleNormalizer.normalize(userOptional.get().getRole().getName());
 
-                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                            username,
-                            null,
-                            List.of(new SimpleGrantedAuthority("ROLE_" + roleName)));
+                    if (!roleName.equals(dbRoleName)) {
+                        log.warn("JWT auth failed: role mismatch — token role='{}', DB role='{}' for user '{}'. "
+                                        + "Request will be treated as unauthenticated. "
+                                        + "This usually means the token was issued before a role change. "
+                                        + "User should re-login.",
+                                roleName, dbRoleName, username);
+                    } else {
+                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                                username,
+                                null,
+                                List.of(new SimpleGrantedAuthority("ROLE_" + roleName)));
 
-                    authentication.setDetails(
-                            new WebAuthenticationDetailsSource().buildDetails(request));
+                        authentication.setDetails(
+                                new WebAuthenticationDetailsSource().buildDetails(request));
 
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                        log.debug("JWT auth success: user='{}', role='{}' for {}", username, roleName, request.getRequestURI());
+                    }
+                } else {
+                    log.warn("JWT auth failed: token is invalid or expired for user '{}'. "
+                                    + "Token was valid at issuance but may have been revoked or the secret key changed. "
+                                    + "User should re-login.",
+                            username);
                 }
             }
         } catch (Exception ex) {
-            log.debug("JwtAuthenticationFilter: invalid token or authentication failed", ex);
+            log.error("JwtAuthenticationFilter: unexpected error during authentication for request {} — {}: {}",
+                    request.getRequestURI(), ex.getClass().getSimpleName(), ex.getMessage(), ex);
         }
 
         filterChain.doFilter(request, response);
