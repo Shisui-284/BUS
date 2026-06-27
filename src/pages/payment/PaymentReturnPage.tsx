@@ -47,6 +47,7 @@ export default function PaymentReturnPage() {
     setSyncStatus("syncing");
     let attempts = 0;
     const maxAttempts = 15; // 15 × 1.5s = ~22 giây
+    let authErrorSeen = false; // dừng poll nếu gặp 401 — tránh spam và làm phiền user
 
     const poll = async () => {
       attempts++;
@@ -62,13 +63,25 @@ export default function PaymentReturnPage() {
           toast.success("Thanh toán thành công! Vé đã được cập nhật.");
           return;
         }
-      } catch {
-        // ignore poll error, tiếp tục thử
+      } catch (err: any) {
+        // Nếu là lỗi 401 (token hết hạn / chưa đăng nhập) → dừng poll ngay
+        // vì tiếp tục poll sẽ chỉ spam lỗi. User có thể tự refresh "Vé của tôi" sau.
+        const status = err?.response?.status;
+        if (status === 401) {
+          authErrorSeen = true;
+          setSyncStatus("timeout");
+          toast("Thanh toán đã được VNPay xác nhận. Vui lòng đăng nhập lại để xem vé.", {
+            icon: "ℹ️",
+            duration: 6000,
+          });
+          return;
+        }
+        // ignore poll error khác, tiếp tục thử
       }
 
-      if (attempts < maxAttempts) {
+      if (!authErrorSeen && attempts < maxAttempts) {
         pollingTimer.current = setTimeout(poll, 1500);
-      } else {
+      } else if (!authErrorSeen) {
         // Hết attempts — IPN chưa kịp cập nhật.
         // Vẫn hiện thành công vì VNPay đã xác nhận thanh toán,
         // nhưng thông báo user kiểm tra lại sau.

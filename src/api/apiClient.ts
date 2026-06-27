@@ -52,12 +52,18 @@ apiClient.interceptors.response.use(
     const isPrivateRequest = url?.includes("/private/") || url?.includes("/api/private/");
     const isAuthEndpoint = url?.includes("/auth/") || url?.includes("/login") || url?.includes("/register");
 
+    // Nếu gặp 401 với request private (chưa đăng nhập / token hết hạn):
+    // - Dispatch event "auth:expired" để UI/AuthContext xử lý (vd: mở modal login)
+    // - KHÔNG tự ý xóa token ở đây, vì có thể gây mất session trong flow nhạy cảm
+    //   (vd: PaymentReturnPage đang poll getMyTickets() sau khi redirect từ VNPay).
+    //   Nếu cần logout, App-level listener sẽ quyết định.
     if (status === 401 && isPrivateRequest && !isAuthEndpoint) {
-      console.warn(`Auth error (${status}) for ${url} - clearing auth state`);
-      localStorage.removeItem("token");
-      localStorage.removeItem("auth-storage");
-
-      window.dispatchEvent(new CustomEvent("auth:expired", { detail: { status, url } }));
+      console.warn(`Auth error (${status}) for ${url} - dispatching auth:expired event`);
+      try {
+        window.dispatchEvent(new CustomEvent("auth:expired", { detail: { status, url } }));
+      } catch (e) {
+        console.debug("Failed to dispatch auth:expired:", e);
+      }
     }
 
     return Promise.reject(error);
