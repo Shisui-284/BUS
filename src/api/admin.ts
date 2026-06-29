@@ -1,3 +1,7 @@
+// ============================================================================
+// ADMIN API — Module: Quản lý phía Admin (FE)
+// ============================================================================
+
 import apiClient from "./apiClient";
 import { AdminTicket, Employee, UserRole } from "../types";
 
@@ -327,6 +331,11 @@ export const getAllEmployees = async (): Promise<Employee[]> => {
 
 export const createEmployee = async (employeeData: Omit<Employee, 'id'>): Promise<Employee> => {
   const response = await apiClient.post('/admin/employees', employeeData);
+  return response.data;
+};
+
+export const deleteEmployee = async (id: number): Promise<{ message: string }> => {
+  const response = await apiClient.delete(`/admin/employees/${id}`);
   return response.data;
 };
 

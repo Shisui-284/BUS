@@ -1,5 +1,17 @@
 package com.business.busmanagement.service;
 
+/* ============================================================
+ * ADMIN SERVICE — Module: Quản lý phía Admin (1270+ dòng)
+ * Chức năng:
+ *   - Dashboard: tổng quan số liệu
+ *   - Revenue: thống kê doanh thu (ngày/tuần/tháng)
+ *   - User CRUD + khóa/mở khóa/reset password
+ *   - Bus CRUD + đổi status
+ *   - Route CRUD
+ *   - Trip CRUD
+ *   - Ticket: xác nhận, mark paid, admin cancel
+ * ============================================================ */
+
 import com.business.busmanagement.dto.TripCreateRequest;
 import com.business.busmanagement.dto.TripResponse;
 import com.business.busmanagement.dto.admin.*;

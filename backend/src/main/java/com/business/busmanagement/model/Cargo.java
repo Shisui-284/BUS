@@ -1,5 +1,10 @@
 package com.business.busmanagement.model;
 
+/* ============================================================
+ * Bảng: cargos
+ * Hàng hóa vận chuyển kèm theo chuyến.
+ * ============================================================ */
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

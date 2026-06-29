@@ -1,5 +1,13 @@
 package com.business.busmanagement.model;
 
+/* ============================================================
+ * Bảng: feedbacks
+ * Lưu khiếu nại / góp ý / khen của customer.
+ * category: COMPLAINT / SUGGESTION / PRAISE / QUESTION / OTHER
+ * status: NEW → READ → IN_PROGRESS → RESOLVED → CLOSED
+ * priority: LOW / MEDIUM / HIGH
+ * ============================================================ */
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

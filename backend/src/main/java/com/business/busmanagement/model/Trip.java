@@ -1,5 +1,14 @@
 package com.business.busmanagement.model;
 
+/* ============================================================
+ * Bảng: trips
+ * Quan hệ:
+ *   - @ManyToOne Route (tuyến đường)
+ *   - @ManyToOne Bus    (xe chạy chuyến)
+ *   - @OneToMany Ticket
+ * Status: SCHEDULED → RUNNING → COMPLETED, hoặc CANCELLED / DELAYED
+ * ============================================================ */
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

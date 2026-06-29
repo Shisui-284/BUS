@@ -1,5 +1,12 @@
 package com.business.busmanagement.controller;
 
+/* ============================================================
+ * TRIP ASSIGNMENT CONTROLLER — Module: Phân công nhân sự cho chuyến
+ * Endpoint:
+ *   POST /api/admin/trip-assignments/{tripId}  → gán tài xế + phụ xe
+ *   GET  /api/admin/trip-assignments/{tripId}  → DS nhân sự của chuyến
+ * ============================================================ */
+
 import com.business.busmanagement.model.TripAssignment;
 import com.business.busmanagement.repository.TripAssignmentRepository;
 import lombok.RequiredArgsConstructor;

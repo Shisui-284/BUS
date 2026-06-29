@@ -1,5 +1,9 @@
 package com.business.busmanagement.config;
 
+/* ============================================================
+ * Bean PasswordEncoder dùng BCrypt để hash + verify mật khẩu.
+ * ============================================================ */
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

@@ -1,5 +1,9 @@
 package com.business.busmanagement.controller;
 
+/* ============================================================
+ * MAINTENANCE CONTROLLER — Module: Bảo trì xe
+ * ============================================================ */
+
 import com.business.busmanagement.model.Bus;
 import com.business.busmanagement.model.Maintenance;
 import com.business.busmanagement.repository.BusRepository;

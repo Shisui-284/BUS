@@ -1,4 +1,12 @@
-import { Bus, Shield, Zap, Clock, MapPin, type LucideIcon } from "lucide-react";
+// ============================================================================
+// BOOKING HERO — Banner trang đặt vé (có ảnh xe khách)
+// Ảnh nền: /public/hero-bus-station.png
+// v2: subtitle dạng chip có icon — cache-bust 2026-06-29
+// ============================================================================
+
+import {
+  Shield, Zap, Clock, MapPin, Sparkles, BadgeCheck, type LucideIcon,
+} from "lucide-react";
 import type { ReactNode } from "react";
 
 interface BookingHeroProps {
@@ -11,6 +19,17 @@ interface StatItem {
   label: string;
   color: string;
 }
+
+interface HighlightItem {
+  icon: LucideIcon;
+  text: string;
+}
+
+const HIGHLIGHTS: HighlightItem[] = [
+  { icon: Zap,         text: "Đặt vé nhanh chóng" },
+  { icon: Shield,      text: "Thanh toán an toàn với VNPay" },
+  { icon: BadgeCheck,  text: "Xác nhận tức thì" },
+];
 
 const STATS: StatItem[] = [
   { icon: Zap, value: "100+", label: "Chuyến mỗi ngày", color: "text-amber-300" },
@@ -43,7 +62,7 @@ export default function BookingHero({ children }: BookingHeroProps) {
         {/* Content */}
         <div className="booking-hero-content">
           <div className="booking-hero-badge">
-            <Bus className="w-3.5 h-3.5" />
+            <Sparkles className="w-3.5 h-3.5" />
             <span>Nền tảng đặt vé xe khách #1 Việt Nam</span>
           </div>
 
@@ -51,9 +70,18 @@ export default function BookingHero({ children }: BookingHeroProps) {
             Khám phá mọi miền <span className="booking-hero-title-accent">Việt Nam</span>
           </h1>
 
-          <p className="booking-hero-subtitle">
-            Đặt vé nhanh chóng — Thanh toán an toàn với VNPay — Xác nhận tức thì
-          </p>
+          {/* Subtitle: bullet-separated highlights with icons (khớp ảnh mẫu) */}
+          <ul className="booking-hero-subtitle">
+            {HIGHLIGHTS.map((h, i) => {
+              const Icon = h.icon;
+              return (
+                <li key={i} className="booking-hero-highlight">
+                  <Icon className="booking-hero-highlight-icon" />
+                  <span>{h.text}</span>
+                </li>
+              );
+            })}
+          </ul>
 
           <div className="booking-hero-stats">
             {STATS.map((stat, i) => {
@@ -235,16 +263,55 @@ export default function BookingHero({ children }: BookingHeroProps) {
           display: inline-block;
         }
 
+        /* Subtitle: danh sách bullet có icon — khớp với ảnh mẫu */
         .booking-hero-subtitle {
-          margin-top: 0.5rem;
-          color: rgba(255, 255, 255, 0.92);
-          font-size: 0.875rem;
+          list-style: none;
+          margin: 0.6rem 0 0;
+          padding: 0;
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 0.5rem 0.85rem;
+          max-width: 560px;
+        }
+
+        .booking-hero-highlight {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          color: rgba(255, 255, 255, 0.95);
+          font-size: 0.8125rem;
           font-weight: 500;
           text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
-          max-width: 480px;
+          letter-spacing: 0.005em;
         }
+        .booking-hero-highlight-icon {
+          width: 0.95rem;
+          height: 0.95rem;
+          flex-shrink: 0;
+          color: #fcd34d; /* amber-300 - nổi bật trên nền tối */
+          filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35));
+        }
+
+        /* Bullet phân cách giữa các cụm từ (chỉ chèn giữa, không ở đầu/cuối) */
+        .booking-hero-subtitle .booking-hero-highlight + .booking-hero-highlight::before {
+          content: '';
+          display: inline-block;
+          width: 4px;
+          height: 4px;
+          margin-right: 0.85rem;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.55);
+          box-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+        }
+
         @media (min-width: 640px) {
-          .booking-hero-subtitle { font-size: 1rem; margin-top: 0.75rem; }
+          .booking-hero-subtitle {
+            margin-top: 0.85rem;
+            gap: 0.6rem 1rem;
+          }
+          .booking-hero-highlight { font-size: 0.9375rem; }
+          .booking-hero-highlight-icon { width: 1.05rem; height: 1.05rem; }
         }
 
         .booking-hero-stats {

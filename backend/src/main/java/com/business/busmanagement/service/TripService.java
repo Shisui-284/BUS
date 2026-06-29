@@ -1,5 +1,13 @@
 package com.business.busmanagement.service;
 
+/* ============================================================
+ * TRIP SERVICE — Module: Quản lý chuyến xe (CRUD + Search)
+ * Chức năng:
+ *   - getTrips / getUpcomingTrips / searchTripsByRoute
+ *   - createTrip / updateTrip / deleteTrip
+ *   - Tính số ghế trống dựa trên số vé đã đặt
+ * ============================================================ */
+
 import com.business.busmanagement.dto.TripCreateRequest;
 import com.business.busmanagement.dto.TripResponse;
 import com.business.busmanagement.dto.TripSearchResponse;

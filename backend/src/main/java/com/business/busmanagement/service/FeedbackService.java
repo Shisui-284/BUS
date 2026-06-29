@@ -1,5 +1,14 @@
 package com.business.busmanagement.service;
 
+/* ============================================================
+ * FEEDBACK SERVICE — Module: Khiếu nại / Phản hồi (Customer ↔ Admin)
+ * Chức năng:
+ *   - Customer: createFeedback, getMyFeedbacks, replyAsCustomer, closeAsCustomer
+ *   - Admin:    getAllForAdmin, getStats, updateStatus, replyAsAdminByUsername, softDelete
+ * Status flow: NEW → READ → IN_PROGRESS → RESOLVED → CLOSED
+ * Category: COMPLAINT (khiếu nại), SUGGESTION, PRAISE, QUESTION, OTHER
+ * ============================================================ */
+
 import com.business.busmanagement.dto.feedback.*;
 import com.business.busmanagement.exception.BusinessConflictException;
 import com.business.busmanagement.exception.ResourceNotFoundException;

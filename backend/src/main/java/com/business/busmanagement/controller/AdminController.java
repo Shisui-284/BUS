@@ -1,4 +1,8 @@
 package com.business.busmanagement.controller;
+
+/* ============================================================
+ * ADMIN CONTROLLER — Nhóm endpoint: Dashboard / Revenue / User / Bus / Route / Trip / Ticket / Notification / Feedback
+ * ============================================================ */
 import com.business.busmanagement.dto.AdminTicketDTO;
 
 import com.business.busmanagement.dto.TripCreateRequest;

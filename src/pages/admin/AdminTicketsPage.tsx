@@ -1,3 +1,8 @@
+// ============================================================================
+// ADMIN TICKETS PAGE — Quản lý vé (Admin)
+// Tính năng: xem DS vé, xác nhận vé, hủy vé, mark paid (cho COD)
+// ============================================================================
+
 import React, { useEffect, useState } from 'react';
 import { AdminTicket } from '../../types';
 import { getAllTicketsForAdmin, confirmTicket, cancelTicketByAdmin, markTicketAsPaid } from '../../api/admin';

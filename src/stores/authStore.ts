@@ -1,3 +1,10 @@
+// ============================================================================
+// AUTH STORE — Zustand store quản lý auth state (Zustand + persist)
+// State: { token, user }
+// Action: login(), register(), googleLogin(), logout()
+// Persist vào localStorage key "auth-storage"
+// ============================================================================
+
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import {

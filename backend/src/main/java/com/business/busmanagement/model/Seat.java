@@ -1,5 +1,12 @@
 package com.business.busmanagement.model;
 
+/* ============================================================
+ * Bảng: seats
+ * Ghế vật lý trên xe: (bus_id, seat_number) là duy nhất.
+ * positionX, positionY để render sơ đồ ghế trên FE.
+ * Auto-generate bởi TicketController.ensureSeatsExist()
+ * ============================================================ */
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

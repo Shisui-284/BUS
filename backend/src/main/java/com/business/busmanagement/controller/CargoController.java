@@ -1,5 +1,9 @@
 package com.business.busmanagement.controller;
 
+/* ============================================================
+ * CARGO CONTROLLER — Module: Quản lý hàng hóa (đính kèm theo chuyến)
+ * ============================================================ */
+
 import com.business.busmanagement.model.Cargo;
 import com.business.busmanagement.model.Trip;
 import com.business.busmanagement.repository.CargoRepository;

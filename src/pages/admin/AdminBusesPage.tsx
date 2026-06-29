@@ -1,3 +1,8 @@
+// ============================================================================
+// ADMIN BUSES PAGE — Quản lý xe (Admin)
+// Tính năng: CRUD bus, đổi trạng thái (ACTIVE / MAINTENANCE / RETIRED)
+// ============================================================================
+
 import { useCallback, useEffect, useState } from "react";
 import { Search, Plus, Pencil, X } from "lucide-react";
 import toast from "react-hot-toast";

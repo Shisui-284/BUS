@@ -1,3 +1,13 @@
+// ============================================================================
+// CUSTOMER API — Module: Đặt vé / Thanh toán / Profile (FE)
+// Hàm chính:
+//   - searchTrips / getAllUpcomingTrips / getTripSeats
+//   - bookTicket / createVnpayPayment
+//   - getMyTickets / cancelTicket / payTicket
+//   - getProfile / updateProfile
+//   - getVnpayReturnInfo
+// ============================================================================
+
 import apiClient from "./apiClient";
 
 export interface TripSearchResult {

@@ -1,3 +1,11 @@
+// ============================================================================
+// PAYMENT RETURN PAGE — Trang nhận kết quả từ VNPay
+// Flow:
+//   1. VNPay redirect user về /payment/vnpay-return kèm query params
+//   2. Trang này gọi backend /api/public/payment/vnpay/return để xác thực
+//   3. Nếu thành công: poll getMyTickets() đợi IPN cập nhật DB
+// ============================================================================
+
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Check, X, Loader2, Ticket as TicketIcon, Home, RefreshCw } from "lucide-react";

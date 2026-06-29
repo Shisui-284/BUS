@@ -1,5 +1,9 @@
 package com.business.busmanagement.repository;
 
+/* ============================================================
+ * findByUsernameWithRole: EAGER LOAD role (tránh LazyInitException)
+ * ============================================================ */
+
 import com.business.busmanagement.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

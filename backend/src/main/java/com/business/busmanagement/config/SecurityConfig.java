@@ -1,5 +1,15 @@
 package com.business.busmanagement.config;
 
+/* ============================================================
+ * Cấu hình bảo mật Spring Security:
+ *   - CSRF: TẮT (REST API dùng JWT)
+ *   - Session: STATELESS (mỗi request tự có JWT)
+ *   - CORS: load từ app.cors.allowed-origins
+ *   - URL public: /api/public/**, /api/public/payment/vnpay/return, /api/public/payment/vnpay/ipn
+ *   - URL private: cần JWT (role check tại controller)
+ *   - URL admin: cần role ADMIN/DISPATCHER
+ * ============================================================ */
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

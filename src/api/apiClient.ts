@@ -1,3 +1,9 @@
+// ============================================================================
+// API CLIENT — Axios instance + Interceptors
+//   - Request interceptor: gắn Authorization: Bearer <token>
+//   - Response interceptor: nếu 401 → xóa token + redirect /auth/login
+// ============================================================================
+
 import axios from "axios";
 
 const apiClient = axios.create({

@@ -1,5 +1,13 @@
 package com.business.busmanagement.service;
 
+/* ============================================================
+ * PAYMENT SERVICE — Module: Thanh toán COD/MOMO/CARD (không qua VNPay)
+ * Chức năng:
+ *   - processPayment: tạo Payment record + set Ticket → PAID
+ *   - Cho thanh toán trực tiếp tại quầy / MOMO / thẻ nội địa
+ *   - VNPay thanh toán dùng VnpayService riêng
+ * ============================================================ */
+
 import com.business.busmanagement.model.Payment;
 import com.business.busmanagement.model.Ticket;
 import com.business.busmanagement.repository.PaymentRepository;

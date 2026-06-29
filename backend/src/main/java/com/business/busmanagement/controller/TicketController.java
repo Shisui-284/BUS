@@ -1,5 +1,17 @@
 package com.business.busmanagement.controller;
 
+/* ============================================================================
+ * TICKET CONTROLLER  — Module: Đặt vé / Thanh toán / Lịch sử vé
+ * Chức năng chính:
+ *   - PUBLIC:   /api/public/trips          → lấy DS chuyến tương lai
+ *   - PUBLIC:   /api/public/trips/search   → tìm chuyến theo tuyến + ngày
+ *   - PUBLIC:   /api/public/trips/{id}/seats → sơ đồ ghế (auto-generate nếu thiếu)
+ *   - PRIVATE:  /api/private/tickets       → đặt vé (HOLD)
+ *   - PRIVATE:  /api/private/tickets/my    → lịch sử vé của tôi
+ *   - PRIVATE:  /api/private/tickets/{id}/cancel → hủy vé
+ *   - PRIVATE:  /api/private/tickets/{id}/pay    → thanh toán online
+ * ============================================================================ */
+
 import com.business.busmanagement.dto.*;
 import com.business.busmanagement.exception.ResourceNotFoundException;
 import com.business.busmanagement.model.*;
@@ -38,6 +50,7 @@ public class TicketController {
     // ----------------------------------------------------------------
     // PUBLIC — Tất cả chuyến tương lai
     // GET /api/public/trips
+    // Mục đích: Customer xem DS chuyến sắp chạy để chọn đặt vé
     // ----------------------------------------------------------------
     @GetMapping("/public/trips")
     public ResponseEntity<List<TripSearchResponse>> getAllUpcomingTrips(
@@ -52,6 +65,7 @@ public class TicketController {
     // ----------------------------------------------------------------
     // PUBLIC — Tìm chuyến theo origin/destination/date
     // GET /api/public/trips/search?origin=Hà Nội&destination=TP.HCM&date=2026-05-30
+    // Mục đích: Tìm chuyến theo điểm đi, điểm đến, ngày đi (cho form search)
     // ----------------------------------------------------------------
     @GetMapping("/public/trips/search")
     public ResponseEntity<List<TripSearchResponse>> searchTrips(
@@ -162,10 +176,16 @@ public class TicketController {
     // PRIVATE — Đặt vé (cần đăng nhập, chỉ CUSTOMER)
     // POST /api/private/tickets
     // Body: { tripId, seatId, price, passengerPhone }
+    // Luồng:
+    //   1. Lấy user đang đăng nhập từ SecurityContext (JWT)
+    //   2. Auto-tạo Passenger nếu user lần đầu đặt vé
+    //   3. Cập nhật SĐT passenger từ form
+    //   4. Gọi TicketService.bookTicket() → tạo vé ở trạng thái HOLD
+    //   5. Lưu điểm đón / điểm trả cụ thể (pickupPoint, dropoffPoint)
     // ----------------------------------------------------------------
     @PostMapping("/private/tickets")
     public ResponseEntity<TicketResponse> bookTicket(@Valid @RequestBody BookTicketRequest request) {
-        User currentUser = getCurrentUser();
+        User currentUser = getCurrentUser(); // Lấy user từ JWT token
 
         // Tự động tạo Passenger nếu chưa tồn tại
         Passenger passenger = passengerRepository.findByUserId(currentUser.getId())
@@ -199,12 +219,14 @@ public class TicketController {
     }
 
     // ----------------------------------------------------------------
-    // PRIVATE — Lịch sử vé
+    // PRIVATE — Lịch sử vé của tôi
     // GET /api/private/tickets/my
+    // Trả về DS vé của customer đang đăng nhập, có try-catch để tránh crash nếu data lỗi
     // ----------------------------------------------------------------
     @GetMapping("/private/tickets/my")
     public ResponseEntity<List<TicketResponse>> getMyTickets() {
         User currentUser = getCurrentUser();
+        // Lấy tất cả vé của passenger thuộc user hiện tại
         List<Ticket> tickets = ticketRepository.findByPassengerUserId(currentUser.getId());
         return ResponseEntity.ok(tickets.stream()
                 .map(t -> {
@@ -219,6 +241,10 @@ public class TicketController {
     // ----------------------------------------------------------------
     // PRIVATE — Hủy vé
     // PUT /api/private/tickets/{id}/cancel
+    // Validate:
+    //   - Vé phải thuộc user đang đăng nhập
+    //   - Vé phải ở trạng thái HOLD hoặc BOOKED (không hủy vé đã PAID/CONFIRMED)
+    //   - Chuyến chưa khởi hành
     // ----------------------------------------------------------------
     @PutMapping("/private/tickets/{id}/cancel")
     public ResponseEntity<TicketResponse> cancelTicket(@PathVariable Long id) {
@@ -260,9 +286,10 @@ public class TicketController {
     }
 
     // ----------------------------------------------------------------
-    // PRIVATE — Thanh toán vé trực tuyến
+    // PRIVATE — Thanh toán vé trực tuyến (không qua VNPay)
     // PUT /api/private/tickets/{id}/pay
     // Body: { paymentMethod: "CARD" | "MOMO" | "BANK" | "CASH" }
+    // Dùng cho thanh toán nhanh tại quầy, không qua cổng VNPay
     // ----------------------------------------------------------------
     @PutMapping("/private/tickets/{id}/pay")
     public ResponseEntity<TicketResponse> payTicket(@PathVariable Long id, @RequestBody PayTicketRequest request) {

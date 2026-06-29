@@ -1,5 +1,14 @@
 package com.business.busmanagement.util;
 
+/* ============================================================
+ * Tiện ích ký + verify checksum VNPay theo HMAC-SHA512.
+ * Quy tắc VNPay:
+ *   1. Sort params theo key tăng dần (alphabet)
+ *   2. Bỏ params rỗng + 2 key đặc biệt: vnp_SecureHash, vnp_SecureHashType
+ *   3. Build chuỗi "key1=value1&key2=value2" (value URL-encoded)
+ *   4. Ký HMAC-SHA512 với secret
+ * ============================================================ */
+
 import com.business.busmanagement.config.VnpayConfig;
 
 import javax.crypto.Mac;

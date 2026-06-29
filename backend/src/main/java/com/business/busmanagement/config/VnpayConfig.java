@@ -1,5 +1,10 @@
 package com.business.busmanagement.config;
 
+/* ============================================================
+ * Bind config từ application.properties prefix "app.vnpay"
+ * Có thể override bằng env var: VNPAY_TMN_CODE, VNPAY_HASH_SECRET, ...
+ * ============================================================ */
+
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

@@ -1,3 +1,8 @@
+// ============================================================================
+// ADMIN USERS PAGE — Quản lý tài khoản (Admin)
+// Tính năng: CRUD user, khóa/mở khóa, reset password
+// ============================================================================
+
 import { useCallback, useEffect, useState } from "react";
 import { Search, Plus, Pencil, Lock, Unlock, Key, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";

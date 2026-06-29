@@ -1,5 +1,10 @@
 package com.business.busmanagement.model;
 
+/* ============================================================
+ * Bảng: audit_logs
+ * Ghi log hoạt động (login, tạo user, thanh toán...).
+ * ============================================================ */
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

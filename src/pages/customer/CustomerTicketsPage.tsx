@@ -1,3 +1,12 @@
+// ============================================================================
+// CUSTOMER TICKETS PAGE — Trang "Vé của tôi"
+// Tính năng:
+//   - Xem DS vé đã đặt + phân trang
+//   - Hủy vé (chỉ HOLD/BOOKED)
+//   - Mở modal khiếu nại (FeedbackModal) cho admin
+//   - QR thanh toán VietQR
+// ============================================================================
+
 import { useEffect, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";

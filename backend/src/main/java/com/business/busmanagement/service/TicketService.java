@@ -1,5 +1,13 @@
 package com.business.busmanagement.service;
 
+/* ============================================================
+ * TICKET SERVICE — Module: Đặt vé / Xử lý vé
+ * Chức năng chính:
+ *   - bookTicket: validate + tạo vé HOLD (có dùng PESSIMISTIC LOCK chống race)
+ *   - Logic check: trip status, thời gian khởi hành, ghế đã đặt
+ *   - Gửi notification cho admin khi có vé mới (SSE)
+ * ============================================================ */
+
 import com.business.busmanagement.model.*;
 import com.business.busmanagement.repository.*;
 import jakarta.transaction.Transactional;
@@ -30,10 +38,12 @@ public class TicketService {
         Long safeTripId = Objects.requireNonNull(tripId, "tripId is required");
         Long safeSeatId = Objects.requireNonNull(seatId, "seatId is required");
 
+        // Validate giá vé > 0
         if (price == null || price.signum() <= 0) {
             throw new IllegalArgumentException("Ticket price must be greater than 0");
         }
 
+        // Lấy trip + check chuyến còn hoạt động không
         Trip trip = tripRepository.findById(safeTripId)
                 .orElseThrow(() -> new IllegalArgumentException("Trip not found"));
 
@@ -45,13 +55,16 @@ public class TicketService {
             throw new IllegalStateException("Không thể đặt vé cho chuyến đã hủy, đã hoàn thành, đang chạy hoặc bị trễ");
         }
 
+        // Chặn đặt vé khi còn < 15 phút trước giờ khởi hành
         if (trip.getDepartureTime() == null || LocalDateTime.now().isAfter(trip.getDepartureTime().minusMinutes(15))) {
             throw new IllegalStateException("Không thể đặt vé trong vòng 15 phút trước giờ khởi hành");
         }
 
+        // Lấy seat (có FOR UPDATE lock để tránh 2 user cùng đặt 1 ghế)
         Seat seat = seatRepository.findByIdForUpdate(safeSeatId)
                 .orElseThrow(() -> new IllegalArgumentException("Seat not found"));
 
+        // Check ghế có thuộc xe của chuyến này không
         if (!seat.getBus().getId().equals(trip.getBus().getId())) {
             throw new IllegalStateException("Ghế không thuộc xe của chuyến này");
         }
@@ -60,6 +73,7 @@ public class TicketService {
         Optional<Ticket> existingTicket = ticketRepository.findByTripIdAndSeatIdForUpdate(safeTripId, safeSeatId);
         Ticket ticket;
 
+        // Nếu ghế đã có vé (HOLD/CANCEL/REFUND) → update, ngược lại tạo mới
         if (existingTicket.isPresent()) {
             ticket = existingTicket.get();
             if (ticket.getStatus() != Ticket.TicketStatus.CANCELLED

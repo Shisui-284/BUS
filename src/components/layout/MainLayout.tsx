@@ -1,3 +1,8 @@
+// ============================================================================
+// MAIN LAYOUT — Layout chính (sidebar + header + outlet)
+// Sidebar render khác nhau cho CUSTOMER (hồng) và ADMIN (xanh tím)
+// ============================================================================
+
 import { NavLink, Navigate, Route, Routes } from "react-router-dom";
 import { LogOut, LayoutDashboard } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";

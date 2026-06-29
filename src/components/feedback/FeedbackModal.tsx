@@ -1,3 +1,8 @@
+// ============================================================================
+// FEEDBACK MODAL — Modal khiếu nại / phản hồi (Customer)
+// Category: COMPLAINT (khiếu nại) / SUGGESTION / PRAISE / QUESTION / OTHER
+// ============================================================================
+
 import { useEffect, useState } from "react";
 import { Star, Send, X, MessageCircle, Sparkles, ThumbsUp, HelpCircle, AlertCircle, MoreHorizontal } from "lucide-react";
 import toast from "react-hot-toast";

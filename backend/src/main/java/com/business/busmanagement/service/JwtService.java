@@ -1,5 +1,14 @@
 package com.business.busmanagement.service;
 
+/* ============================================================
+ * JWT SERVICE — Module: Sinh & xác thực JWT Token (HS256)
+ * Chức năng:
+ *   - generateToken: sinh token chứa username, id, role
+ *   - extractUsername / extractClaim: parse token
+ *   - isTokenValid: check chữ ký + chưa hết hạn
+ * Config: app.jwt.secret, app.jwt.expiration (application.properties)
+ * ============================================================ */
+
 import com.business.busmanagement.model.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

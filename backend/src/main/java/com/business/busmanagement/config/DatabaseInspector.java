@@ -1,5 +1,10 @@
 package com.business.busmanagement.config;
 
+/* ============================================================
+ * Chạy sau khi app start (Order=100) → in ra log state DB.
+ * Hỗ trợ debug xem roles + users đã seed chưa.
+ * ============================================================ */
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;

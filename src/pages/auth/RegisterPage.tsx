@@ -1,3 +1,8 @@
+// ============================================================================
+// REGISTER PAGE — Trang đăng ký tài khoản CUSTOMER
+// Chỉ cho tạo CUSTOMER (không cho tạo ADMIN từ API public)
+// ============================================================================
+
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, User, Mail, ShieldCheck, Bus, CheckCircle, Sparkles } from "lucide-react";

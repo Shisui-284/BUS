@@ -1,3 +1,8 @@
+// ============================================================================
+// LOGIN PAGE — Trang đăng nhập
+// Sau đăng nhập: redirect theo role (ADMIN → /admin/dashboard, CUSTOMER → /customer/booking)
+// ============================================================================
+
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, User, ShieldCheck, Bus } from "lucide-react";

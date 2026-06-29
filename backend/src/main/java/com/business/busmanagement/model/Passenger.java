@@ -1,5 +1,11 @@
 package com.business.busmanagement.model;
 
+/* ============================================================
+ * Bảng: passengers
+ * Lưu thông tin hành khách thực tế (fullName, phone, email, idCard).
+ * 1 Passenger ứng với 1 User CUSTOMER, có nhiều Ticket.
+ * ============================================================ */
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

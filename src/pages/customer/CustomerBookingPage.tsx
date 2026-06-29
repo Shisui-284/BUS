@@ -1,3 +1,10 @@
+// ============================================================================
+// CUSTOMER BOOKING PAGE — Trang đặt vé (Customer)
+// Luồng chính (6 bước):
+//   search → pickup → dropoff → seats → confirm → success
+// Tích hợp: VNPay payment, JWT auth qua useAuthStore, Toast notification
+// ============================================================================
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, X, ChevronRight, ChevronDown, ChevronUp, Phone, MapPin, CreditCard, Smartphone } from "lucide-react";
 import toast from "react-hot-toast";

@@ -1,3 +1,8 @@
+// ============================================================================
+// ADMIN ASSIGNMENTS PAGE — Phân công nhân sự (Admin)
+// Tính năng: gán tài xế + phụ xe cho từng chuyến, quản lý DS nhân viên
+// ============================================================================
+
 import { useCallback, useEffect, useState } from "react";
 import {
   AdminTrip,

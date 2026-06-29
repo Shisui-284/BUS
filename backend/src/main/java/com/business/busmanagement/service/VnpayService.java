@@ -1,5 +1,15 @@
 package com.business.busmanagement.service;
 
+/* ============================================================
+ * VNPAY SERVICE — Module: Tích hợp cổng thanh toán VNPay
+ * Chức năng:
+ *   - createPaymentUrl: tạo URL redirect user sang sandbox.vnpayment.vn
+ *   - verifyReturnHash / verifyIpnHash: xác thực chữ ký SHA512 (chống spoof)
+ *   - processIpn: cập nhật Ticket → PAID/CONFIRMED, tạo Payment record
+ *   - Gửi SSE notification cho admin khi thanh toán thành công
+ * Lưu ý: IPN có thể trễ → xử lý IDEMPOTENT (gọi nhiều lần cũng OK)
+ * ============================================================ */
+
 import com.business.busmanagement.config.VnpayConfig;
 import com.business.busmanagement.dto.VnpayPaymentResponse;
 import com.business.busmanagement.exception.ResourceNotFoundException;

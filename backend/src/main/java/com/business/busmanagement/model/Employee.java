@@ -1,5 +1,10 @@
 package com.business.busmanagement.model;
 
+/* ============================================================
+ * Bảng: employees
+ * Tài xế / Phụ xe (employeeType: DRIVER / ASSISTANT)
+ * ============================================================ */
+
 import jakarta.persistence.*;
 import java.time.LocalDate;
 

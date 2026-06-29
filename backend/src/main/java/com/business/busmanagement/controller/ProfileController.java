@@ -1,5 +1,12 @@
 package com.business.busmanagement.controller;
 
+/* ============================================================
+ * PROFILE CONTROLLER — Module: Hồ sơ cá nhân (Customer)
+ * Endpoint:
+ *   GET  /api/auth/profile  → lấy thông tin user đang đăng nhập (từ JWT token)
+ *   PUT  /api/auth/profile  → cập nhật họ tên + SĐT passenger
+ * ============================================================ */
+
 import com.business.busmanagement.dto.AuthResponse;
 import com.business.busmanagement.dto.UpdateProfileRequest;
 import com.business.busmanagement.model.Passenger;
@@ -26,6 +33,7 @@ public class ProfileController {
     private final UserService userService;
     private final PassengerRepository passengerRepository;
 
+    // GET /api/auth/profile — Lấy thông tin user từ JWT trong header Authorization
     @GetMapping("/profile")
     public ResponseEntity<AuthResponse.UserDto> getProfile(@RequestHeader("Authorization") String authorizationHeader) {
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
@@ -48,6 +56,7 @@ public class ProfileController {
         return ResponseEntity.ok(userService.createUserDto(userOptional.get()));
     }
 
+    // PUT /api/auth/profile — Cập nhật fullName + phone cho Passenger (chỉ CUSTOMER)
     @PutMapping("/profile")
     public ResponseEntity<AuthResponse.UserDto> updateProfile(
             @Valid @RequestBody UpdateProfileRequest request) {

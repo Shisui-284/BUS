@@ -1,5 +1,10 @@
 package com.business.busmanagement.model;
 
+/* ============================================================
+ * Bảng: buses
+ * Thông tin xe: biển số, loại xe (sleeper/limousine/standard), tổng số ghế, ngày bảo trì cuối.
+ * ============================================================ */
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,5 +1,14 @@
 package com.business.busmanagement.service;
 
+/* ============================================================
+ * USER SERVICE — Module: Đăng ký / Đăng nhập / Quản lý User
+ * Chức năng:
+ *   - registerUser: tạo CUSTOMER + auto-tạo Passenger
+ *   - authenticateUser: login username/password → trả JWT
+ *   - authenticateGoogle: login bằng Google ID token
+ *   - findByUsername / createUserDto / resetPassword...
+ * ============================================================ */
+
 import com.business.busmanagement.dto.AuthResponse;
 import com.business.busmanagement.dto.LoginRequest;
 import com.business.busmanagement.dto.RegisterRequest;
@@ -31,7 +40,7 @@ public class UserService {
 
     @Transactional
     public AuthResponse registerUser(RegisterRequest request) {
-        // Check if username or email already exists
+        // B1: Check username/email đã tồn tại chưa
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new BusinessConflictException("Username already exists");
         }
@@ -40,12 +49,12 @@ public class UserService {
             throw new BusinessConflictException("Email already exists");
         }
 
-        // Public registration must only create CUSTOMER accounts.
+        // B2: Public register chỉ tạo CUSTOMER (không cho tạo ADMIN từ API public)
         Role customerRole = roleRepository.findByName("CUSTOMER")
                 .orElseThrow(() -> new IllegalStateException(
                         "Required role CUSTOMER is not configured. Please initialize roles before registering users."));
 
-        // Create user
+        // B3: Tạo User với password đã mã hóa BCrypt
         User user = new User();
         user.setUsername(request.getUsername());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
@@ -55,6 +64,7 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
 
+        // B4: Auto-tạo Passenger rỗng (sẽ được cập nhật khi đặt vé)
         Passenger passenger = new Passenger();
         passenger.setUser(savedUser);
         passenger.setFullName(request.getFullName());
@@ -69,13 +79,16 @@ public class UserService {
     }
 
     public AuthResponse authenticateUser(LoginRequest request) {
+        // B1: Tìm user theo username
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new SecurityException("Invalid credentials"));
 
+        // B2: Check tài khoản còn active không
         if (user.getStatus() != User.UserStatus.ACTIVE) {
             throw new SecurityException("Account is not active");
         }
 
+        // B3: Check role client gửi lên có khớp role thực tế không (chống đăng nhập nhầm)
         String selectedRole = request.getRole();
         if (selectedRole == null || selectedRole.isBlank()) {
             selectedRole = user.getRole() != null ? user.getRole().getName() : null;
@@ -100,6 +113,7 @@ public class UserService {
 
     @Transactional
     public AuthResponse authenticateGoogle(com.business.busmanagement.dto.GoogleAuthRequest request) {
+        // B1: Verify ID token với Google endpoint
         String url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + request.getIdToken();
         org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
         java.util.Map<String, Object> response;
@@ -117,6 +131,7 @@ public class UserService {
         String name = (String) response.get("name");
         String sub = (String) response.get("sub");
 
+        // B2: User đã tồn tại → check active; chưa có → tạo mới CUSTOMER + Passenger
         Optional<User> optionalUser = userRepository.findByEmail(email);
         User user;
         if (optionalUser.isPresent()) {
@@ -125,6 +140,7 @@ public class UserService {
                 throw new SecurityException("Account is not active");
             }
         } else {
+            // Auto-register: username = google_<sub>, password ngẫu nhiên
             Role customerRole = roleRepository.findByName("CUSTOMER")
                     .orElseThrow(() -> new IllegalStateException("Required role CUSTOMER is not configured."));
             

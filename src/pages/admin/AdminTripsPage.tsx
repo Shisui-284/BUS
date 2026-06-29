@@ -1,3 +1,8 @@
+// ============================================================================
+// ADMIN TRIPS PAGE — Quản lý chuyến xe (Admin)
+// Tính năng: tạo/sửa/xóa chuyến, mở Feedback inbox, SSE subscribe notification
+// ============================================================================
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Plus, Pencil, Trash2, X, MapPin, Clock, Bus, Users, Search, RefreshCw, Armchair, Bell, BellRing, CreditCard, MessageCircle, MessageSquare } from "lucide-react";
 import toast from "react-hot-toast";

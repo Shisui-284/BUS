@@ -1,5 +1,10 @@
 package com.business.busmanagement.model;
 
+/* ============================================================
+ * Bảng: roles
+ * Role name: ADMIN, CUSTOMER, DISPATCHER
+ * ============================================================ */
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,5 +1,11 @@
 package com.business.busmanagement.model;
 
+/* ============================================================
+ * Bảng: routes
+ * Lưu tuyến đường: origin (điểm đi), destination (điểm đến),
+ * distance (km), estimatedDuration (phút), basePrice (VND).
+ * ============================================================ */
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

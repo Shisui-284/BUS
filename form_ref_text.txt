@@ -1,0 +1,1684 @@
+[P000] BỘ KHOA HỌC VÀ CÔNG NGHỆ
+HỌC VIỆN CÔNG NGHỆ BƯU CHÍNH VIỄN THÔNG
+-----------------------------
+[P002] BÁO CÁO
+[P003] CÔNG NGHỆ PHẦN MỀM
+
+[P004] ĐỀ TÀI: 
+[P005] HỆ THỐNG WEB QUẢN LÝ KÝ TÚC XÁ HỌC VIỆN
+
+[P007] Người hướng dẫn :		Nguyễn Thị Bích Nguyên 
+[P008] Sinh viên thực hiện :	Phan Thanh Dân       – N23DCAT010
+[P009] 				Trần Lê Quang Hữu – N23DCCN024	
+[P010] 				Nguyễn Nhựt Quỳnh –N23DCCN050				
+[P013] Khoá	 :      	2023 – 2028
+[P014] Hệ	 :	ĐẠI HỌC CHÍNH QUY
+[P015] 
+
+TP.HCM, tháng 06 / 2026
+[P016] MỤC LỤC
+[P019] DANH SÁCH HÌNH, BẢNG
+[P020] I. Danh sách hình
+[P021] II. Danh sách bảng
+[P022] DANH MỤC TỪ VIẾT TẮT
+[P023] Bảng 0.1. Danh mục từ viết tắt
+[P025] CHƯƠNG I. TỔNG QUAN
+[P026] I. Giới thiệu đề tài
+[P027] 1. Lý do chọn đề tài
+[P028] Ký túc xá là đơn vị trực tiếp tiếp nhận, bố trí và quản lý sinh viên trong suốt thời gian lưu trú. Trong mỗi đợt đăng ký, đơn vị quản lý phải xử lý đồng thời nhiều nhóm thông tin: tài khoản người dùng, hồ sơ cá nhân, nhu cầu đăng ký, phòng ở, số tiền phải thu, giao dịch thanh toán, tình trạng công nợ và các phản ánh phát sinh. Nếu dữ liệu được lưu rời rạc bằng giấy tờ hoặc bảng tính, việc đối chiếu giữa các bộ phận dễ chậm, trùng lặp và sai lệch.
+[P029] Đề tài “Hệ thống Web Quản lý Ký túc xá” được thực hiện nhằm tin học hóa chuỗi nghiệp vụ từ lúc sinh viên nộp hồ sơ đến khi nhận phòng, trả phòng và kết thúc lưu trú. Phiên bản mã nguồn mới đã được tách thành các module frontend, backend và database; giao diện được thiết kế lại theo nhận diện KTX PTIT với trang đăng nhập dạng hai cột, dashboard, sidebar theo vai trò, bảng dữ liệu, bộ lọc, modal và thông báo toast.
+[P030] 2. Mục tiêu đề tài
+[P031] Xây dựng website quản lý ký túc xá có giao diện hiện đại, rõ ràng, tương thích màn hình máy tính và thiết bị di động.
+[P032] Thực hiện đầy đủ luồng nghiệp vụ: đăng nhập → cập nhật hồ sơ → đăng ký → duyệt/từ chối → phân phòng → thanh toán → xác nhận → nhận phòng → xử lý yêu cầu → trả phòng.
+[P033] Phân quyền theo bốn vai trò STUDENT, MANAGER, ACCOUNTANT và ADMIN ở cả giao diện lẫn API.
+[P034] Lưu trữ dữ liệu tập trung trong SQL Server với khóa chính, khóa ngoại, UNIQUE và CHECK để giảm dữ liệu sai.
+[P035] Tách mã nguồn theo route, middleware, service, utility và module giao diện để dễ bảo trì, kiểm thử và mở rộng.
+[P036] Cung cấp báo cáo cư trú, công nợ và thu phí phục vụ quản lý.
+[P037] 3. Phạm vi và giới hạn
+[P038] Phạm vi triển khai tập trung vào nghiệp vụ quản lý cư trú ở mức đồ án môn học. Hệ thống quản lý một cơ sở dữ liệu KTX, không triển khai mô hình đa trường hoặc đa chi nhánh. Thanh toán được ghi nhận dưới dạng thông tin giao dịch và được kế toán đối soát thủ công; hệ thống chưa kết nối cổng thanh toán ngân hàng. Tệp minh chứng hiện được lưu bằng trường đường dẫn AttachmentUrl, chưa có chức năng upload tệp vật lý lên máy chủ hoặc dịch vụ đám mây.
+[P039] Các nội dung chưa thuộc phạm vi gồm: xác thực đa yếu tố, quên mật khẩu tự phục vụ, gửi email/SMS tự động, chữ ký số, thanh toán thật, quản lý điện nước theo chỉ số, quản lý tài sản chi tiết, lịch sử audit đầy đủ và triển khai production trên hạ tầng cloud.
+[P040] 4. Đối tượng sử dụng
+[P041] Bảng 1.1. Đối tượng và phạm vi sử dụng
+[P043] II. Phương pháp và công nghệ thực hiện
+[P044] 1. Phương pháp thực hiện
+[P045] Khảo sát quy trình quản lý ký túc xá và xác định tác nhân sử dụng.
+[P046] Phân tích yêu cầu chức năng, quy tắc nghiệp vụ và trạng thái dữ liệu.
+[P047] Thiết kế cơ sở dữ liệu quan hệ và kiến trúc client-server.
+[P048] Hiện thực backend REST API và giao diện theo từng vai trò.
+[P049] Tạo dữ liệu mẫu, xây dựng kịch bản kiểm thử và đối chiếu mã nguồn với yêu cầu.
+[P050] Cập nhật giao diện mới, kiểm tra luồng điều hướng và hoàn thiện tài liệu báo cáo.
+[P051] 2. Nền tảng kỹ thuật
+[P052] Bảng 1.2. Nền tảng kỹ thuật sử dụng
+[P054] 3. Cấu trúc báo cáo
+[P055] Báo cáo gồm năm chương: Chương I trình bày tổng quan; Chương II phân tích yêu cầu và luồng hoạt động; Chương III mô tả kiến trúc, dữ liệu và API; Chương IV trình bày quá trình hiện thực giao diện và chức năng; Chương V trình bày kiểm thử, đánh giá, hạn chế và hướng phát triển.
+[P056] CHƯƠNG II. KHẢO SÁT VÀ PHÂN TÍCH YÊU CẦU
+[P057] I. Khảo sát hiện trạng và bài toán
+[P058] 1. Hiện trạng quản lý
+[P059] Quy trình quản lý KTX thường trải qua nhiều bộ phận. Sinh viên cung cấp thông tin cá nhân và nhu cầu ở; cán bộ quản lý xét duyệt, chọn phòng; kế toán xác nhận khoản thu; sau đó cán bộ mới hoàn tất nhận phòng. Trong thời gian cư trú, các yêu cầu chuyển phòng, gia hạn, trả phòng hoặc báo sự cố tiếp tục phát sinh. Nếu không có hệ thống tập trung, một thay đổi ở hồ sơ có thể không được cập nhật đồng thời cho kế toán và bộ phận phòng ở.
+[P060] Bảng 2.1. Khó khăn của phương pháp quản lý thủ công
+[P062] 2. Phạm vi nghiệp vụ được tin học hóa
+[P063] Quản lý tài khoản và trạng thái ACTIVE, INACTIVE, LOCKED.
+[P064] Quản lý hồ sơ sinh viên gắn một-một với tài khoản STUDENT.
+[P065] Quản lý tòa nhà, phòng, sức chứa, đơn giá và phạm vi giới tính.
+[P066] Quản lý đợt đăng ký DRAFT, OPEN, CLOSED.
+[P067] Quản lý hồ sơ đăng ký, phòng được gán, tổng tiền và ngày nhận/trả phòng.
+[P068] Quản lý nhiều lần thanh toán cho một hồ sơ.
+[P069] Quản lý nhiều yêu cầu phát sinh cho một hồ sơ.
+[P070] Thống kê dashboard và các báo cáo nghiệp vụ.
+[P071] II. Quy tắc nghiệp vụ
+[P072] Bảng 2.2. Quy tắc nghiệp vụ của phiên bản mã nguồn mới
+[P074] III. Yêu cầu chức năng theo vai trò
+[P075] Bảng 2.3. Yêu cầu chức năng của Sinh viên
+[P077] Bảng 2.4. Yêu cầu chức năng của Cán bộ quản lý KTX
+[P079] Bảng 2.5. Yêu cầu chức năng của Kế toán và Admin
+[P081] IV. Yêu cầu phi chức năng
+[P082] Bảng 2.6. Yêu cầu chất lượng hệ thống
+[P084] V. Mô hình use case và luồng hoạt động
+[P086] Hình 2.1. Sơ đồ use case tổng quát của hệ thống
+[P087] Sơ đồ cho thấy mỗi vai trò có nhóm chức năng riêng, nhưng cùng sử dụng chức năng đăng nhập. Việc ẩn menu chỉ giúp giao diện rõ ràng; kiểm soát quyền thực sự được đặt tại backend thông qua middleware allow, vì vậy người dùng không thể gọi trái quyền chỉ bằng cách sửa JavaScript trên trình duyệt.
+[P089] Hình 2.2. Luồng nghiệp vụ hoàn chỉnh từ đăng ký đến trả phòng
+[P090] VI. Đặc tả các use case chính
+[P091] UC01. Đăng nhập hệ thống
+[P092] Bảng 2.7. Đặc tả UC01 - Đăng nhập hệ thống
+[P094] UC02. Cập nhật hồ sơ sinh viên
+[P095] Bảng 2.8. Đặc tả UC02 - Cập nhật hồ sơ sinh viên
+[P097] UC03. Nộp hồ sơ đăng ký ở KTX
+[P098] Bảng 2.9. Đặc tả UC03 - Nộp hồ sơ đăng ký ở KTX
+[P100] UC04. Duyệt hoặc từ chối hồ sơ
+[P101] Bảng 2.10. Đặc tả UC04 - Duyệt hoặc từ chối hồ sơ
+[P103] UC05. Phân phòng và tính tiền
+[P104] Bảng 2.11. Đặc tả UC05 - Phân phòng và tính tiền
+[P106] UC06. Gửi và xác nhận thanh toán
+[P107] Bảng 2.12. Đặc tả UC06 - Gửi và xác nhận thanh toán
+[P109] UC07. Xác nhận nhận và trả phòng
+[P110] Bảng 2.13. Đặc tả UC07 - Xác nhận nhận và trả phòng
+[P112] UC08. Gửi và xử lý yêu cầu phát sinh
+[P113] Bảng 2.14. Đặc tả UC08 - Gửi và xử lý yêu cầu phát sinh
+[P115] UC09. Quản lý tài khoản và dữ liệu nền
+[P116] Bảng 2.15. Đặc tả UC09 - Quản lý tài khoản và dữ liệu nền
+[P118] UC10. Xem báo cáo nghiệp vụ
+[P119] Bảng 2.16. Đặc tả UC10 - Xem báo cáo nghiệp vụ
+[P121] CHƯƠNG III. PHÂN TÍCH VÀ THIẾT KẾ HỆ THỐNG
+[P122] I. Kiến trúc tổng thể
+[P124] Hình 3.1. Kiến trúc client-server và các lớp xử lý
+[P125] Frontend được Express phục vụ trực tiếp từ thư mục frontend. Khi ứng dụng chạy tại cổng 3000, các lệnh fetch sử dụng đường dẫn tương đối; khi frontend chạy bằng Live Server, API_BASE mặc định trỏ tới http://localhost:3000. Tất cả API trả JSON. Token được gửi trong header Authorization: Bearer <token>.
+[P126] Bảng 3.1. Các module mã nguồn
+[P128] II. Thiết kế cơ sở dữ liệu
+[P130] Hình 3.2. Mô hình ERD của cơ sở dữ liệu QLKTX_RutGon
+[P131] Cơ sở dữ liệu gồm 8 bảng. Users lưu thông tin xác thực và vai trò; Students tách riêng dữ liệu nghiệp vụ sinh viên. Applications là bảng trung tâm liên kết sinh viên, đợt đăng ký, tòa mong muốn, phòng được gán và người duyệt. Payments và Requests có quan hệ một-nhiều với Applications.
+[P132] Bảng 3.2. Từ điển dữ liệu bảng Users
+[P134] Bảng 3.3. Từ điển dữ liệu bảng Students
+[P136] Bảng 3.4. Từ điển dữ liệu bảng Buildings
+[P138] Bảng 3.5. Từ điển dữ liệu bảng Rooms
+[P140] Bảng 3.6. Từ điển dữ liệu bảng RegistrationPeriods
+[P142] Bảng 3.7. Từ điển dữ liệu bảng Applications
+[P144] Bảng 3.8. Từ điển dữ liệu bảng Payments
+[P146] Bảng 3.9. Từ điển dữ liệu bảng Requests
+[P148] III. Thiết kế trạng thái và xử lý nghiệp vụ
+[P150] Hình 3.3. Sơ đồ chuyển trạng thái của hồ sơ, thanh toán và yêu cầu
+[P152] Hình 3.4. Trình tự xử lý hồ sơ từ đăng ký đến nhận phòng
+[P153] IV. Thiết kế REST API
+[P154] Bảng 3.10. API xác thực, dashboard, tài khoản và sinh viên
+[P156] Bảng 3.11. API danh mục và hồ sơ đăng ký
+[P158] Bảng 3.12. API thanh toán, yêu cầu và báo cáo
+[P160] V. Thiết kế phân quyền và bảo mật
+[P161] Bảng 3.13. Ma trận quyền chức năng
+[P164] VI. Thiết kế giao diện mới
+[P165] Giao diện mới dùng nhận diện KTX PTIT, tông xanh đậm - xanh ngọc, khoảng trắng rộng và hệ thống thành phần thống nhất. Trang đăng nhập chia hai khu vực: phần giới thiệu và dashboard minh họa ở bên trái; form đăng nhập ở bên phải. Sau đăng nhập, layout gồm sidebar, topbar, vùng nội dung, thẻ thống kê và menu thay đổi theo Role.
+[P166] Bảng 3.14. Thành phần giao diện dùng lại
+[P168] CHƯƠNG IV. PHÁT TRIỂN VÀ HIỆN THỰC
+[P169] I. Cấu trúc dự án
+[P170] Bảng 4.1. Cấu trúc thư mục mã nguồn
+[P173] II. Hiện thực backend
+[P174] 1. Khởi tạo ứng dụng và kết nối dữ liệu
+[P175] app.js cấu hình CORS, giới hạn JSON 2 MB, phục vụ frontend tĩnh và gom các đối tượng dùng chung vào ctx. Cách truyền ctx giúp route không phải import lặp lại nhiều module và thuận tiện tách file. db.js tạo ConnectionPool với max=10, min=0 và idleTimeoutMillis=30000; hỗ trợ cả SQL Server mặc định qua DB_PORT và SQL Server Express qua DB_INSTANCE.
+[P176] const poolPromise = new sql.ConnectionPool(config)
+  .connect()
+  .then(pool => { console.log('Da ket noi SQL Server'); return pool; });
+[P177] 2. Xác thực và phân quyền
+[P178] Khi đăng nhập, backend lấy Users theo Username, kiểm tra Status và so sánh mật khẩu. Token gồm phần payload base64url và chữ ký HMAC-SHA256 bằng APP_SECRET. Mỗi request có auth middleware sẽ đọc token, xác minh chữ ký, tải lại Users theo UserID và chỉ cho tiếp tục nếu tài khoản vẫn ACTIVE. Điều này giúp tài khoản bị khóa mất quyền ngay cả khi token cũ còn lưu trong trình duyệt.
+[P179] 3. Validation và xử lý lỗi
+[P180] Các hàm requireFields, assertAllowed, toPositiveInt, toPositiveMoney và normalizeText được dùng để kiểm tra dữ liệu trước khi truy vấn. errorHandler nhận biết lỗi SQL 2627/2601 (UNIQUE) và 547 (FK), chuyển thành thông báo tiếng Việt dễ hiểu. Mọi route bất đồng bộ được bọc bởi asyncHandler để lỗi đi tới middleware thống nhất.
+[P181] 4. Transaction và tính toàn vẹn
+[P182] Transaction được sử dụng tại các thao tác cần cập nhật nhiều bảng hoặc nhiều bước: cập nhật hồ sơ sinh viên, tạo tài khoản STUDENT kèm hồ sơ Students, phân phòng và cập nhật trạng thái phòng, trả phòng và mở lại phòng. Nếu một câu lệnh thất bại, transaction rollback để tránh dữ liệu nửa chừng.
+[P183] III. Hiện thực frontend và giao diện mới
+[P185] Hình 4.1. Giao diện đăng nhập mới của hệ thống KTX PTIT
+[P186] Trang đăng nhập không còn khối tài khoản demo. Phần bên trái giới thiệu thương hiệu và mô phỏng số liệu; phần bên phải tập trung vào form. Nút hiện/ẩn mật khẩu thay đổi type của input. Khi submit, nút chuyển sang trạng thái “Đang đăng nhập...” để tránh thao tác lặp.
+[P188] Hình 4.2. Dashboard tổng quan sau khi đăng nhập
+[P189] Dashboard gọi /api/dashboard và render số thẻ tùy vai trò. STUDENT thấy số hồ sơ, số lần nhận phòng và thanh toán chờ xác nhận; các vai trò nội bộ thấy hồ sơ chờ duyệt, số người đã nhận phòng, thanh toán chờ, tổng tiền đã thu, yêu cầu chờ và phòng khả dụng.
+[P191] Hình 4.3. Màn hình Sinh viên nộp hồ sơ đăng ký
+[P193] Hình 4.4. Màn hình Sinh viên theo dõi hồ sơ và công nợ
+[P194] Màn hình đăng ký chỉ đưa các đợt Status=OPEN vào danh sách. Backend vẫn kiểm tra thêm khoảng thời gian để tránh việc người dùng sửa HTML. Màn hình theo dõi hồ sơ hiển thị đồng thời tòa mong muốn, phòng được gán, tổng tiền, khoản đã xác nhận và số còn nợ.
+[P196] Hình 4.5. Màn hình Manager duyệt hồ sơ và phân phòng
+[P198] Hình 4.6. Màn hình Manager xác nhận nhận/trả phòng
+[P199] Nút thao tác được hiển thị theo trạng thái: PENDING có Duyệt/Từ chối; APPROVED có Phân phòng; màn hình nhận/trả phòng chỉ hiển thị APPROVED hoặc CHECKED_IN. Khi chọn phân phòng, modal chỉ liệt kê phòng AVAILABLE, còn giường và phù hợp giới tính, đồng thời ghi rõ giá tháng và số chỗ còn lại.
+[P201] Hình 4.7. Màn hình Kế toán xác nhận thanh toán
+[P203] Hình 4.8. Màn hình theo dõi công nợ
+[P204] Kế toán có thể lọc giao dịch theo từ khóa, trạng thái và phương thức. Chỉ Payments.PENDING hiển thị nút Xác nhận/Từ chối. Báo cáo công nợ dùng dữ liệu tổng hợp từ các khoản CONFIRMED, vì vậy giao dịch PENDING chưa làm giảm DebtAmount.
+[P206] Hình 4.9. Màn hình Admin quản lý tài khoản
+[P208] Hình 4.10. Màn hình Admin quản lý phòng
+[P209] Tại màn hình tài khoản, trạng thái Đã khóa vẫn có nút Sửa. Admin chọn Sửa, đổi Status thành Hoạt động và lưu để mở lại tài khoản. Nút “Xóa/khóa” có hai cách xử lý: xóa vật lý khi không có dữ liệu tham chiếu; chuyển LOCKED khi đã có sinh viên, hồ sơ duyệt, thanh toán hoặc yêu cầu liên quan. Cách làm này bảo toàn lịch sử nghiệp vụ.
+[P210] IV. Các xử lý nghiệp vụ nổi bật
+[P211] 1. Tính tổng tiền và công nợ
+[P212] TotalAmount = DurationMonths × PricePerMonth
+ConfirmedAmount = SUM(Payments.Amount WHERE PaymentStatus = CONFIRMED)
+DebtAmount = TotalAmount - ConfirmedAmount
+[P213] TotalAmount chỉ được xác định sau khi phân phòng vì đơn giá phụ thuộc phòng. Hệ thống cho phép một hồ sơ có nhiều giao dịch thanh toán; do đó công nợ luôn dựa trên tổng các giao dịch CONFIRMED thay vì dựa trên một bản ghi duy nhất.
+[P214] 2. Tính sức chứa phòng
+[P215] roomOccupancy đếm Applications có AssignedRoomID bằng phòng đang xét và Status thuộc APPROVED hoặc CHECKED_IN. CHECKED_OUT và REJECTED không chiếm giường. Sau khi gán người cuối cùng, RoomStatus chuyển FULL. Khi một sinh viên CHECKED_OUT, phòng đang FULL được đưa về AVAILABLE.
+[P216] 3. Chiến lược xóa an toàn
+[P217] Bảng 4.2. Cách xử lý nút xóa/khóa theo từng dữ liệu
+[P219] 4. Điều hướng và lưu phiên
+[P220] core.js định nghĩa menus theo Role và titles theo view. navigate(view) cập nhật tiêu đề, menu active và gọi renderer tương ứng. Token và user được lưu trong localStorage; khi tải trang, boot gọi /api/auth/me để xác nhận token. Checkbox “Ghi nhớ đăng nhập” đang có trên giao diện nhưng payload đã loại bỏ trường remember và phiên luôn được lưu localStorage; đây là điểm cần hoàn thiện nếu muốn phân biệt phiên tạm thời và phiên ghi nhớ.
+[P221] V. Cài đặt và chạy hệ thống
+[P222] Cài Node.js phù hợp và Microsoft SQL Server/SQL Server Express.
+[P223] Mở SQL Server Management Studio, chạy database/00_full_database.sql để tạo QLKTX_RutGon và dữ liệu demo.
+[P224] Trong backend, sao chép .env.example thành .env và sửa DB_USER, DB_PASSWORD, DB_SERVER, DB_INSTANCE hoặc DB_PORT.
+[P225] Chạy npm install trong thư mục backend.
+[P226] Chạy npm start. Terminal phải hiển thị kết nối SQL Server và địa chỉ http://localhost:3000.
+[P227] Mở http://localhost:3000 bằng Chrome hoặc Edge và đăng nhập bằng tài khoản demo.
+[P228] cd qlktx_modular/backend
+npm install
+npm start
+# Mở trình duyệt: http://localhost:3000
+[P229] Bảng 4.3. Tài khoản dữ liệu mẫu
+[P231] CHƯƠNG V. KIỂM THỬ, ĐÁNH GIÁ VÀ KẾT LUẬN
+[P232] I. Mục tiêu và môi trường kiểm thử
+[P233] Kiểm thử nhằm xác nhận giao diện thao tác được, API kiểm tra đúng quyền, trạng thái chuyển đúng quy trình và dữ liệu lưu đúng trong SQL Server. Báo cáo phân biệt hai mức: kiểm tra tĩnh trên mã nguồn và kiểm thử chạy thực tế trên môi trường của nhóm. Trong quá trình biên soạn tài liệu, toàn bộ tệp JavaScript backend và frontend đã được kiểm tra cú pháp bằng node --check và không phát hiện lỗi cú pháp. Việc xác nhận PASS/FAIL cuối cùng đối với truy vấn SQL cần chạy cùng SQL Server của nhóm.
+[P234] Bảng 5.1. Môi trường kiểm thử đề xuất
+[P236] II. Danh sách ca kiểm thử chức năng
+[P237] Bảng 5.2. Danh sách ca kiểm thử tổng hợp
+[P239] III. Luồng kiểm thử đầu cuối
+[P240] Đăng nhập ADMIN, tạo tài khoản STUDENT mới và hồ sơ sinh viên; xác nhận tài khoản ACTIVE.
+[P241] Đăng nhập sinh viên mới, cập nhật hồ sơ và nộp một hồ sơ vào đợt OPEN.
+[P242] Đăng nhập MANAGER, lọc PENDING, duyệt hồ sơ và phân phòng phù hợp.
+[P243] Đăng nhập sinh viên, kiểm tra TotalAmount và gửi thanh toán TRANSFER có TransactionCode.
+[P244] Đăng nhập ACCOUNTANT, xác nhận giao dịch. Nếu mới thanh toán một phần, sinh viên gửi lần tiếp theo.
+[P245] Đăng nhập MANAGER, chỉ xác nhận nhận phòng khi DebtAmount <= 0.
+[P246] Đăng nhập sinh viên, gửi yêu cầu sự cố; manager chuyển APPROVED rồi DONE.
+[P247] Manager xác nhận trả phòng; kiểm tra Applications.CHECKED_OUT và RoomStatus.
+[P248] Admin thử xóa tài khoản/hồ sơ/phòng đã có quan hệ để xác nhận cơ chế khóa/ngừng dùng.
+[P249] Mở lại tài khoản LOCKED bằng form Sửa và Status=ACTIVE, sau đó đăng nhập lại để xác nhận.
+[P250] IV. Đánh giá kết quả hiện thực
+[P251] Bảng 5.3. Đối chiếu yêu cầu và mã nguồn
+[P253] V. Ưu điểm và hạn chế
+[P254] 1. Ưu điểm
+[P255] Luồng nghiệp vụ nối liền bốn vai trò và có kiểm tra điều kiện tại backend.
+[P256] Cơ sở dữ liệu gọn, quan hệ rõ, có ràng buộc hạn chế dữ liệu sai.
+[P257] Mã nguồn backend được tách module, dễ đọc và mở rộng.
+[P258] Giao diện mới đồng nhất, hiện đại, có bộ lọc, badge, modal, toast và responsive.
+[P259] Chiến lược xóa an toàn giúp không mất lịch sử giao dịch và hồ sơ.
+[P260] Báo cáo công nợ dựa trên nhiều giao dịch xác nhận, phù hợp thanh toán từng phần.
+[P261] 2. Hạn chế hiện tại
+[P262] SHA-256 không phù hợp lưu mật khẩu production; token chưa có thời hạn và cơ chế thu hồi riêng.
+[P263] Checkbox Ghi nhớ đăng nhập chưa điều khiển sessionStorage/localStorage.
+[P264] AttachmentUrl chỉ là chuỗi đường dẫn, chưa upload và kiểm tra tệp.
+[P265] Không giới hạn tổng số tiền thanh toán vượt công nợ và chưa đặt UNIQUE cho TransactionCode.
+[P266] Phân phòng lại một hồ sơ APPROVED chưa có xử lý giải phóng phòng cũ một cách chuyên biệt.
+[P267] Các API cập nhật một số danh mục dựa nhiều vào CHECK constraint của SQL thay vì validation đầy đủ ở tầng Node.js.
+[P268] Chưa có audit log, phân trang, export Excel/PDF, email/SMS và sao lưu tự động.
+[P269] VI. Hướng phát triển
+[P270] Thay mật khẩu bằng Argon2id hoặc bcrypt, bổ sung JWT có exp/refresh token, HTTPS và rate limiting.
+[P271] Bổ sung upload minh chứng, giới hạn loại/kích thước tệp và lưu trữ cloud.
+[P272] Bổ sung payment gateway và webhook đối soát tự động.
+[P273] Thiết kế bảng RoomAssignments hoặc ResidenceHistory để theo dõi lịch sử chuyển phòng chi tiết.
+[P274] Bổ sung audit log cho thao tác duyệt, xác nhận, khóa và thay đổi dữ liệu nền.
+[P275] Bổ sung phân trang, sắp xếp, export báo cáo và biểu đồ.
+[P276] Bổ sung kiểm thử tự động API bằng Jest/Supertest và kiểm thử giao diện bằng Playwright.
+[P277] VII. Kết luận
+[P278] Phiên bản mới của Hệ thống Web Quản lý Ký túc xá đã hiện thực đầy đủ các nhóm chức năng cốt lõi ở mức đồ án: quản lý tài khoản và dữ liệu nền, đăng ký và xử lý hồ sơ, phân phòng và tính phí, thanh toán và công nợ, nhận/trả phòng, yêu cầu phát sinh và báo cáo. Giao diện được thiết kế lại theo phong cách KTX PTIT, trong khi backend vẫn giữ cấu trúc API tách module và cơ sở dữ liệu có ràng buộc rõ ràng.
+[P279] Điểm quan trọng của luồng hoạt động là mọi trạng thái đều có điều kiện chuyển cụ thể và được kiểm tra tại backend. Các bản ghi đã phát sinh nghiệp vụ không bị xóa tùy tiện mà chuyển sang trạng thái khóa hoặc ngừng dùng, giúp duy trì tính toàn vẹn và lịch sử. Với các cải tiến về bảo mật, audit, thanh toán thật và kiểm thử tự động, hệ thống có thể tiếp tục phát triển thành sản phẩm vận hành thực tế.
+[P280] TÀI LIỆU THAM KHẢO
+[P281] [1] Mã nguồn dự án Hệ thống Web Quản lý Ký túc xá, phiên bản module cập nhật tháng 06/2026.
+[P282] [2] Tài liệu kế hoạch kiểm thử chức năng QLKTX chi tiết của nhóm.
+[P283] [3] Node.js Documentation, các nội dung về module, crypto và HTTP server.
+[P284] [4] Express.js Documentation, Routing và Middleware.
+[P285] [5] Microsoft Learn, SQL Server và T-SQL constraints/transactions.
+[P286] [6] MDN Web Docs, Fetch API, Web Storage API, HTML Forms và Responsive Design.
+[P287] [7] OWASP, Password Storage Cheat Sheet và Authentication Cheat Sheet.
+[P288] Link github : https://github.com/thanhdan24/quanLyKTX/tree/main/qlktx_modular
+--- TABLES ---
+### Table 0 (32 rows x 2 cols) ###
+  T0R0C0: Nội dung
+  T0R0C1: Trang
+  T0R1C0: CHƯƠNG I. TỔNG QUAN
+  T0R1C1: 5
+  T0R2C0: I. Giới thiệu đề tài
+  T0R2C1: 5
+  T0R3C0: II. Phương pháp và công nghệ thực hiện
+  T0R3C1: 6
+  T0R4C0: CHƯƠNG II. KHẢO SÁT VÀ PHÂN TÍCH /  YÊU CẦU
+  T0R4C1: 7
+  T0R5C0: I. Khảo sát hiện trạng và bài toán
+  T0R5C1: 7
+  T0R6C0: II. Quy tắc nghiệp vụ
+  T0R6C1: 7
+  T0R7C0: III. Yêu cầu chức năng theo vai trò
+  T0R7C1: 8
+  T0R8C0: IV. Yêu cầu phi chức năng
+  T0R8C1: 9
+  T0R9C0: V. Mô hình use case và luồng hoạt động
+  T0R9C1: 10
+  T0R10C0: VI. Đặc tả các use case chính
+  T0R10C1: 11
+  T0R11C0: CHƯƠNG III. PHÂN TÍCH VÀ THIẾT KẾ /  HỆ THỐNG
+  T0R11C1: 16
+  T0R12C0: I. Kiến trúc tổng thể
+  T0R12C1: 16
+  T0R13C0: II. Thiết kế cơ sở dữ liệu
+  T0R13C1: 16
+  T0R14C0: III. Thiết kế trạng thái và xử lý nghiệp vụ
+  T0R14C1: 19
+  T0R15C0: IV. Thiết kế REST API
+  T0R15C1: 20
+  T0R16C0: V. Thiết kế phân quyền và bảo mật
+  T0R16C1: 21
+  T0R17C0: VI. Thiết kế giao diện mới
+  T0R17C1: 22
+  T0R18C0: CHƯƠNG IV. PHÁT TRIỂN VÀ HIỆN THỰC
+  T0R18C1: 23
+  T0R19C0: I. Cấu trúc dự án
+  T0R19C1: 23
+  T0R20C0: II. Hiện thực backend
+  T0R20C1: 23
+  T0R21C0: III. Hiện thực frontend và giao diện mới
+  T0R21C1: 24
+  T0R22C0: IV. Các xử lý nghiệp vụ nổi bật
+  T0R22C1: 29
+  T0R23C0: V. Cài đặt và chạy hệ thống
+  T0R23C1: 30
+  T0R24C0: CHƯƠNG V. KIỂM THỬ, ĐÁNH GIÁ /  VÀ KẾT LUẬN
+  T0R24C1: 31
+  T0R25C0: I. Mục tiêu và môi trường kiểm thử
+  T0R25C1: 31
+  T0R26C0: II. Danh sách ca kiểm thử chức năng
+  T0R26C1: 31
+  T0R27C0: III. Luồng kiểm thử đầu cuối
+  T0R27C1: 32
+  T0R28C0: IV. Đánh giá kết quả hiện thực
+  T0R28C1: 32
+  T0R29C0: V. Ưu điểm và hạn chế
+  T0R29C1: 32
+  T0R30C0: VI. Hướng phát triển
+  T0R30C1: 33
+  T0R31C0: VII. Kết luận
+  T0R31C1: 33
+### Table 1 (17 rows x 3 cols) ###
+  T1R0C0: STT
+  T1R0C1: Tên hình
+  T1R0C2: Trang
+  T1R1C0: 1
+  T1R1C1: Hình 2.1. Sơ đồ use case tổng quát của hệ thống
+  T1R1C2: 10
+  T1R2C0: 2
+  T1R2C1: Hình 2.2. Luồng nghiệp vụ hoàn chỉnh từ đăng ký đến trả phòng
+  T1R2C2: 11
+  T1R3C0: 3
+  T1R3C1: Hình 3.1. Kiến trúc client-server và các lớp xử lý
+  T1R3C2: 16
+  T1R4C0: 4
+  T1R4C1: Hình 3.2. Mô hình ERD của cơ sở dữ liệu QLKTX_RutGon
+  T1R4C2: 16
+  T1R5C0: 5
+  T1R5C1: Hình 3.3. Sơ đồ chuyển trạng thái của hồ sơ, thanh toán và yêu cầu
+  T1R5C2: 19
+  T1R6C0: 6
+  T1R6C1: Hình 3.4. Trình tự xử lý hồ sơ từ đăng ký đến nhận phòng
+  T1R6C2: 20
+  T1R7C0: 7
+  T1R7C1: Hình 4.1. Giao diện đăng nhập mới của hệ thống KTX PTIT
+  T1R7C2: 24
+  T1R8C0: 8
+  T1R8C1: Hình 4.2. Dashboard tổng quan sau khi đăng nhập
+  T1R8C2: 25
+  T1R9C0: 9
+  T1R9C1: Hình 4.3. Màn hình Sinh viên nộp hồ sơ đăng ký
+  T1R9C2: 25
+  T1R10C0: 10
+  T1R10C1: Hình 4.4. Màn hình Sinh viên theo dõi hồ sơ và công nợ
+  T1R10C2: 26
+  T1R11C0: 11
+  T1R11C1: Hình 4.5. Màn hình Manager duyệt hồ sơ và phân phòng
+  T1R11C2: 26
+  T1R12C0: 12
+  T1R12C1: Hình 4.6. Màn hình Manager xác nhận nhận/trả phòng
+  T1R12C2: 27
+  T1R13C0: 13
+  T1R13C1: Hình 4.7. Màn hình Kế toán xác nhận thanh toán
+  T1R13C2: 27
+  T1R14C0: 14
+  T1R14C1: Hình 4.8. Màn hình theo dõi công nợ
+  T1R14C2: 28
+  T1R15C0: 15
+  T1R15C1: Hình 4.9. Màn hình Admin quản lý tài khoản
+  T1R15C2: 28
+  T1R16C0: 16
+  T1R16C1: Hình 4.10. Màn hình Admin quản lý phòng
+  T1R16C2: 29
+### Table 2 (40 rows x 3 cols) ###
+  T2R0C0: STT
+  T2R0C1: Tên bảng
+  T2R0C2: Trang
+  T2R1C0: 1
+  T2R1C1: Bảng 0.1. Danh mục từ viết tắt
+  T2R1C2: 4
+  T2R2C0: 2
+  T2R2C1: Bảng 1.1. Đối tượng và phạm vi sử dụng
+  T2R2C2: 5
+  T2R3C0: 3
+  T2R3C1: Bảng 1.2. Nền tảng kỹ thuật sử dụng
+  T2R3C2: 6
+  T2R4C0: 4
+  T2R4C1: Bảng 2.1. Khó khăn của phương pháp quản lý thủ công
+  T2R4C2: 7
+  T2R5C0: 5
+  T2R5C1: Bảng 2.2. Quy tắc nghiệp vụ của phiên bản mã nguồn mới
+  T2R5C2: 7
+  T2R6C0: 6
+  T2R6C1: Bảng 2.3. Yêu cầu chức năng của Sinh viên
+  T2R6C2: 8
+  T2R7C0: 7
+  T2R7C1: Bảng 2.4. Yêu cầu chức năng của Cán bộ quản lý KTX
+  T2R7C2: 8
+  T2R8C0: 8
+  T2R8C1: Bảng 2.5. Yêu cầu chức năng của Kế toán và Admin
+  T2R8C2: 9
+  T2R9C0: 9
+  T2R9C1: Bảng 2.6. Yêu cầu chất lượng hệ thống
+  T2R9C2: 9
+  T2R10C0: 10
+  T2R10C1: Bảng 2.7. Đặc tả UC01 - Đăng nhập hệ thống
+  T2R10C2: 11
+  T2R11C0: 11
+  T2R11C1: Bảng 2.8. Đặc tả UC02 - Cập nhật hồ sơ sinh viên
+  T2R11C2: 12
+  T2R12C0: 12
+  T2R12C1: Bảng 2.9. Đặc tả UC03 - Nộp hồ sơ đăng ký ở KTX
+  T2R12C2: 12
+  T2R13C0: 13
+  T2R13C1: Bảng 2.10. Đặc tả UC04 - Duyệt hoặc từ chối hồ sơ
+  T2R13C2: 12
+  T2R14C0: 14
+  T2R14C1: Bảng 2.11. Đặc tả UC05 - Phân phòng và tính tiền
+  T2R14C2: 13
+  T2R15C0: 15
+  T2R15C1: Bảng 2.12. Đặc tả UC06 - Gửi và xác nhận thanh toán
+  T2R15C2: 13
+  T2R16C0: 16
+  T2R16C1: Bảng 2.13. Đặc tả UC07 - Xác nhận nhận và trả phòng
+  T2R16C2: 13
+  T2R17C0: 17
+  T2R17C1: Bảng 2.14. Đặc tả UC08 - Gửi và xử lý yêu cầu phát sinh
+  T2R17C2: 14
+  T2R18C0: 18
+  T2R18C1: Bảng 2.15. Đặc tả UC09 - Quản lý tài khoản và dữ liệu nền
+  T2R18C2: 14
+  T2R19C0: 19
+  T2R19C1: Bảng 2.16. Đặc tả UC10 - Xem báo cáo nghiệp vụ
+  T2R19C2: 14
+  T2R20C0: 20
+  T2R20C1: Bảng 3.1. Các module mã nguồn
+  T2R20C2: 16
+  T2R21C0: 21
+  T2R21C1: Bảng 3.2. Từ điển dữ liệu bảng Users
+  T2R21C2: 17
+  T2R22C0: 22
+  T2R22C1: Bảng 3.3. Từ điển dữ liệu bảng Students
+  T2R22C2: 17
+  T2R23C0: 23
+  T2R23C1: Bảng 3.4. Từ điển dữ liệu bảng Buildings
+  T2R23C2: 17
+  T2R24C0: 24
+  T2R24C1: Bảng 3.5. Từ điển dữ liệu bảng Rooms
+  T2R24C2: 17
+  T2R25C0: 25
+  T2R25C1: Bảng 3.6. Từ điển dữ liệu bảng RegistrationPeriods
+  T2R25C2: 17
+  T2R26C0: 26
+  T2R26C1: Bảng 3.7. Từ điển dữ liệu bảng Applications
+  T2R26C2: 18
+  T2R27C0: 27
+  T2R27C1: Bảng 3.8. Từ điển dữ liệu bảng Payments
+  T2R27C2: 18
+  T2R28C0: 28
+  T2R28C1: Bảng 3.9. Từ điển dữ liệu bảng Requests
+  T2R28C2: 18
+  T2R29C0: 29
+  T2R29C1: Bảng 3.10. API xác thực, dashboard, tài khoản và sinh viên
+  T2R29C2: 20
+  T2R30C0: 30
+  T2R30C1: Bảng 3.11. API danh mục và hồ sơ đăng ký
+  T2R30C2: 21
+  T2R31C0: 31
+  T2R31C1: Bảng 3.12. API thanh toán, yêu cầu và báo cáo
+  T2R31C2: 21
+  T2R32C0: 32
+  T2R32C1: Bảng 3.13. Ma trận quyền chức năng
+  T2R32C2: 21
+  T2R33C0: 33
+  T2R33C1: Bảng 3.14. Thành phần giao diện dùng lại
+  T2R33C2: 22
+  T2R34C0: 34
+  T2R34C1: Bảng 4.1. Cấu trúc thư mục mã nguồn
+  T2R34C2: 23
+  T2R35C0: 35
+  T2R35C1: Bảng 4.2. Cách xử lý nút xóa/khóa theo từng dữ liệu
+  T2R35C2: 29
+  T2R36C0: 36
+  T2R36C1: Bảng 4.3. Tài khoản dữ liệu mẫu
+  T2R36C2: 30
+  T2R37C0: 37
+  T2R37C1: Bảng 5.1. Môi trường kiểm thử đề xuất
+  T2R37C2: 31
+  T2R38C0: 38
+  T2R38C1: Bảng 5.2. Danh sách ca kiểm thử tổng hợp
+  T2R38C2: 31
+  T2R39C0: 39
+  T2R39C1: Bảng 5.3. Đối chiếu yêu cầu và mã nguồn
+  T2R39C2: 32
+### Table 3 (14 rows x 2 cols) ###
+  T3R0C0: Từ viết tắt
+  T3R0C1: Ý nghĩa
+  T3R1C0: API
+  T3R1C1: Application Programming Interface - giao diện lập trình ứng dụng
+  T3R2C0: CSDL
+  T3R2C1: Cơ sở dữ liệu
+  T3R3C0: CRUD
+  T3R3C1: Create, Read, Update, Delete - thêm, xem, sửa, xóa
+  T3R4C0: ERD
+  T3R4C1: Entity Relationship Diagram - sơ đồ thực thể liên kết
+  T3R5C0: FK
+  T3R5C1: Foreign Key - khóa ngoại
+  T3R6C0: HMAC
+  T3R6C1: Hash-based Message Authentication Code
+  T3R7C0: KTX
+  T3R7C1: Ký túc xá
+  T3R8C0: PK
+  T3R8C1: Primary Key - khóa chính
+  T3R9C0: REST
+  T3R9C1: Representational State Transfer
+  T3R10C0: RBAC
+  T3R10C1: Role-Based Access Control - phân quyền theo vai trò
+  T3R11C0: SQL
+  T3R11C1: Structured Query Language
+  T3R12C0: UC
+  T3R12C1: Use Case - ca sử dụng
+  T3R13C0: UQ
+  T3R13C1: Unique constraint - ràng buộc duy nhất
+### Table 4 (5 rows x 3 cols) ###
+  T4R0C0: Vai trò
+  T4R0C1: Mục tiêu
+  T4R0C2: Chức năng chính
+  T4R1C0: Sinh viên
+  T4R1C1: Thực hiện thủ tục cư trú
+  T4R1C2: Cập nhật hồ sơ; nộp hồ sơ; theo dõi trạng thái; gửi thanh toán; gửi yêu cầu phát sinh.
+  T4R2C0: Cán bộ quản lý KTX
+  T4R2C1: Xử lý hồ sơ và vận hành phòng ở
+  T4R2C2: Duyệt/từ chối; phân phòng; nhận/trả phòng; xử lý yêu cầu; báo cáo cư trú.
+  T4R3C0: Kế toán / Thu ngân
+  T4R3C1: Quản lý khoản thu
+  T4R3C2: Đối soát thanh toán; xác nhận/từ chối giao dịch; theo dõi công nợ; báo cáo thu phí.
+  T4R4C0: Quản trị hệ thống
+  T4R4C1: Thiết lập dữ liệu nền và tài khoản
+  T4R4C2: Quản lý tài khoản, hồ sơ sinh viên, tòa nhà, phòng và đợt đăng ký.
+### Table 5 (8 rows x 3 cols) ###
+  T5R0C0: Thành phần
+  T5R0C1: Công nghệ
+  T5R0C2: Vai trò trong hệ thống
+  T5R1C0: Frontend
+  T5R1C1: HTML5, CSS3, JavaScript thuần
+  T5R1C2: Xây dựng trang đăng nhập, layout dashboard, biểu mẫu, bộ lọc, bảng dữ liệu, modal, toast và responsive.
+  T5R2C0: Backend
+  T5R2C1: Node.js, Express 4.18
+  T5R2C2: Cung cấp REST API, kiểm tra nghiệp vụ, phân quyền và phục vụ tệp frontend tĩnh.
+  T5R3C0: Database
+  T5R3C1: Microsoft SQL Server,  / T-SQL
+  T5R3C2: Lưu dữ liệu 8 bảng quan hệ và thực thi các truy vấn thống kê.
+  T5R4C0: Kết nối CSDL
+  T5R4C1: mssql 10.x
+  T5R4C2: Connection pool, transaction và tham số hóa truy vấn.
+  T5R5C0: Cấu hình
+  T5R5C1: dotenv
+  T5R5C2: Đọc PORT, thông tin SQL Server và APP_SECRET từ .env.
+  T5R6C0: Bảo mật mức đồ án
+  T5R6C1: SHA-256, token HMAC
+  T5R6C2: Băm mật khẩu demo, ký và xác minh token; middleware kiểm tra tài khoản ACTIVE.
+  T5R7C0: Hỗ trợ giao diện
+  T5R7C1: localStorage, Fetch API
+  T5R7C2: Lưu phiên đăng nhập và gọi API bằng Bearer token.
+### Table 6 (7 rows x 3 cols) ###
+  T6R0C0: Vấn đề
+  T6R0C1: Hệ quả
+  T6R0C2: Yêu cầu khắc phục
+  T6R1C0: Dữ liệu phân tán
+  T6R1C1: Trùng hồ sơ, khó tìm lịch sử
+  T6R1C2: Lưu tập trung và khóa duy nhất.
+  T6R2C0: Theo dõi phòng thủ công
+  T6R2C1: Dễ xếp vượt sức chứa hoặc sai giới tính
+  T6R2C2: Tính UsedBeds và kiểm tra GenderScope.
+  T6R3C0: Tính phí thủ công
+  T6R3C1: Sai tổng tiền và công nợ
+  T6R3C2: Tính tự động theo số tháng và khoản CONFIRMED.
+  T6R4C0: Không rõ trạng thái hồ sơ
+  T6R4C1: Sinh viên phải hỏi trực tiếp
+  T6R4C2: Hiển thị PENDING/APPROVED/REJECTED/CHECKED_IN/CHECKED_OUT.
+  T6R5C0: Phân quyền không rõ
+  T6R5C1: Người dùng có thể thao tác sai nghiệp vụ
+  T6R5C2: RBAC ở menu và API.
+  T6R6C0: Báo cáo chậm
+  T6R6C1: Mất thời gian tổng hợp
+  T6R6C2: API báo cáo cư trú, công nợ và thu phí.
+### Table 7 (18 rows x 3 cols) ###
+  T7R0C0: Mã
+  T7R0C1: Tên quy tắc
+  T7R0C2: Mô tả chính
+  T7R1C0: QĐ01
+  T7R1C1: Tài khoản đăng nhập
+  T7R1C2: Chỉ Users.Status = ACTIVE được đăng nhập và tiếp tục dùng token. Tài khoản INACTIVE hoặc LOCKED bị từ chối.
+  T7R2C0: QĐ02
+  T7R2C1: Phân quyền
+  T7R2C2: STUDENT, MANAGER, ACCOUNTANT và ADMIN chỉ được gọi API phù hợp thông qua middleware allow(...roles).
+  T7R3C0: QĐ03
+  T7R3C1: Hồ sơ sinh viên
+  T7R3C2: Tài khoản STUDENT cần có bản ghi Students; StudentCode và UserID là duy nhất.
+  T7R4C0: QĐ04
+  T7R4C1: Nộp hồ sơ
+  T7R4C2: Đợt phải OPEN và ngày máy chủ nằm trong StartDate-EndDate; DurationMonths là số nguyên dương.
+  T7R5C0: QĐ05
+  T7R5C1: Không nộp trùng
+  T7R5C2: UNIQUE(StudentID, PeriodID) bảo đảm một sinh viên chỉ có một hồ sơ trong một đợt.
+  T7R6C0: QĐ06
+  T7R6C1: Duyệt hồ sơ
+  T7R6C2: Chỉ hồ sơ PENDING mới được chuyển thành APPROVED hoặc REJECTED; lưu ApprovedBy, ApprovedAt và Note.
+  T7R7C0: QĐ07
+  T7R7C1: Phân phòng
+  T7R7C2: Chỉ hồ sơ APPROVED; phòng phải AVAILABLE, còn chỗ và phù hợp GenderScope của phòng và tòa.
+  T7R8C0: QĐ08
+  T7R8C1: Tính tiền
+  T7R8C2: TotalAmount = DurationMonths × PricePerMonth tại thời điểm phân phòng.
+  T7R9C0: QĐ09
+  T7R9C1: Sức chứa
+  T7R9C2: UsedBeds là số hồ sơ có AssignedRoomID và trạng thái APPROVED hoặc CHECKED_IN. Khi đạt Capacity, phòng chuyển FULL.
+  T7R10C0: QĐ10
+  T7R10C1: Thanh toán
+  T7R10C2: Hồ sơ phải APPROVED hoặc CHECKED_IN và đã có TotalAmount. TRANSFER/ONLINE bắt buộc TransactionCode.
+  T7R11C0: QĐ11
+  T7R11C1: Xác nhận thanh toán
+  T7R11C2: Chỉ ACCOUNTANT xử lý Payments.PENDING thành CONFIRMED hoặc REJECTED.
+  T7R12C0: QĐ12
+  T7R12C1: Công nợ
+  T7R12C2: DebtAmount = TotalAmount - SUM(Amount của PaymentStatus=CONFIRMED).
+  T7R13C0: QĐ13
+  T7R13C1: Nhận phòng
+  T7R13C2: Hồ sơ APPROVED, có AssignedRoomID và tổng đã xác nhận lớn hơn hoặc bằng TotalAmount.
+  T7R14C0: QĐ14
+  T7R14C1: Trả phòng
+  T7R14C2: Chỉ CHECKED_IN chuyển CHECKED_OUT; nếu phòng đang FULL thì trả về AVAILABLE.
+  T7R15C0: QĐ15
+  T7R15C1: Yêu cầu phát sinh
+  T7R15C2: Chỉ hồ sơ APPROVED/CHECKED_IN được tạo yêu cầu thuộc EXTEND, TRANSFER, CHECKOUT, INCIDENT, FEEDBACK.
+  T7R16C0: QĐ16
+  T7R16C1: Xóa dữ liệu có tham chiếu
+  T7R16C2: Tài khoản, sinh viên, phòng và đợt có dữ liệu liên quan được khóa/ngừng dùng/đóng thay vì xóa vật lý; tòa nhà có quan hệ thì không được xóa.
+  T7R17C0: QĐ17
+  T7R17C1: Mở lại tài khoản
+  T7R17C2: Admin mở form Sửa và chuyển Status từ LOCKED/INACTIVE về ACTIVE; chức năng nằm trong thao tác cập nhật, không có nút “Mở khóa” riêng.
+### Table 8 (7 rows x 4 cols) ###
+  T8R0C0: Mã
+  T8R0C1: Chức năng
+  T8R0C2: Đầu vào
+  T8R0C3: Kết quả
+  T8R1C0: SV01
+  T8R1C1: Đăng nhập
+  T8R1C2: Username, password
+  T8R1C3: Nhận token và giao diện STUDENT.
+  T8R2C0: SV02
+  T8R2C1: Cập nhật hồ sơ
+  T8R2C2: Họ tên, giới tính, ngày sinh, khoa, lớp, điện thoại, email
+  T8R2C3: Cập nhật Users và Students trong transaction.
+  T8R3C0: SV03
+  T8R3C1: Đăng ký ở KTX
+  T8R3C2: Đợt, tòa mong muốn, số tháng, URL đính kèm
+  T8R3C3: Tạo Applications.PENDING.
+  T8R4C0: SV04
+  T8R4C1: Theo dõi hồ sơ
+  T8R4C2: Bộ lọc trạng thái, đợt
+  T8R4C3: Xem phòng, tổng tiền, đã thu, còn nợ, ghi chú.
+  T8R5C0: SV05
+  T8R5C1: Gửi thanh toán
+  T8R5C2: Hồ sơ, số tiền, phương thức, mã giao dịch
+  T8R5C3: Tạo Payments.PENDING.
+  T8R6C0: SV06
+  T8R6C1: Gửi yêu cầu
+  T8R6C2: Hồ sơ, loại, tiêu đề, nội dung
+  T8R6C3: Tạo Requests.PENDING và theo dõi kết quả.
+### Table 9 (8 rows x 4 cols) ###
+  T9R0C0: Mã
+  T9R0C1: Chức năng
+  T9R0C2: Điều kiện
+  T9R0C3: Kết quả
+  T9R1C0: QL01
+  T9R1C1: Tra cứu hồ sơ
+  T9R1C2: Từ khóa, trạng thái, đợt
+  T9R1C3: Danh sách hồ sơ và thông tin tài chính.
+  T9R2C0: QL02
+  T9R2C1: Duyệt/từ chối
+  T9R2C2: Hồ sơ PENDING
+  T9R2C3: APPROVED hoặc REJECTED, lưu người và thời gian.
+  T9R3C0: QL03
+  T9R3C1: Phân phòng
+  T9R3C2: Hồ sơ APPROVED; phòng hợp lệ
+  T9R3C3: Gán phòng, tính TotalAmount, cập nhật FULL khi đủ chỗ.
+  T9R4C0: QL04
+  T9R4C1: Nhận phòng
+  T9R4C2: Có phòng và thanh toán đủ
+  T9R4C3: CHECKED_IN và CheckInDate.
+  T9R5C0: QL05
+  T9R5C1: Trả phòng
+  T9R5C2: Hồ sơ CHECKED_IN
+  T9R5C3: CHECKED_OUT và CheckOutDate.
+  T9R6C0: QL06
+  T9R6C1: Xử lý yêu cầu
+  T9R6C2: Yêu cầu PENDING/APPROVED
+  T9R6C3: APPROVED, REJECTED hoặc DONE.
+  T9R7C0: QL07
+  T9R7C1: Báo cáo cư trú
+  T9R7C2: Đợt đăng ký
+  T9R7C3: Thống kê hồ sơ và số giường theo phòng.
+### Table 10 (9 rows x 3 cols) ###
+  T10R0C0: Vai trò
+  T10R0C1: Chức năng
+  T10R0C2: Mô tả
+  T10R1C0: ACCOUNTANT
+  T10R1C1: Xác nhận thanh toán
+  T10R1C2: Lọc theo sinh viên, trạng thái, phương thức; chuyển PENDING thành CONFIRMED/REJECTED.
+  T10R2C0: ACCOUNTANT
+  T10R2C1: Theo dõi công nợ
+  T10R2C2: Lọc theo đợt, từ khóa và trạng thái nợ.
+  T10R3C0: ACCOUNTANT
+  T10R3C1: Báo cáo thu phí
+  T10R3C2: Tổng hợp số giao dịch và số tiền theo phương thức/trạng thái.
+  T10R4C0: ADMIN
+  T10R4C1: Quản lý tài khoản
+  T10R4C2: Tạo, sửa, đổi mật khẩu, đổi vai trò, khóa/mở khóa hoặc xóa nếu không có tham chiếu.
+  T10R5C0: ADMIN
+  T10R5C1: Quản lý sinh viên
+  T10R5C2: Tạo/sửa; INACTIVE khi đã có hồ sơ liên quan.
+  T10R6C0: ADMIN
+  T10R6C1: Quản lý tòa nhà
+  T10R6C2: CRUD; không xóa khi có phòng hoặc hồ sơ liên quan.
+  T10R7C0: ADMIN
+  T10R7C1: Quản lý phòng
+  T10R7C2: CRUD; chuyển INACTIVE thay vì xóa khi đã được gán.
+  T10R8C0: ADMIN
+  T10R8C1: Quản lý đợt đăng ký
+  T10R8C2: CRUD; chuyển CLOSED thay vì xóa khi đã có hồ sơ.
+### Table 11 (9 rows x 3 cols) ###
+  T11R0C0: Nhóm
+  T11R0C1: Yêu cầu
+  T11R0C2: Cách đáp ứng hiện tại
+  T11R1C0: Dễ sử dụng
+  T11R1C1: Giao diện tiếng Việt, menu theo vai trò, trạng thái dễ nhận biết
+  T11R1C2: Sidebar, topbar, badge màu, form-grid, bộ lọc, modal và toast.
+  T11R2C0: Hiệu năng
+  T11R2C1: Đáp ứng dữ liệu quy mô đồ án
+  T11R2C2: SQL connection pool max 10; truy vấn có lọc; frontend tải theo màn hình.
+  T11R3C0: An toàn dữ liệu
+  T11R3C1: Không ghép trực tiếp dữ liệu người dùng vào SQL
+  T11R3C2: Sử dụng input parameter của mssql.
+  T11R4C0: Phân quyền
+  T11R4C1: API trái quyền phải trả 403
+  T11R4C2: Middleware auth và allow.
+  T11R5C0: Toàn vẹn
+  T11R5C1: Giảm trùng và trạng thái sai
+  T11R5C2: PK, FK, UNIQUE, CHECK và transaction.
+  T11R6C0: Khả năng bảo trì
+  T11R6C1: Mã nguồn tách module
+  T11R6C2: Routes, middleware, service, utils và JS theo vai trò.
+  T11R7C0: Khả năng tương thích
+  T11R7C1: Dùng được trên Chrome/Edge và màn hình nhỏ
+  T11R7C2: HTML/CSS/JS chuẩn, breakpoint responsive.
+  T11R8C0: Khả năng quan sát lỗi
+  T11R8C1: Thông báo dễ hiểu
+  T11R8C2: errorHandler ánh xạ lỗi UNIQUE/FK và frontend toast.
+### Table 12 (6 rows x 2 cols) ###
+  T12R0C0: Thuộc tính
+  T12R0C1: Nội dung
+  T12R1C0: Tác nhân chính
+  T12R1C1: Tất cả người dùng
+  T12R2C0: Tiền điều kiện
+  T12R2C1: Tài khoản tồn tại trong Users.
+  T12R3C0: Luồng chính
+  T12R3C1: 1.Nhậpusername vàpassword. / 2. Frontend gửi POST /api/auth/login. / 3. Backend kiểm tra tài khoản và Status=ACTIVE. / 4. So sánh mật khẩu với PasswordHash. / 5. Trả token HMAC và thông tin công khai của người dùng. / 6. Frontend lưu token, hiển thị menu theo Role.
+  T12R4C0: Luồng thay thế/ngoại lệ
+  T12R4C1: - Sai tài khoản/mật khẩu: trả 401. / - Tài khoản LOCKED/INACTIVE: trả 403. / - Token cũ không hợp lệ: /api/auth/me trả 401 và frontend đăng xuất.
+  T12R5C0: Hậu điều kiện
+  T12R5C1: Người dùng vào dashboard đúng vai trò.
+### Table 13 (6 rows x 2 cols) ###
+  T13R0C0: Thuộc tính
+  T13R0C1: Nội dung
+  T13R1C0: Tác nhân chính
+  T13R1C1: Sinh viên
+  T13R2C0: Tiền điều kiện
+  T13R2C1: Đăng nhập STUDENT và có bản ghi Students.
+  T13R3C0: Luồng chính
+  T13R3C1: 1. Mở “Hồ sơ sinh viên”. / 2. Sửa các trường được phép. / 3. Frontend gửi PUT /api/me/student. / 4. Backend bắt đầu transaction. / 5. Cập nhật Users và Students. / 6. Commit và trả thông báo.
+  T13R4C0: Luồng thay thế/ngoại lệ
+  T13R4C1: - Không tìm thấy hồ sơ: 404. / - Email trùng: SQL UNIQUE và errorHandler trả thông báo dữ liệu trùng. / - Lỗi một bước: rollback toàn bộ transaction.
+  T13R5C0: Hậu điều kiện
+  T13R5C1: Thông tin cá nhân và học vụ được cập nhật đồng bộ.
+### Table 14 (6 rows x 2 cols) ###
+  T14R0C0: Thuộc tính
+  T14R0C1: Nội dung
+  T14R1C0: Tác nhân chính
+  T14R1C1: Sinh viên
+  T14R2C0: Tiền điều kiện
+  T14R2C1: Students.ACTIVE; tồn tại đợt và tòa nhà.
+  T14R3C0: Luồng chính
+  T14R3C1: 1. Chọn đợt OPEN, tòa mong muốn, số tháng. / 2. Backend kiểm tra thời gian đợt và số tháng dương. / 3. Tạo Applications với Status=PENDING.
+  T14R4C0: Luồng thay thế/ngoại lệ
+  T14R4C1: - Đợt DRAFT/CLOSED hoặc ngoài thời gian: từ chối. / - Tòa không tồn tại: từ chối. / - Đã có hồ sơ cùng đợt: UNIQUE(StudentID,PeriodID) từ chối.
+  T14R5C0: Hậu điều kiện
+  T14R5C1: Hồ sơ mới xuất hiện cho sinh viên và manager.
+### Table 15 (6 rows x 2 cols) ###
+  T15R0C0: Thuộc tính
+  T15R0C1: Nội dung
+  T15R1C0: Tác nhân chính
+  T15R1C1: Cán bộ quản lý KTX
+  T15R2C0: Tiền điều kiện
+  T15R2C1: Hồ sơ tồn tại và đang PENDING.
+  T15R3C0: Luồng chính
+  T15R3C1: 1. Manager xem danh sách và thông tin sinh viên. / 2. Chọn Duyệt hoặc Từ chối. / 3. Nhập ghi chú. / 4. Backend cập nhật Status, ApprovedBy, ApprovedAt và Note.
+  T15R4C0: Luồng thay thế/ngoại lệ
+  T15R4C1: - Hồ sơ không còn PENDING: không cho xử lý lại. / - Hồ sơ không tồn tại: 404.
+  T15R5C0: Hậu điều kiện
+  T15R5C1: Hồ sơ chuyển APPROVED hoặc REJECTED; sinh viên xem được ghi chú.
+### Table 16 (6 rows x 2 cols) ###
+  T16R0C0: Thuộc tính
+  T16R0C1: Nội dung
+  T16R1C0: Tác nhân chính
+  T16R1C1: Cán bộ quản lý KTX
+  T16R2C0: Tiền điều kiện
+  T16R2C1: Hồ sơ APPROVED.
+  T16R3C0: Luồng chính
+  T16R3C1: 1. Tải danh sách phòng cùng UsedBeds. / 2. Lọc phòng AVAILABLE, còn chỗ, đúng GenderScope. / 3. Manager chọn phòng. / 4. Backend kiểm tra lại điều kiện. / 5. Tính TotalAmount. / 6. Cập nhật AssignedRoomID; nếu đủ chỗ, chuyển phòng FULL.
+  T16R4C0: Luồng thay thế/ngoại lệ
+  T16R4C1: - Phòng FULL/MAINTENANCE/INACTIVE: từ chối. / - Sai giới tính: từ chối. / - UsedBeds >= Capacity: từ chối.
+  T16R5C0: Hậu điều kiện
+  T16R5C1: Hồ sơ có phòng và tổng tiền phải nộp.
+### Table 17 (6 rows x 2 cols) ###
+  T17R0C0: Thuộc tính
+  T17R0C1: Nội dung
+  T17R1C0: Tác nhân chính
+  T17R1C1: Sinh viên; Kế toán
+  T17R2C0: Tiền điều kiện
+  T17R2C1: Hồ sơ có TotalAmount, trạng thái APPROVED hoặc CHECKED_IN.
+  T17R3C0: Luồng chính
+  T17R3C1: 1. Sinh viên nhập số tiền, phương thức, mã giao dịch. / 2. Tạo Payments.PENDING. / 3. Kế toán lọc danh sách chờ. / 4. Đối soát và chọn CONFIRMED hoặc REJECTED. / 5. Lưu ConfirmedBy, PaidAt và Note.
+  T17R4C0: Luồng thay thế/ngoại lệ
+  T17R4C1: - Amount <= 0: từ chối. / - TRANSFER/ONLINE thiếu TransactionCode: từ chối. / - Payment không còn PENDING: không xử lý lại.
+  T17R5C0: Hậu điều kiện
+  T17R5C1: Khoản CONFIRMED được cộng vào công nợ.
+### Table 18 (6 rows x 2 cols) ###
+  T18R0C0: Thuộc tính
+  T18R0C1: Nội dung
+  T18R1C0: Tác nhân chính
+  T18R1C1: Cán bộ quản lý KTX
+  T18R2C0: Tiền điều kiện
+  T18R2C1: Nhận phòng: APPROVED, có phòng, thanh toán đủ; trả phòng: CHECKED_IN.
+  T18R3C0: Luồng chính
+  T18R3C1: 1.Manager mở màn hình Nhận/trả phòng. / 2. Hệ thống hiển thị TotalAmount, ConfirmedAmount, DebtAmount. / 3. Nhận phòng: kiểm tra SUM(CONFIRMED) >= TotalAmount và cập nhật CHECKED_IN. / 4. Trả phòng: cập nhật CHECKED_OUT và ngày trả; phòng FULL trở lại AVAILABLE.
+  T18R4C0: Luồng thay thế/ngoại lệ
+  T18R4C1: - Chưa phân phòng hoặc chưa đủ tiền: từ chối nhận phòng. / - Hồ sơ không CHECKED_IN: từ chối trả phòng.
+  T18R5C0: Hậu điều kiện
+  T18R5C1: Trạng thái cư trú và ngày nhận/trả được ghi nhận.
+### Table 19 (6 rows x 2 cols) ###
+  T19R0C0: Thuộc tính
+  T19R0C1: Nội dung
+  T19R1C0: Tác nhân chính
+  T19R1C1: Sinh viên; Cán bộ quản lý KTX
+  T19R2C0: Tiền điều kiện
+  T19R2C1: Hồ sơ APPROVED hoặc CHECKED_IN.
+  T19R3C0: Luồng chính
+  T19R3C1: 1. Sinh viên chọn hồ sơ và loại yêu cầu. / 2. Nhập tiêu đề, nội dung. / 3. Tạo Requests.PENDING. / 4. Manager lọc theo từ khóa, loại, trạng thái. / 5. Cập nhật APPROVED/REJECTED/DONE và ResultNote.
+  T19R4C0: Luồng thay thế/ngoại lệ
+  T19R4C1: - Loại ngoài danh sách: từ chối. / - Yêu cầu REJECTED/DONE không được xử lý lại. / - ResultNote thiếu: từ chối.
+  T19R5C0: Hậu điều kiện
+  T19R5C1: Sinh viên theo dõi trạng thái và kết quả xử lý.
+### Table 20 (6 rows x 2 cols) ###
+  T20R0C0: Thuộc tính
+  T20R0C1: Nội dung
+  T20R1C0: Tác nhân chính
+  T20R1C1: Quản trị hệ thống
+  T20R2C0: Tiền điều kiện
+  T20R2C1: Đăng nhập ADMIN.
+  T20R3C0: Luồng chính
+  T20R3C1: 1. Tạo/sửa tài khoản và vai trò. / 2. Khi tạo STUDENT có thể tạo đồng thời hồ sơ Students trong transaction. / 3. Quản lý tòa nhà, phòng và đợt đăng ký. / 4. Xóa dữ liệu không có tham chiếu; dữ liệu có tham chiếu được khóa/ngừng dùng/đóng theo quy tắc. / 5. Mở lại tài khoản bằng cách sửa Status=ACTIVE.
+  T20R4C0: Luồng thay thế/ngoại lệ
+  T20R4C1: - Không thể xóa tài khoản đang đăng nhập. / - Tòa nhà có phòng/hồ sơ: trả lỗi và yêu cầu xử lý quan hệ trước. / - Dữ liệu trùng: trả lỗi 400.
+  T20R5C0: Hậu điều kiện
+  T20R5C1: Dữ liệu nền sẵn sàng cho vận hành; lịch sử liên quan không bị mất.
+### Table 21 (6 rows x 2 cols) ###
+  T21R0C0: Thuộc tính
+  T21R0C1: Nội dung
+  T21R1C0: Tác nhân chính
+  T21R1C1: Manager, Accountant, Admin theo từng báo cáo
+  T21R2C0: Tiền điều kiện
+  T21R2C1: Có dữ liệu Applications, Payments và Rooms.
+  T21R3C0: Luồng chính
+  T21R3C1: 1. Chọn báo cáo cư trú/công nợ/thu phí. / 2. Chọn bộ lọc theo đợt, trạng thái, phương thức hoặc từ khóa. / 3. Backend thực hiện truy vấn tổng hợp. / 4. Frontend hiển thị stat-card và bảng dữ liệu.
+  T21R4C0: Luồng thay thế/ngoại lệ
+  T21R4C1: - Không có dữ liệu: hiển thị trạng thái trống. / - Vai trò không được cấp quyền: 403.
+  T21R5C0: Hậu điều kiện
+  T21R5C1: Người dùng có số liệu tổng hợp phục vụ quản lý.
+### Table 22 (9 rows x 3 cols) ###
+  T22R0C0: Lớp
+  T22R0C1: Tệp/Thư mục
+  T22R0C2: Trách nhiệm
+  T22R1C0: Khởi động
+  T22R1C1: backend/src/server.js
+  T22R1C2: Đọc PORT và gọi app.listen.
+  T22R2C0: Ứng dụng
+  T22R2C1: backend/src/app.js
+  T22R2C2: Cấu hình Express, CORS, JSON, static, context và đăng ký routes.
+  T22R3C0: Cấu hình/CSDL
+  T22R3C1: config.js, db.js
+  T22R3C2: Đọc .env; tạo SQL connection pool.
+  T22R4C0: Middleware
+  T22R4C1: middleware/auth.js, errorHandler.js
+  T22R4C2: Xác thực token, phân quyền và chuẩn hóa lỗi.
+  T22R5C0: Service
+  T22R5C1: services/studentService.js
+  T22R5C2: Truy vấn sinh viên, tiền đã xác nhận, sức chứa và quyền xem hồ sơ.
+  T22R6C0: Routes
+  T22R6C1: routes/*.js
+  T22R6C2: Auth, dashboard, user, catalog, application, payment, request, report.
+  T22R7C0: Frontend core
+  T22R7C1: assets/js/core.js, app.js
+  T22R7C2: API client, menu, điều hướng, token, modal, toast.
+  T22R8C0: Frontend vai trò
+  T22R8C1: student.js, manager.js, accountant.js, admin.js
+  T22R8C2: Render màn hình và xử lý sự kiện theo vai trò.
+### Table 23 (10 rows x 4 cols) ###
+  T23R0C0: Cột
+  T23R0C1: Kiểu dữ liệu
+  T23R0C2: Ràng buộc
+  T23R0C3: Ý nghĩa
+  T23R1C0: UserID
+  T23R1C1: INT IDENTITY
+  T23R1C2: PK
+  T23R1C3: Khóa tài khoản.
+  T23R2C0: Username
+  T23R2C1: NVARCHAR(50)
+  T23R2C2: NOT NULL, UNIQUE
+  T23R2C3: Tên đăng nhập.
+  T23R3C0: PasswordHash
+  T23R3C1: NVARCHAR(255)
+  T23R3C2: NOT NULL
+  T23R3C3: Mật khẩu băm SHA-256 ở dữ liệu demo.
+  T23R4C0: FullName
+  T23R4C1: NVARCHAR(120)
+  T23R4C2: NOT NULL
+  T23R4C3: Họ tên hiển thị.
+  T23R5C0: Role
+  T23R5C1: VARCHAR(20)
+  T23R5C2: CHECK
+  T23R5C3: STUDENT/MANAGER/ACCOUNTANT/ADMIN.
+  T23R6C0: Phone
+  T23R6C1: VARCHAR(20)
+  T23R6C2: NULL
+  T23R6C3: Số điện thoại.
+  T23R7C0: Email
+  T23R7C1: VARCHAR(120)
+  T23R7C2: UNIQUE, NULL
+  T23R7C3: Email liên hệ.
+  T23R8C0: Status
+  T23R8C1: VARCHAR(20)
+  T23R8C2: CHECK, DEFAULT ACTIVE
+  T23R8C3: ACTIVE/INACTIVE/LOCKED.
+  T23R9C0: CreatedAt
+  T23R9C1: DATETIME2
+  T23R9C2: DEFAULT SYSDATETIME
+  T23R9C3: Thời điểm tạo.
+### Table 24 (9 rows x 4 cols) ###
+  T24R0C0: Cột
+  T24R0C1: Kiểu dữ liệu
+  T24R0C2: Ràng buộc
+  T24R0C3: Ý nghĩa
+  T24R1C0: StudentID
+  T24R1C1: INT IDENTITY
+  T24R1C2: PK
+  T24R1C3: Khóa hồ sơ sinh viên.
+  T24R2C0: UserID
+  T24R2C1: INT
+  T24R2C2: FK, UNIQUE
+  T24R2C3: Liên kết một-một Users.
+  T24R3C0: StudentCode
+  T24R3C1: VARCHAR(20)
+  T24R3C2: UNIQUE
+  T24R3C3: Mã sinh viên.
+  T24R4C0: Gender
+  T24R4C1: VARCHAR(10)
+  T24R4C2: CHECK
+  T24R4C3: MALE/FEMALE/OTHER.
+  T24R5C0: DateOfBirth
+  T24R5C1: DATE
+  T24R5C2: NULL
+  T24R5C3: Ngày sinh.
+  T24R6C0: Faculty
+  T24R6C1: NVARCHAR(100)
+  T24R6C2: NULL
+  T24R6C3: Khoa.
+  T24R7C0: ClassName
+  T24R7C1: NVARCHAR(50)
+  T24R7C2: NULL
+  T24R7C3: Lớp.
+  T24R8C0: Status
+  T24R8C1: VARCHAR(20)
+  T24R8C2: CHECK
+  T24R8C3: ACTIVE/INACTIVE.
+### Table 25 (5 rows x 4 cols) ###
+  T25R0C0: Cột
+  T25R0C1: Kiểu dữ liệu
+  T25R0C2: Ràng buộc
+  T25R0C3: Ý nghĩa
+  T25R1C0: BuildingID
+  T25R1C1: INT IDENTITY
+  T25R1C2: PK
+  T25R1C3: Khóa tòa nhà.
+  T25R2C0: BuildingName
+  T25R2C1: NVARCHAR(100)
+  T25R2C2: UNIQUE
+  T25R2C3: Tên tòa.
+  T25R3C0: GenderScope
+  T25R3C1: VARCHAR(10)
+  T25R3C2: CHECK
+  T25R3C3: ALL/MALE/FEMALE.
+  T25R4C0: Notes
+  T25R4C1: NVARCHAR(255)
+  T25R4C2: NULL
+  T25R4C3: Ghi chú.
+### Table 26 (10 rows x 4 cols) ###
+  T26R0C0: Cột
+  T26R0C1: Kiểu dữ liệu
+  T26R0C2: Ràng buộc
+  T26R0C3: Ý nghĩa
+  T26R1C0: RoomID
+  T26R1C1: INT IDENTITY
+  T26R1C2: PK
+  T26R1C3: Khóa phòng.
+  T26R2C0: BuildingID
+  T26R2C1: INT
+  T26R2C2: FK
+  T26R2C3: Tòa nhà.
+  T26R3C0: RoomCode
+  T26R3C1: VARCHAR(20)
+  T26R3C2: UQ theo BuildingID
+  T26R3C3: Mã phòng trong tòa.
+  T26R4C0: FloorNo
+  T26R4C1: INT
+  T26R4C2: NULL
+  T26R4C3: Tầng.
+  T26R5C0: Capacity
+  T26R5C1: INT
+  T26R5C2: CHECK > 0
+  T26R5C3: Sức chứa.
+  T26R6C0: PricePerMonth
+  T26R6C1: DECIMAL(18,2)
+  T26R6C2: CHECK >= 0
+  T26R6C3: Đơn giá tháng.
+  T26R7C0: GenderScope
+  T26R7C1: VARCHAR(10)
+  T26R7C2: CHECK
+  T26R7C3: Phạm vi giới tính.
+  T26R8C0: RoomStatus
+  T26R8C1: VARCHAR(20)
+  T26R8C2: CHECK
+  T26R8C3: AVAILABLE/FULL/MAINTENANCE/INACTIVE.
+  T26R9C0: Notes
+  T26R9C1: NVARCHAR(255)
+  T26R9C2: NULL
+  T26R9C3: Ghi chú.
+### Table 27 (7 rows x 4 cols) ###
+  T27R0C0: Cột
+  T27R0C1: Kiểu dữ liệu
+  T27R0C2: Ràng buộc
+  T27R0C3: Ý nghĩa
+  T27R1C0: PeriodID
+  T27R1C1: INT IDENTITY
+  T27R1C2: PK
+  T27R1C3: Khóa đợt.
+  T27R2C0: PeriodName
+  T27R2C1: NVARCHAR(100)
+  T27R2C2: NOT NULL
+  T27R2C3: Tên đợt.
+  T27R3C0: StartDate
+  T27R3C1: DATE
+  T27R3C2: NOT NULL
+  T27R3C3: Ngày bắt đầu.
+  T27R4C0: EndDate
+  T27R4C1: DATE
+  T27R4C2: CHECK >= StartDate
+  T27R4C3: Ngày kết thúc.
+  T27R5C0: Status
+  T27R5C1: VARCHAR(20)
+  T27R5C2: CHECK
+  T27R5C3: DRAFT/OPEN/CLOSED.
+  T27R6C0: Notes
+  T27R6C1: NVARCHAR(255)
+  T27R6C2: NULL
+  T27R6C3: Ghi chú.
+### Table 28 (16 rows x 4 cols) ###
+  T28R0C0: Cột
+  T28R0C1: Kiểu dữ liệu
+  T28R0C2: Ràng buộc
+  T28R0C3: Ý nghĩa
+  T28R1C0: ApplicationID
+  T28R1C1: INT IDENTITY
+  T28R1C2: PK
+  T28R1C3: Khóa hồ sơ.
+  T28R2C0: StudentID
+  T28R2C1: INT
+  T28R2C2: FK
+  T28R2C3: Sinh viên đăng ký.
+  T28R3C0: PeriodID
+  T28R3C1: INT
+  T28R3C2: FK
+  T28R3C3: Đợt đăng ký.
+  T28R4C0: PreferredBuildingID
+  T28R4C1: INT
+  T28R4C2: FK, NULL
+  T28R4C3: Tòa mong muốn.
+  T28R5C0: DurationMonths
+  T28R5C1: INT
+  T28R5C2: CHECK > 0
+  T28R5C3: Số tháng ở.
+  T28R6C0: AttachmentUrl
+  T28R6C1: NVARCHAR(255)
+  T28R6C2: NULL
+  T28R6C3: Đường dẫn minh chứng.
+  T28R7C0: TotalAmount
+  T28R7C1: DECIMAL(18,2)
+  T28R7C2: CHECK >= 0, NULL
+  T28R7C3: Tổng tiền sau phân phòng.
+  T28R8C0: Status
+  T28R8C1: VARCHAR(20)
+  T28R8C2: CHECK
+  T28R8C3: PENDING/APPROVED/REJECTED/CHECKED_IN/CHECKED_OUT.
+  T28R9C0: SubmittedAt
+  T28R9C1: DATETIME2
+  T28R9C2: DEFAULT
+  T28R9C3: Ngày nộp.
+  T28R10C0: ApprovedBy
+  T28R10C1: INT
+  T28R10C2: FK Users, NULL
+  T28R10C3: Người duyệt.
+  T28R11C0: ApprovedAt
+  T28R11C1: DATETIME2
+  T28R11C2: NULL
+  T28R11C3: Thời điểm duyệt.
+  T28R12C0: AssignedRoomID
+  T28R12C1: INT
+  T28R12C2: FK Rooms, NULL
+  T28R12C3: Phòng được gán.
+  T28R13C0: CheckInDate
+  T28R13C1: DATE
+  T28R13C2: NULL
+  T28R13C3: Ngày nhận phòng.
+  T28R14C0: CheckOutDate
+  T28R14C1: DATE
+  T28R14C2: CHECK
+  T28R14C3: Ngày trả không trước ngày nhận.
+  T28R15C0: Note
+  T28R15C1: NVARCHAR(255)
+  T28R15C2: NULL
+  T28R15C3: Ghi chú xử lý.
+### Table 29 (10 rows x 4 cols) ###
+  T29R0C0: Cột
+  T29R0C1: Kiểu dữ liệu
+  T29R0C2: Ràng buộc
+  T29R0C3: Ý nghĩa
+  T29R1C0: PaymentID
+  T29R1C1: INT IDENTITY
+  T29R1C2: PK
+  T29R1C3: Khóa giao dịch.
+  T29R2C0: ApplicationID
+  T29R2C1: INT
+  T29R2C2: FK
+  T29R2C3: Hồ sơ liên quan.
+  T29R3C0: Amount
+  T29R3C1: DECIMAL(18,2)
+  T29R3C2: CHECK > 0
+  T29R3C3: Số tiền.
+  T29R4C0: PaymentMethod
+  T29R4C1: VARCHAR(20)
+  T29R4C2: CHECK
+  T29R4C3: CASH/TRANSFER/ONLINE.
+  T29R5C0: TransactionCode
+  T29R5C1: VARCHAR(50)
+  T29R5C2: NULL
+  T29R5C3: Mã giao dịch.
+  T29R6C0: PaymentStatus
+  T29R6C1: VARCHAR(20)
+  T29R6C2: CHECK
+  T29R6C3: PENDING/CONFIRMED/REJECTED.
+  T29R7C0: PaidAt
+  T29R7C1: DATETIME2
+  T29R7C2: NULL
+  T29R7C3: Thời điểm gửi/xác nhận.
+  T29R8C0: ConfirmedBy
+  T29R8C1: INT
+  T29R8C2: FK Users, NULL
+  T29R8C3: Kế toán xác nhận.
+  T29R9C0: Note
+  T29R9C1: NVARCHAR(255)
+  T29R9C2: NULL
+  T29R9C3: Ghi chú.
+### Table 30 (11 rows x 4 cols) ###
+  T30R0C0: Cột
+  T30R0C1: Kiểu dữ liệu
+  T30R0C2: Ràng buộc
+  T30R0C3: Ý nghĩa
+  T30R1C0: RequestID
+  T30R1C1: INT IDENTITY
+  T30R1C2: PK
+  T30R1C3: Khóa yêu cầu.
+  T30R2C0: ApplicationID
+  T30R2C1: INT
+  T30R2C2: FK
+  T30R2C3: Hồ sơ liên quan.
+  T30R3C0: RequestType
+  T30R3C1: VARCHAR(20)
+  T30R3C2: CHECK
+  T30R3C3: EXTEND/TRANSFER/CHECKOUT/INCIDENT/FEEDBACK.
+  T30R4C0: Title
+  T30R4C1: NVARCHAR(150)
+  T30R4C2: NOT NULL
+  T30R4C3: Tiêu đề.
+  T30R5C0: Content
+  T30R5C1: NVARCHAR(1000)
+  T30R5C2: NULL
+  T30R5C3: Nội dung.
+  T30R6C0: Status
+  T30R6C1: VARCHAR(20)
+  T30R6C2: CHECK
+  T30R6C3: PENDING/APPROVED/REJECTED/DONE.
+  T30R7C0: CreatedAt
+  T30R7C1: DATETIME2
+  T30R7C2: DEFAULT
+  T30R7C3: Ngày tạo.
+  T30R8C0: ProcessedBy
+  T30R8C1: INT
+  T30R8C2: FK Users, NULL
+  T30R8C3: Người xử lý.
+  T30R9C0: ProcessedAt
+  T30R9C1: DATETIME2
+  T30R9C2: NULL
+  T30R9C3: Thời điểm xử lý.
+  T30R10C0: ResultNote
+  T30R10C1: NVARCHAR(255)
+  T30R10C2: NULL
+  T30R10C3: Kết quả.
+### Table 31 (13 rows x 4 cols) ###
+  T31R0C0: Phương thức
+  T31R0C1: Endpoint
+  T31R0C2: Quyền
+  T31R0C3: Mục đích
+  T31R1C0: POST
+  T31R1C1: /api/auth/login
+  T31R1C2: Công khai
+  T31R1C3: Đăng nhập và trả token.
+  T31R2C0: GET
+  T31R2C1: /api/auth/me
+  T31R2C2: Đã đăng nhập
+  T31R2C3: Kiểm tra phiên.
+  T31R3C0: GET
+  T31R3C1: /api/lookups
+  T31R3C2: Đã đăng nhập
+  T31R3C3: Tòa nhà, phòng, đợt.
+  T31R4C0: GET
+  T31R4C1: /api/dashboard
+  T31R4C2: Đã đăng nhập
+  T31R4C3: Thẻ thống kê theo vai trò.
+  T31R5C0: GET
+  T31R5C1: /api/me/student
+  T31R5C2: STUDENT
+  T31R5C3: Xem hồ sơ cá nhân.
+  T31R6C0: PUT
+  T31R6C1: /api/me/student
+  T31R6C2: STUDENT
+  T31R6C3: Cập nhật Users + Students trong transaction.
+  T31R7C0: GET
+  T31R7C1: /api/users
+  T31R7C2: ADMIN
+  T31R7C3: Danh sách tài khoản.
+  T31R8C0: POST
+  T31R8C1: /api/users
+  T31R8C2: ADMIN
+  T31R8C3: Tạo tài khoản; tạo Students nếu Role=STUDENT.
+  T31R9C0: PUT
+  T31R9C1: /api/users/:id
+  T31R9C2: ADMIN
+  T31R9C3: Sửa thông tin, vai trò, trạng thái, mật khẩu.
+  T31R10C0: DELETE
+  T31R10C1: /api/users/:id
+  T31R10C2: ADMIN
+  T31R10C3: Xóa vật lý hoặc LOCKED khi có tham chiếu.
+  T31R11C0: GET
+  T31R11C1: /api/students
+  T31R11C2: ADMIN/MANAGER/ACCOUNTANT
+  T31R11C3: Danh sách sinh viên.
+  T31R12C0: POST/PUT/DELETE
+  T31R12C1: /api/students[...]
+  T31R12C2: ADMIN
+  T31R12C3: Quản lý hồ sơ sinh viên.
+### Table 32 (10 rows x 4 cols) ###
+  T32R0C0: Phương thức
+  T32R0C1: Endpoint
+  T32R0C2: Quyền
+  T32R0C3: Mục đích
+  T32R1C0: GET/POST/PUT/DELETE
+  T32R1C1: /api/buildings[...]
+  T32R1C2: GET: login; ghi: ADMIN
+  T32R1C3: Quản lý tòa nhà; chặn xóa khi có quan hệ.
+  T32R2C0: GET/POST/PUT/DELETE
+  T32R2C1: /api/rooms[...]
+  T32R2C2: GET: login; ghi: ADMIN
+  T32R2C3: Quản lý phòng; tính UsedBeds; soft delete INACTIVE.
+  T32R3C0: GET/POST/PUT/DELETE
+  T32R3C1: /api/periods[...]
+  T32R3C2: GET: login; ghi: ADMIN
+  T32R3C3: Quản lý đợt; soft delete CLOSED.
+  T32R4C0: GET
+  T32R4C1: /api/applications
+  T32R4C2: Login
+  T32R4C3: Lọc status, periodId, keyword; STUDENT chỉ xem của mình.
+  T32R5C0: POST
+  T32R5C1: /api/applications
+  T32R5C2: STUDENT
+  T32R5C3: Nộp hồ sơ.
+  T32R6C0: POST
+  T32R6C1: /api/applications/:id/decision
+  T32R6C2: MANAGER
+  T32R6C3: Duyệt/từ chối.
+  T32R7C0: POST
+  T32R7C1: /api/applications/:id/assign-room
+  T32R7C2: MANAGER
+  T32R7C3: Phân phòng và tính tiền.
+  T32R8C0: POST
+  T32R8C1: /api/applications/:id/check-in
+  T32R8C2: MANAGER
+  T32R8C3: Nhận phòng khi đủ tiền.
+  T32R9C0: POST
+  T32R9C1: /api/applications/:id/check-out
+  T32R9C2: MANAGER
+  T32R9C3: Trả phòng.
+### Table 33 (10 rows x 4 cols) ###
+  T33R0C0: Phương thức
+  T33R0C1: Endpoint
+  T33R0C2: Quyền
+  T33R0C3: Mục đích
+  T33R1C0: GET
+  T33R1C1: /api/payments
+  T33R1C2: Login
+  T33R1C3: Lọc trạng thái, phương thức, từ khóa; STUDENT chỉ xem của mình.
+  T33R2C0: POST
+  T33R2C1: /api/payments
+  T33R2C2: STUDENT
+  T33R2C3: Tạo giao dịch PENDING.
+  T33R3C0: POST
+  T33R3C1: /api/payments/:id/confirm
+  T33R3C2: ACCOUNTANT
+  T33R3C3: CONFIRMED/REJECTED.
+  T33R4C0: GET
+  T33R4C1: /api/requests
+  T33R4C2: Login
+  T33R4C3: Lọc trạng thái, loại, từ khóa; STUDENT chỉ xem của mình.
+  T33R5C0: POST
+  T33R5C1: /api/requests
+  T33R5C2: STUDENT
+  T33R5C3: Tạo yêu cầu PENDING.
+  T33R6C0: POST
+  T33R6C1: /api/requests/:id/process
+  T33R6C2: MANAGER
+  T33R6C3: APPROVED/REJECTED/DONE.
+  T33R7C0: GET
+  T33R7C1: /api/reports/debts
+  T33R7C2: ACCOUNTANT/ADMIN/MANAGER
+  T33R7C3: Danh sách tổng tiền, đã thu, còn nợ.
+  T33R8C0: GET
+  T33R8C1: /api/reports/fees
+  T33R8C2: ACCOUNTANT/ADMIN
+  T33R8C3: Tổng hợp thu phí.
+  T33R9C0: GET
+  T33R9C1: /api/reports/residence
+  T33R9C2: MANAGER/ADMIN
+  T33R9C3: Thống kê hồ sơ và giường phòng.
+### Table 34 (11 rows x 5 cols) ###
+  T34R0C0: Chức năng
+  T34R0C1: STUDENT
+  T34R0C2: MANAGER
+  T34R0C3: ACCOUNTANT
+  T34R0C4: ADMIN
+  T34R1C0: Hồ sơ cá nhân
+  T34R1C1: Có
+  T34R1C2: Không
+  T34R1C3: Không
+  T34R1C4: Quản lý toàn bộ
+  T34R2C0: Nộp/xem hồ sơ
+  T34R2C1: Của mình
+  T34R2C2: Xem toàn bộ
+  T34R2C3: Xem gián tiếp
+  T34R2C4: Dữ liệu nền
+  T34R3C0: Duyệt, phân phòng
+  T34R3C1: Không
+  T34R3C2: Có
+  T34R3C3: Không
+  T34R3C4: Không trên UI
+  T34R4C0: Gửi thanh toán
+  T34R4C1: Có
+  T34R4C2: Không
+  T34R4C3: Không
+  T34R4C4: Không
+  T34R5C0: Xác nhận thanh toán
+  T34R5C1: Không
+  T34R5C2: Không
+  T34R5C3: Có
+  T34R5C4: Không trên UI
+  T34R6C0: Yêu cầu phát sinh
+  T34R6C1: Gửi/xem của mình
+  T34R6C2: Xử lý
+  T34R6C3: Không
+  T34R6C4: Không
+  T34R7C0: Báo cáo cư trú
+  T34R7C1: Không
+  T34R7C2: Có
+  T34R7C3: Không
+  T34R7C4: API có quyền
+  T34R8C0: Công nợ
+  T34R8C1: Không
+  T34R8C2: API có quyền
+  T34R8C3: Có
+  T34R8C4: API có quyền
+  T34R9C0: Thu phí
+  T34R9C1: Không
+  T34R9C2: Không
+  T34R9C3: Có
+  T34R9C4: API có quyền
+  T34R10C0: Tài khoản/danh mục
+  T34R10C1: Không
+  T34R10C2: Không
+  T34R10C3: Không
+  T34R10C4: Có
+### Table 35 (1 rows x 1 cols) ###
+  T35R0C0: Lưu ý bảo mật: Token hiện tại là chuỗi payload ký HMAC nhưng chưa có thời hạn hết hạn. Mật khẩu demo dùng SHA-256 và backend còn cho phép so khớp chuỗi rõ để tương thích dữ liệu cũ. Khi triển khai thực tế cần dùng Argon2/bcrypt, token có exp, HTTPS, rate limiting, cookie an toàn hoặc refresh token
+### Table 36 (9 rows x 3 cols) ###
+  T36R0C0: Thành phần
+  T36R0C1: Mục đích
+  T36R0C2: Đặc điểm
+  T36R1C0: login-showcase/login-card
+  T36R1C1: Trang đăng nhập
+  T36R1C2: Nền ảnh, overlay, form có icon, hiện/ẩn mật khẩu.
+  T36R2C0: sidebar/menu
+  T36R2C1: Điều hướng
+  T36R2C2: Menu theo vai trò, icon SVG, hỗ trợ mở/đóng trên mobile.
+  T36R3C0: topbar
+  T36R3C1: Thông tin màn hình
+  T36R3C2: Tên chức năng, ngày hiện tại, người dùng.
+  T36R4C0: stat-card
+  T36R4C1: Số liệu tổng quan
+  T36R4C2: Hiển thị chỉ số và tiền tệ.
+  T36R5C0: card/table-wrap
+  T36R5C1: Nội dung nghiệp vụ
+  T36R5C2: Bảng responsive, tiêu đề và toolbar.
+  T36R6C0: form-grid/filter-row
+  T36R6C1: Nhập và lọc dữ liệu
+  T36R6C2: Bố cục lưới, required, min, select.
+  T36R7C0: status badge
+  T36R7C1: Trạng thái
+  T36R7C2: Màu ok/warn/danger/neutral.
+  T36R8C0: modal/toast
+  T36R8C1: Tương tác
+  T36R8C2: Form popup và thông báo không chặn màn hình.
+### Table 37 (11 rows x 2 cols) ###
+  T37R0C0: Đường dẫn
+  T37R0C1: Nội dung
+  T37R1C0: backend/.env, .env.example
+  T37R1C1: Cấu hình cổng, SQL Server, DB_INSTANCE và APP_SECRET.
+  T37R2C0: backend/src/app.js
+  T37R2C1: Khởi tạo Express và đăng ký 8 route module.
+  T37R3C0: backend/src/routes
+  T37R3C1: Các API nghiệp vụ.
+  T37R4C0: backend/src/middleware
+  T37R4C1: Xác thực, phân quyền, 404 và xử lý lỗi.
+  T37R5C0: backend/src/services
+  T37R5C1: Hàm dùng chung liên quan sinh viên, công nợ, sức chứa.
+  T37R6C0: backend/src/utils
+  T37R6C1: Validation HTTP và security.
+  T37R7C0: database/00_full_database.sql
+  T37R7C1: Tạo lại CSDL, 8 bảng và dữ liệu mẫu.
+  T37R8C0: frontend/index.html
+  T37R8C1: Trang đăng nhập và app shell.
+  T37R9C0: frontend/assets/styles.css
+  T37R9C1: Toàn bộ giao diện mới và responsive.
+  T37R10C0: frontend/assets/js
+  T37R10C1: Core, dashboard và module cho 4 vai trò.
+### Table 38 (6 rows x 4 cols) ###
+  T38R0C0: Đối tượng
+  T38R0C1: Không có tham chiếu
+  T38R0C2: Có tham chiếu
+  T38R0C3: Cách khôi phục
+  T38R1C0: Users
+  T38R1C1: DELETE
+  T38R1C2: Status=LOCKED
+  T38R2C0: Students
+  T38R2C1: DELETE
+  T38R2C2: Status=INACTIVE
+  T38R3C0: Rooms
+  T38R3C1: DELETE
+  T38R3C2: RoomStatus=INACTIVE
+  T38R4C0: RegistrationPeriods
+  T38R4C1: DELETE
+  T38R4C2: Status=CLOSED
+  T38R5C0: Buildings
+  T38R5C1: DELETE
+  T38R5C2: Từ chối xóa và báo lỗi
+  T38R5C3: Xử lý/chuyển phòng và hồ sơ liên quan trước.
+### Table 39 (5 rows x 4 cols) ###
+  T39R0C0: Vai trò
+  T39R0C1: Username
+  T39R0C2: Password
+  T39R0C3: Mục đích
+  T39R1C0: Sinh viên
+  T39R1C1: sv001 / sv002 / sv003
+  T39R1C2: 123456
+  T39R1C3: Kiểm tra hồ sơ, đăng ký, thanh toán, yêu cầu.
+  T39R2C0: Cán bộ quản lý
+  T39R2C1: manager
+  T39R2C2: 123456
+  T39R2C3: Duyệt, phân phòng, nhận/trả phòng, yêu cầu.
+  T39R3C0: Kế toán
+  T39R3C1: accountant
+  T39R3C2: 123456
+  T39R3C3: Xác nhận thanh toán, công nợ, thu phí.
+  T39R4C0: Admin
+  T39R4C1: admin
+  T39R4C2: 123456
+  T39R4C3: Quản lý tài khoản và danh mục.
+### Table 40 (7 rows x 2 cols) ###
+  T40R0C0: Thành phần
+  T40R0C1: Cấu hình
+  T40R1C0: Hệ điều hành
+  T40R1C1: Windows 10/11.
+  T40R2C0: Trình duyệt
+  T40R2C1: Chrome hoặc Microsoft Edge phiên bản mới.
+  T40R3C0: Backend
+  T40R3C1: Node.js; npm start tại cổng 3000.
+  T40R4C0: Database
+  T40R4C1: SQL Server hoặc SQL Server Express; QLKTX_RutGon.
+  T40R5C0: Công cụ đối chiếu
+  T40R5C1: DevTools Network/Console, terminal backend, SQL Server Management Studio.
+  T40R6C0: Dữ liệu
+  T40R6C1: Script 00_full_database.sql và tài khoản demo.
+### Table 41 (31 rows x 4 cols) ###
+  T41R0C0: Mã
+  T41R0C1: Chức năng
+  T41R0C2: Dữ liệu/điều kiện
+  T41R0C3: Kết quả mong đợi
+  T41R1C0: TC01
+  T41R1C1: Đăng nhập đúng
+  T41R1C2: sv001/123456
+  T41R1C3: Vào dashboard STUDENT; chỉ có menu sinh viên.
+  T41R2C0: TC02
+  T41R2C1: Đăng nhập sai
+  T41R2C2: Sai mật khẩu/trống
+  T41R2C3: Báo lỗi; không tạo phiên.
+  T41R3C0: TC03
+  T41R3C1: Phân quyền
+  T41R3C2: Gọi API trái vai trò
+  T41R3C3: Trả 403; không thay đổi DB.
+  T41R4C0: TC04
+  T41R4C1: Cập nhật hồ sơ
+  T41R4C2: Sửa thông tin hợp lệ
+  T41R4C3: Users và Students cùng cập nhật.
+  T41R5C0: TC05
+  T41R5C1: Nộp hồ sơ hợp lệ
+  T41R5C2: Đợt OPEN, tháng > 0
+  T41R5C3: Tạo Applications.PENDING.
+  T41R6C0: TC06
+  T41R6C1: Nộp trùng
+  T41R6C2: Cùng StudentID + PeriodID
+  T41R6C3: Báo dữ liệu trùng.
+  T41R7C0: TC07
+  T41R7C1: Đợt không hợp lệ
+  T41R7C2: CLOSED/DRAFT/ngoài ngày
+  T41R7C3: Không tạo hồ sơ.
+  T41R8C0: TC08
+  T41R8C1: Theo dõi hồ sơ
+  T41R8C2: Lọc trạng thái/đợt
+  T41R8C3: Chỉ hiện hồ sơ của sinh viên.
+  T41R9C0: TC09
+  T41R9C1: Gửi thanh toán
+  T41R9C2: APPROVED, có TotalAmount
+  T41R9C3: Tạo Payments.PENDING.
+  T41R10C0: TC10
+  T41R10C1: Mã giao dịch
+  T41R10C2: TRANSFER không có code
+  T41R10C3: Báo lỗi 400.
+  T41R11C0: TC11
+  T41R11C1: Gửi yêu cầu
+  T41R11C2: Hồ sơ APPROVED/CHECKED_IN
+  T41R11C3: Tạo Requests.PENDING.
+  T41R12C0: TC12
+  T41R12C1: Duyệt hồ sơ
+  T41R12C3: Lưu ApprovedBy/ApprovedAt.
+  T41R13C0: TC13
+  T41R13C1: Từ chối hồ sơ
+  T41R13C3: Lưu lý do.
+  T41R14C0: TC14
+  T41R14C1: Phân phòng hợp lệ
+  T41R14C2: AVAILABLE, đúng giới tính
+  T41R14C3: Gán phòng và tính TotalAmount.
+  T41R15C0: TC15
+  T41R15C1: Phân phòng đầy/sai giới tính
+  T41R15C2: FULL/MAINTENANCE/sai scope
+  T41R15C3: Không gán phòng.
+  T41R16C0: TC16
+  T41R16C1: Nhận phòng đủ tiền
+  T41R16C2: ConfirmedAmount >= TotalAmount
+  T41R16C3: CHECKED_IN.
+  T41R17C0: TC17
+  T41R17C1: Nhận phòng thiếu tiền
+  T41R17C2: DebtAmount > 0
+  T41R17C3: Báo chưa thanh toán đủ.
+  T41R18C0: TC18
+  T41R18C1: Trả phòng
+  T41R18C2: CHECKED_IN
+  T41R18C3: CHECKED_OUT; mở lại phòng FULL.
+  T41R19C0: TC19
+  T41R19C1: Xử lý yêu cầu
+  T41R19C2: PENDING/APPROVED
+  T41R19C3: Cập nhật trạng thái và ResultNote.
+  T41R20C0: TC20
+  T41R20C1: Xác nhận thanh toán
+  T41R20C2: PENDING hợp lệ
+  T41R20C3: CONFIRMED, lưu ConfirmedBy.
+  T41R21C0: TC21
+  T41R21C1: Từ chối thanh toán
+  T41R21C2: PENDING không hợp lệ
+  T41R21C3: REJECTED.
+  T41R22C0: TC22
+  T41R22C1: Công nợ
+  T41R22C2: Nhiều payment
+  T41R22C3: Chỉ cộng CONFIRMED.
+  T41R23C0: TC23
+  T41R23C1: Tạo tài khoản STUDENT
+  T41R23C2: Đủ StudentCode
+  T41R23C3: Tạo Users và Students trong transaction.
+  T41R24C0: TC24
+  T41R24C1: Xóa tài khoản có quan hệ
+  T41R24C2: User đã có dữ liệu
+  T41R24C3: Chuyển LOCKED, không mất lịch sử.
+  T41R25C0: TC25
+  T41R25C1: Mở khóa tài khoản
+  T41R25C2: Sửa Status=ACTIVE
+  T41R25C3: Đăng nhập lại được.
+  T41R26C0: TC26
+  T41R26C1: Xóa phòng/đợt có quan hệ
+  T41R26C2: Đã được sử dụng
+  T41R26C3: INACTIVE/CLOSED thay vì DELETE.
+  T41R27C0: TC27
+  T41R27C1: Báo cáo cư trú/thu phí
+  T41R27C2: Lọc theo đợt/phương thức
+  T41R27C3: Số liệu và bảng phù hợp dữ liệu.
+  T41R28C0: TC28
+  T41R28C1: Responsive
+  T41R28C3: Sidebar dạng drawer, không tràn nội dung.
+  T41R29C0: TC29
+  T41R29C1: Token tài khoản bị khóa
+  T41R29C2: Khóa sau khi đã đăng nhập
+  T41R29C3: Request tiếp theo trả 401.
+  T41R30C0: TC30
+  T41R30C1: Lỗi FK/UNIQUE
+  T41R30C2: Xóa/cập nhật dữ liệu liên quan
+  T41R30C3: Thông báo tiếng Việt, không hỏng server.
+### Table 42 (13 rows x 3 cols) ###
+  T42R0C0: Nhóm
+  T42R0C1: Mức độ hiện thực
+  T42R0C2: Nhận xét
+  T42R1C0: Đăng nhập và RBAC
+  T42R1C1: Đã hiện thực
+  T42R1C2: Có token HMAC, auth và allow; menu theo vai trò.
+  T42R2C0: Hồ sơ sinh viên
+  T42R2C1: Đã hiện thực
+  T42R2C2: Cập nhật hai bảng trong transaction.
+  T42R3C0: Đăng ký và duyệt
+  T42R3C1: Đã hiện thực
+  T42R3C2: Kiểm tra đợt, UNIQUE và trạng thái.
+  T42R4C0: Phân phòng
+  T42R4C1: Đã hiện thực
+  T42R4C2: Kiểm tra phòng, giới tính, sức chứa, tính tiền.
+  T42R5C0: Thanh toán/công nợ
+  T42R5C1: Đã hiện thực
+  T42R5C2: Nhiều giao dịch; chỉ CONFIRMED làm giảm nợ.
+  T42R6C0: Nhận/trả phòng
+  T42R6C1: Đã hiện thực
+  T42R6C2: Ràng buộc đủ tiền và trạng thái.
+  T42R7C0: Yêu cầu phát sinh
+  T42R7C1: Đã hiện thực
+  T42R7C2: 5 loại và 4 trạng thái.
+  T42R8C0: Quản trị danh mục
+  T42R8C1: Đã hiện thực
+  T42R8C2: CRUD và chiến lược soft delete.
+  T42R9C0: Báo cáo
+  T42R9C1: Đã hiện thực
+  T42R9C2: Cư trú, công nợ, thu phí.
+  T42R10C0: Giao diện mới
+  T42R10C1: Đã hiện thực
+  T42R10C2: PTIT branding, responsive, dashboard, component thống nhất.
+  T42R11C0: Kiểm tra cú pháp JS
+  T42R11C1: Đạt
+  T42R11C2: node --check không phát hiện lỗi cú pháp trong các tệp JS được cung cấp.
+  T42R12C0: Kiểm thử tích hợp SQL
+  T42R12C1: Cần xác nhận tại máy nhóm
+  T42R12C2: Phụ thuộc SQL Server, .env và dữ liệu thực tế.

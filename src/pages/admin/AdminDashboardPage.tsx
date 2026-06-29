@@ -1,3 +1,8 @@
+// ============================================================================
+// ADMIN DASHBOARD PAGE — Trang tổng quan Admin
+// Hiển thị: tổng user, tổng chuyến, tổng vé, doanh thu, biểu đồ
+// ============================================================================
+
 import { useEffect, useState } from "react";
 import { 
   Users, 

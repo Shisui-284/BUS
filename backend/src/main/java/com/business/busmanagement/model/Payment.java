@@ -1,5 +1,13 @@
 package com.business.busmanagement.model;
 
+/* ============================================================
+ * Bảng: payments
+ * Lưu lịch sử thanh toán cho 1 vé.
+ * paymentMethod: CASH / CARD / MOMO / BANK / VNPAY
+ * status: PENDING / SUCCESS / FAILED / REFUNDED
+ * transactionCode: mã từ VNPay hoặc hệ thống tự sinh
+ * ============================================================ */
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

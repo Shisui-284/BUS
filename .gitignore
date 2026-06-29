@@ -11,6 +11,8 @@ backend-backend-*.log
 backend/backend-*.log
 cloudflared-*.log
 ngrok-*.log
+lt-*.log
+lt-*.err
 
 # Build outputs
 dist/
@@ -26,3 +28,22 @@ backend/.vscode/
 .env
 .env.local
 .env.*.local
+
+# Docx / Word temp files
+*.docx
+*.doc
+
+# Tunnel binaries
+ngrok.exe
+cloudflared.exe
+
+# Report temp files
+form_content.txt
+mau_content.txt
+report_gen/__pycache__/
+report_gen/diagrams/
+
+# Chrome / browser profiles (from screenshot scripts)
+screenshots/_chrome_*/
+_chrome_*/
+chrome-headless-shell/

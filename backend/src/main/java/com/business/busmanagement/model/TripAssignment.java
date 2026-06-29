@@ -1,5 +1,10 @@
 package com.business.busmanagement.model;
 
+/* ============================================================
+ * Bảng: trip_assignments
+ * Phân công nhân sự cho chuyến (DRIVER / ASSISTANT).
+ * ============================================================ */
+
 import jakarta.persistence.*;
 
 @Entity

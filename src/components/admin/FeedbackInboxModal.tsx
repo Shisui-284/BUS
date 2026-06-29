@@ -1,3 +1,8 @@
+// ============================================================================
+// FEEDBACK INBOX MODAL — Hộp thư khiếu nại (Admin)
+// Tính năng: xem DS feedback, reply, đổi status (NEW → READ → IN_PROGRESS → RESOLVED → CLOSED)
+// ============================================================================
+
 import { useEffect, useMemo, useState } from "react";
 import {
   Inbox,

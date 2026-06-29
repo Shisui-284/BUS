@@ -1,5 +1,16 @@
 package com.business.busmanagement.model;
 
+/* ============================================================
+ * Bảng: tickets
+ * Quan hệ:
+ *   - @ManyToOne Trip
+ *   - @ManyToOne Seat
+ *   - @ManyToOne Passenger
+ *   - @OneToOne Payment (1 vé tối đa 1 payment)
+ * Status flow: HOLD → PAID → CONFIRMED, hoặc → CANCELLED / REFUNDED
+ * Unique constraint: (trip_id, seat_id) — 1 ghế 1 vé / 1 chuyến
+ * ============================================================ */
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

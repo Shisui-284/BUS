@@ -1,5 +1,15 @@
 package com.business.busmanagement.controller;
 
+/* ============================================================
+ * FEEDBACK CONTROLLER (Customer) — Module: Khiếu nại / Phản hồi
+ * Endpoint (cần đăng nhập CUSTOMER):
+ *   POST /api/private/feedbacks              → tạo feedback mới
+ *   GET  /api/private/feedbacks/me           → DS feedback của tôi
+ *   GET  /api/private/feedbacks/{id}         → chi tiết feedback
+ *   POST /api/private/feedbacks/{id}/reply   → customer reply
+ *   PUT  /api/private/feedbacks/{id}/close   → đóng feedback
+ * ============================================================ */
+
 import com.business.busmanagement.dto.feedback.*;
 import com.business.busmanagement.model.User;
 import com.business.busmanagement.service.FeedbackService;

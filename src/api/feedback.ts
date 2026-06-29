@@ -1,3 +1,11 @@
+// ============================================================================
+// FEEDBACK API — Module: Khiếu nại / Phản hồi (FE)
+// 3 nhóm hàm:
+//   - CUSTOMER: createFeedback, getMyFeedbacks, replyAsCustomer, closeAsCustomer
+//   - ADMIN:    getAdminFeedbacks, getStats, replyAsAdmin, updateAdminFeedbackStatus, delete
+//   - SSE:      subscribe admin nhận notification real-time
+// ============================================================================
+
 import apiClient from "./apiClient";
 
 export type FeedbackCategory = "COMPLAINT" | "SUGGESTION" | "PRAISE" | "QUESTION" | "OTHER";

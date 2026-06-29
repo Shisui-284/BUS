@@ -1,3 +1,7 @@
+// ============================================================================
+// ADMIN REVENUE PAGE — Thống kê doanh thu (Admin)
+// ============================================================================
+
 import Snowfall from "../../components/ui/Snowfall";
 import { Wallet, Activity } from "lucide-react";
 import AdminRevenueStats from "./AdminRevenueStats";

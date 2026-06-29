@@ -1,3 +1,8 @@
+// ============================================================================
+// PROTECTED ROUTE — Component bảo vệ route cần auth
+// Check token + role; nếu không hợp lệ → redirect /auth/login
+// ============================================================================
+
 import { ReactNode, useEffect } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";

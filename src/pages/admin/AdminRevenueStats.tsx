@@ -1,3 +1,8 @@
+// ============================================================================
+// ADMIN REVENUE STATS — Biểu đồ doanh thu (Admin)
+// Thư viện recharts: AreaChart / BarChart / LineChart
+// ============================================================================
+
 import { useEffect, useMemo, useState } from "react";
 import {
   ResponsiveContainer,

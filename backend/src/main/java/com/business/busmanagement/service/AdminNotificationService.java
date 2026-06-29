@@ -1,5 +1,17 @@
 package com.business.busmanagement.service;
 
+/* ============================================================
+ * ADMIN NOTIFICATION SERVICE — Module: SSE Real-time Notification
+ * Singleton broadcaster đẩy notification real-time tới admin khi:
+ *   - User đặt vé mới (COD)
+ *   - User thanh toán VNPay thành công
+ *   - User gửi feedback mới
+ * Tại sao SSE thay vì WebSocket:
+ *   - Đơn chiều (server → client) — đủ cho notification
+ *   - HTTP thuần, không cần thêm dependency
+ *   - Auto-reconnect có sẵn ở EventSource API
+ * ============================================================ */
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;

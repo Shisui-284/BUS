@@ -1,5 +1,11 @@
 package com.business.busmanagement.controller;
 
+/* ============================================================
+ * Endpoint:
+ *   GET /api/health            → check server + DB
+ *   GET /api/debug/dispatcher  → debug tài khoản dispatcher mặc định
+ * ============================================================ */
+
 import com.business.busmanagement.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

@@ -1,5 +1,14 @@
 package com.business.busmanagement.model;
 
+/* ============================================================
+ * Bảng: users
+ * Quan hệ:
+ *   - @ManyToOne Role (ADMIN / CUSTOMER / DISPATCHER)
+ *   - @OneToOne Passenger (chỉ CUSTOMER mới có)
+ *   - @OneToMany Ticket
+ * Status: ACTIVE / LOCKED
+ * ============================================================ */
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -2,20 +2,21 @@
 
 # 🚌 XeKhách Pro — Bus Management & Online Ticketing Platform
 
-### Hệ thống quản lý & đặt vé xe khách trực tuyến — Spring Boot 3 · React 18 · VNPay · Google OAuth · SSE Realtime
+### Hệ thống quản lý & đặt vé xe khách trực tuyến — Spring Boot 3.2 · Java 17 · React 18 · VNPay · Google OAuth · SSE Realtime
 
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.0-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org)
 [![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
-[![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com)
-[![JWT](https://img.shields.io/badge/JWT-JJWT%200.11-000000?logo=jsonwebtokens&logoColor=white)]()
-[![VNPay](https://img.shields.io/badge/Payment-VNPay-0072BC)](https://vnpay.vn)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com)
+[![JWT](https://img.shields.io/badge/JWT-JJWT%200.11.5-000000?logo=jsonwebtokens&logoColor=white)]()
+[![VNPay](https://img.shields.io/badge/Payment-VNPay%20v2.1.0-0072BC)](https://vnpay.vn)
 [![Google OAuth](https://img.shields.io/badge/Auth-Google%20OAuth-4285F4?logo=google&logoColor=white)](https://developers.google.com/identity)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)]()
 [![Status](https://img.shields.io/badge/status-production%20ready-success)]()
 
-> *"Không chỉ là đặt vé — đó là cả một bộ điều phối tuyến xe thời gian thực: từ đăng nhập một chạm qua Google OAuth, chọn điểm đón cụ thể, giữ ghế bằng optimistic lock, thanh toán online có xác thực chữ ký HMAC-SHA512, cho đến dashboard admin đẩy notification real-time qua Server-Sent Events."*
+> *"Không chỉ là đặt vé — đó là cả một bộ điều phối tuyến xe thời gian thực: từ đăng nhập một chạm qua Google OAuth, chọn điểm đón cụ thể, giữ ghế bằng pessimistic lock (SELECT FOR UPDATE), thanh toán online có xác thực chữ ký HMAC-SHA512, cho đến dashboard admin đẩy notification real-time qua Server-Sent Events."*
 
 [Demo](#-demo-flow) · [Tính năng](#-tính-năng-nổi-bật) · [Kiến trúc](#-kiến-trúc-hệ-thống) · [Cài đặt](#-cài-đặt--chạy-nhanh) · [API](#-api-endpoints) · [Sơ đồ vé](#-sơ-đồ-vòng-đời-vé) · [Demo](#-ảnh-minh-hoạ)
 
@@ -55,15 +56,18 @@
 ### 🧠 Triết lý thiết kế
 
 1. **UX-first**: Mỗi flow đặt vé chia nhỏ thành **6 bước rõ ràng** (Tìm chuyến → Điểm đón → Điểm trả → Chọn ghế → Xác nhận → Hoàn tất) với thanh stepper trực quan.
-2. **Race-condition-safe**: Hệ thống đặt vé dùng **optimistic lock với `findByIdForUpdate`** trên bảng `seats` và `tickets` — hai user không thể cùng đặt 1 ghế.
+2. **Race-condition-safe**: Hệ thống đặt vé dùng **pessimistic lock với `findByIdForUpdate` + `@Lock(LockModeType.PESSIMISTIC_WRITE)`** (SELECT FOR UPDATE) trên bảng `seats` — hai user không thể cùng đặt 1 ghế trong cùng 1 transaction.
 3. **Idempotent by design**: VNPay IPN callback có thể gọi nhiều lần; hệ thống kiểm tra trạng thái `SUCCESS` để return sớm (`return ipnOk()`).
 4. **Real-time admin**: Server-Sent Events đẩy notification về admin trong **< 1 giây** khi có vé mới hoặc VNPay thành công.
 5. **Defense in depth**: 3 lớp chống spoof — JWT, HMAC-SHA512 checksum VNPay, CORS allowlist chặt.
 
 ### 🎯 Đối tượng sử dụng
 
+Hệ thống hỗ trợ 3 role người dùng (`ADMIN`, `CUSTOMER`, `DISPATCHER` — khai báo trong bảng `roles`):
+
 - 🛒 **Khách hàng (CUSTOMER)**: Đăng nhập nhanh bằng tài khoản thường **hoặc Google OAuth**, tìm chuyến, chọn ghế, đặt vé, thanh toán online (VNPay) hoặc COD.
-- 👨‍💼 **Quản trị viên (ADMIN)**: Quản lý chuyến, xe, tuyến, nhân sự, vé, dashboard realtime.
+- 👨‍💼 **Quản trị viên (ADMIN)**: Quản lý chuyến, xe, tuyến, nhân sự, vé, dashboard realtime, hộp thư feedback.
+- 🚚 **Điều phối viên (DISPATCHER)**: Dashboard điều phối chuyến sắp chạy, phân công nhanh tài xế/phụ xe (xem `/api/trips` và `DispatcherDashboardPage`).
 
 ---
 
@@ -75,13 +79,13 @@
 |---|---|
 | 🔐 **Đăng nhập một chạm với Google** | Nút Google Login trên form đăng nhập — xác thực ID Token qua Google tokeninfo endpoint, backend tự động tạo CUSTOMER mới nếu email chưa tồn tại, đồng thời tạo hồ sơ `Passenger` mặc định. |
 | 🔍 **Tìm chuyến thông minh** | Lọc theo **15 thành phố lớn** × 80+ điểm đón/trả cụ thể. Tự động gợi ý tuyến theo ngày. |
-| 🎯 **Sơ đồ ghế trực quan** | Hiển thị **grid 5 cột × n hàng** cho Limousine/Sleeper/Seat. Tô màu theo trạng thái: còn trống / đã đặt / đang chọn. |
-| 📍 **Điểm đón/trả chi tiết** | Hệ thống 80+ điểm đón cụ thể cho từng thành phố (Văn phòng, Bến xe, Trạm xăng, Đại học, Trung tâm thương mại...). |
-| 💳 **Thanh toán linh hoạt** | 2 phương thức: **VNPay** (ATM nội địa, Visa/Master, QR ngân hàng) và **COD** (thu tiền khi lên xe). |
+| 🎯 **Sơ đồ ghế trực quan** | Grid 5 cột cho Limousine/Sleeper/Seat; phân biệt 3 trạng thái màu: xanh (trống) / đỏ (đã đặt) / xanh dương (đang chọn). |
+| 📍 **Điểm đón/trả chi tiết** | City picker cho **15 thành phố lớn** × 5-8 điểm đón cụ thể mỗi nơi (Văn phòng, Bến xe, Trạm xăng, Đại học, Trung tâm thương mại...). |
+| 💳 **Thanh toán linh hoạt** | 2 hướng: **VNPay** (ATM nội địa, Visa/Master, QR ngân hàng — sandbox) và **CASH/MOMO/BANK inline** (thanh toán ngay trên web hoặc khi lên xe). |
 | 🎫 **Mã vé tự động** | Format `BUS-YYYYMMDD-XXXXX` — dễ tra cứu, dễ in. |
-| 🚫 **Hủy vé thông minh** | Cho phép hủy trước giờ khởi hành; chặn hủy nếu chuyến đã chạy/hoàn thành. |
-| 👤 **Quản lý hồ sơ** | Cập nhật họ tên, SĐT; hệ thống tự lưu vào bảng `passengers`. |
-| 💬 **Gửi Feedback** | Modal phản hồi nhanh: chọn danh mục (Khiếu nại / Góp ý / Khen / Hỏi / Khác), chủ đề, nội dung, đánh giá 1–5 sao, liên kết chuyến cụ thể. Theo dõi trạng thái xử lý ngay trong hồ sơ. |
+| 🚫 **Hủy vé thông minh** | Cho phép hủy khi vé đang `HOLD`; chặn hủy nếu vé đã `PAID`/`CONFIRMED` hoặc chuyến đã chạy/hoàn thành. |
+| 👤 **Quản lý hồ sơ** | Cập nhật họ tên, SĐT; hệ thống tự lưu vào bảng `passengers` qua `PUT /api/auth/profile`. |
+| 💬 **Gửi Feedback** | Modal phản hồi nhanh: chọn danh mục (Khiếu nại / Góp ý / Khen / Hỏi / Khác), chủ đề, nội dung, đánh giá 1–5 sao, liên kết chuyến cụ thể (tuỳ chọn). Theo dõi trạng thái xử lý ngay trong hồ sơ. |
 
 ### 🎛️ Phía Quản trị viên
 
@@ -97,9 +101,10 @@
 | 💺 **Sơ đồ ghế admin** | Modal hiển thị chi tiết từng ghế: ai đặt, SĐT, điểm đón/trả, phương thức thanh toán. |
 | 💰 **Quản lý doanh thu** | Tính `estimatedRevenue` (giá × số ghế đặt) và `actualRevenue` (chỉ vé PAID). |
 | 📈 **Trang doanh thu chuyên sâu** | Biểu đồ đường theo ngày/tuần/tháng + bar chart theo tuyến, summary cards (tổng / confirmed / pending / cancelled). |
-| 📬 **Hộp thư Feedback** | Modal inbox: lọc theo trạng thái / danh mục / ưu tiên, tìm kiếm full-text, reply nội tuyến, đổi status/priority. |
-| 🔒 **Quản lý tài khoản** | CRUD users, khóa/mở khóa, reset password, soft-delete (không xóa vĩnh viễn). |
-| 🛡️ **Phân quyền chặt** | Endpoint `/api/admin/**` yêu cầu `ROLE_ADMIN`; `/api/private/**` yêu cầu `ROLE_CUSTOMER`. |
+| 📬 **Hộp thư Feedback** | Modal inbox: lọc theo trạng thái (NEW/READ/IN_PROGRESS/RESOLVED/CLOSED) / danh mục / ưu tiên (LOW/MEDIUM/HIGH), tìm kiếm full-text, reply nội tuyến, đổi status/priority qua `PATCH /api/admin/feedbacks/{id}/status`. |
+| 📦 **Quản lý hàng hoá (Cargo)** | CRUD `/api/admin/cargo` — quản lý đơn hàng vận chuyển kèm theo chuyến. |
+| 🔧 **Quản lý bảo trì (Maintenance)** | CRUD `/api/admin/maintenance` — lịch sử bảo trì xe, cảnh báo bảo hiểm sắp hết hạn hiển thị trên Dashboard. |
+| 🛡️ **Phân quyền chặt** | `/api/admin/**` yêu cầu `ROLE_ADMIN`; `/api/private/**` yêu cầu `ROLE_CUSTOMER`; `/api/auth/profile` chỉ cần `authenticated()` (cả CUSTOMER lẫn ADMIN). |
 
 ### 🔒 Bảo mật & Toàn vẹn
 
@@ -136,14 +141,23 @@
 │  └────────────────────────────────────────────────────────────────────────┘  │
 │  ┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐  │
 │  │  📡 REST Controllers│  │  📡 SSE Broadcaster │  │  📡 VNPay Webhook   │  │
-│  │  /api/public/**     │  │  /admin/notifications│  │  /public/payment/   │  │
-│  │  ├── /auth/login     │  │  /stream (SSE)      │  │  vnpay/ipn (POST)   │  │
-│  │  ├── /auth/google    │  │                     │  │                     │  │
-│  │  └── /auth/register  │  │                     │  │                     │  │
+│  │  /api/public/**     │  │  /api/admin/notifi- │  │  /api/public/       │  │
+│  │  ├── /auth/register  │  │  cations/stream     │  │  payment/vnpay/     │  │
+│  │  ├── /auth/login     │  │  (EventSource +     │  │  ├── return (GET)   │  │
+│  │  ├── /auth/google    │  │   ?access_token=)   │  │  └── ipn (POST)     │  │
+│  │  ├── /trips/**       │  │                     │  │                     │  │
+│  │  ├── /routes         │  │                     │  │                     │  │
+│  │  └── /payment/vnpay/ │  │                     │  │                     │  │
+│  │      return, ipn     │  │                     │  │                     │  │
 │  │  /api/private/**     │  │                     │  │                     │  │
-│  │  /api/admin/**      │  │                     │  │                     │  │
+│  │  ├── /tickets/**     │  │                     │  │                     │  │
+│  │  ├── /feedbacks/**   │  │                     │  │                     │  │
+│  │  └── /payment/vnpay/ │  │                     │  │                     │  │
+│  │      create          │  │                     │  │                     │  │
+│  │  /api/admin/**       │  │                     │  │                     │  │
 │  │  └── /tickets/{id}/  │  │                     │  │                     │  │
-│  │      mark-paid       │  │                     │  │                     │  │
+│  │      confirm/mark-   │  │                     │  │                     │  │
+│  │      paid/cancel     │  │                     │  │                     │  │
 │  └──────────┬──────────┘  └──────────┬──────────┘  └──────────┬──────────┘  │
 │             │                         │                         │             │
 │  ┌──────────▼─────────────────────────▼─────────────────────────▼──────────┐  │
@@ -151,15 +165,21 @@
 │  │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐  │  │
 │  │  │ UserService  │ │ TripService  │ │TicketService │ │VnpayService  │  │  │
 │  │  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘  │  │
-│  │  ┌──────────────┐ ┌──────────────┐ ┌──────────────────────────────┐    │  │
-│  │  │ AdminService │ │RouteService  │ │ AdminNotificationService     │    │  │
-│  │  │ (1009 dòng!) │ │              │ │ (SSE emitter pool)           │    │  │
-│  │  └──────────────┘ └──────────────┘ └──────────────────────────────┘    │  │
+│  │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐  │  │
+│  │  │ AdminService │ │ RouteService │ │FeedbackService│ │PaymentService│  │  │
+│  │  │ (1122 dòng!) │ │ (dropdown)   │ │ (reply+status)│ │              │  │  │
+│  │  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘  │  │
+│  │  ┌──────────────┐ ┌──────────────────────────────────────────────┐    │  │
+│  │  │ JwtService   │ │ AdminNotificationService                    │    │  │
+│  │  │ (HMAC-SHA256)│ │ (SseEmitter pool — CopyOnWriteArrayList)    │    │  │
+│  │  └──────────────┘ └──────────────────────────────────────────────┘    │  │
 │  └────────────────────────────────────────────────────────────────────────┘  │
 │  ┌────────────────────────────────────────────────────────────────────────┐  │
-│  │                  🗄️  Spring Data JPA Repositories                      │  │
-│  │  UserRepo · RoleRepo · BusRepo · RouteRepo · TripRepo · TicketRepo    │  │
-│  │  SeatRepo · PaymentRepo · PassengerRepo · EmployeeRepo · AssignmentRepo│  │
+│  │                  🗄️  Spring Data JPA Repositories (16)                  │  │
+│  │  UserRepo · RoleRepo · BusRepo · SeatRepo (PESSIMISTIC_WRITE)          │  │
+│  │  RouteRepo · TripRepo · TicketRepo · PaymentRepo · PassengerRepo       │  │
+│  │  EmployeeRepo · AssignmentRepo · MaintenanceRepo · CargoRepo           │  │
+│  │  FeedbackRepo · FeedbackReplyRepo · AuditLogRepo                      │  │
 │  └────────────────────────────────────────────────────────────────────────┘  │
 │                                       │                                       │
 └───────────────────────────────────────┼───────────────────────────────────────┘
@@ -168,12 +188,14 @@
                           │   🐬 MySQL 8 Database    │
                           │   bus_management_db      │
                           │   (auto-create on start) │
+                          │   ddl-auto=update        │
                           └──────────────────────────┘
                                         ▲
-                                        │ (async)
+                                        │ (async IPN)
                           ┌─────────────┴────────────────┐
                           │   💳 VNPay Sandbox Gateway   │
                           │   sandbox.vnpayment.vn       │
+                          │   API v2.1.0 + HMAC-SHA512   │
                           └──────────────────────────────┘
 ```
 
@@ -272,7 +294,7 @@ mvn spring-boot:run
 
 ✅ Backend chạy ở `http://localhost:8080`  
 ✅ Database `bus_management_db` tự động được tạo  
-✅ 4 routes + 20 buses + 15 employees + admin user được seed tự động
+✅ 4 routes + 20 buses + 20 employees (10 tài xế + 10 phụ xe) + admin user được seed tự động
 
 ### Bước 4 — Khởi động Frontend (Terminal 2)
 
@@ -320,15 +342,16 @@ File cấu hình: `backend/src/main/resources/application.properties`
 | `DB_USERNAME` | `root` | MySQL username |
 | `DB_PASSWORD` | `123456` | MySQL password |
 | `JWT_SECRET` | *(chuỗi 50 ký tự)* | Secret key cho JWT (≥ 32 ký tự) |
-| `JWT_EXPIRATION_MS` | `3600000` | Token TTL (1 giờ) |
-| `SEED_DEFAULT_PASSWORD` | `ChangeMe@123` | Mật khẩu seed cho admin |
+| `JWT_EXPIRATION_MS` | `3600000` | Token TTL (1 giờ = 3.600.000 ms) |
+| `SEED_DEFAULT_PASSWORD` | `ChangeMe@123` | Mật khẩu seed cho admin user |
 | `APP_CORS_ALLOWED_ORIGINS` | localhost + Cloudflare + ngrok | CORS allowlist (CSV) |
 | `VNPAY_TMN_CODE` | `SY273SZH` | VNPay merchant code (sandbox) |
 | `VNPAY_HASH_SECRET` | `SFP53JL1Z5AS4O5WFIEBMEARJAEMDTBT` | VNPay secret (sandbox) |
-| `VNPAY_URL` | `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html` | Payment gateway URL |
-| `VNPAY_RETURN_URL` | Cloudflare tunnel | Frontend nhận kết quả |
-| `VNPAY_IPN_URL` | Cloudflare tunnel | Server-to-server callback |
-| `VNPAY_EXPIRE_MINUTES` | `15` | URL thanh toán hết hạn sau N phút |
+| `VNPAY_URL` | `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html` | Payment gateway URL (browser redirect) |
+| `VNPAY_API_URL` | `https://sandbox.vnpayment.vn/merchant_webapi/api/transaction` | API URL cho truy vấn giao dịch |
+| `VNPAY_RETURN_URL` | Cloudflare tunnel | Frontend nhận kết quả (sau khi user thanh toán xong) |
+| `VNPAY_IPN_URL` | Cloudflare tunnel | Server-to-server callback (IPN từ VNPay) |
+| `VNPAY_EXPIRE_MINUTES` | `15` | URL thanh toán hết hạn sau N phút (ghi vào `vnp_ExpireDate`) |
 
 ### Biến môi trường Frontend (Vite)
 
@@ -336,7 +359,8 @@ Các biến này được đọc qua `import.meta.env` và phải khai báo tron
 
 | Biến | Mặc định | Mô tả |
 |---|---|---|
-| `VITE_GOOGLE_CLIENT_ID` | `YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com` | Google OAuth Client ID — lấy từ Google Cloud Console |
+| `VITE_GOOGLE_CLIENT_ID` | *(không có — phải set)* | Google OAuth Client ID — lấy từ Google Cloud Console |
+| `VITE_API_BASE_URL` | `/api` | Base URL cho axios. Mặc định dùng Vite proxy `/api` → `http://localhost:8080`. Set khi deploy tách backend (vd `https://api.yourdomain.com`) |
 
 > **Lưu ý**: Các biến frontend phải có tiền tố `VITE_` để Vite expose chúng ra client bundle. Nếu đặt sai tên, code sẽ trả về `undefined` và Google Login sẽ không hoạt động. Sau khi đổi `.env`, **khởi động lại** `npm run dev` để Vite nhận env mới.
 
@@ -349,6 +373,7 @@ export APP_CORS_ALLOWED_ORIGINS="https://yourdomain.com,https://admin.yourdomain
 export VNPAY_TMN_CODE="YOUR_PRODUCTION_TMN"
 export VNPAY_HASH_SECRET="YOUR_PRODUCTION_SECRET"
 export VNPAY_URL="https://vnpayment.vn/paymentv2/vpcpay.html"
+export VNPAY_API_URL="https://vnpayment.vn/merchant_webapi/api/transaction"
 export VNPAY_RETURN_URL="https://yourdomain.com/payment/vnpay-return"
 export VNPAY_IPN_URL="https://api.yourdomain.com/api/public/payment/vnpay/ipn"
 
@@ -362,79 +387,106 @@ java -jar target/bus-management-0.0.1-SNAPSHOT.jar
 
 ```
 BUS/
-├── 📁 backend/                              # Spring Boot backend
+├── 📁 backend/                              # Spring Boot 3.2 backend
 │   ├── 📁 src/main/java/com/business/busmanagement/
-│   │   ├── 📄 BusManagementApplication.java  # Main entry point
-│   │   ├── 📁 config/                        # Spring Security, JWT, DataInitializer
-│   │   │   ├── SecurityConfig.java           # 🔒 Role-based authorization (250 dòng)
-│   │   │   ├── JwtAuthenticationFilter.java  # 🔐 JWT parser
-│   │   │   ├── DataInitializer.java          # 🌱 Seeds 20 buses, 4 routes, 15 employees
-│   │   │   └── VnpayConfig.java              # 💳 VNPay @ConfigurationProperties
-│   │   ├── 📁 controller/                    # REST endpoints
-│   │   │   ├── AdminController.java          # /api/admin/** (CRUD + SSE stream)
-│   │   │   ├── TicketController.java         # /api/public/** + /api/private/**
-│   │   │   ├── VnpayController.java          # /api/public/payment/vnpay/**
-│   │   │   ├── TripController.java
-│   │   │   ├── ProfileController.java
-│   │   │   ├── TripAssignmentController.java
-│   │   │   ├── EmployeeController.java
-│   │   │   ├── MaintenanceController.java
-│   │   │   ├── CargoController.java
-│   │   │   └── HealthController.java
-│   │   ├── 📁 dto/                           # Request/Response DTOs (25+ files)
-│   │   │   ├── admin/                        # AdminDashboard, TicketDetail, TripDetail...
-│   │   │   ├── AuthResponse.java
-│   │   │   ├── GoogleAuthRequest.java        # 🔐 DTO cho đăng nhập Google OAuth
-│   │   │   ├── BookTicketRequest.java
-│   │   │   └── ...
-│   │   ├── 📁 exception/                     # Global error handling
-│   │   │   ├── GlobalExceptionHandler.java   # @ControllerAdvice
+│   │   ├── 📄 BusManagementApplication.java  # Main entry point (@SpringBootApplication)
+│   │   ├── 📁 config/                        # Spring Security + JWT + Seed
+│   │   │   ├── SecurityConfig.java           # 🔒 Role-based authorization (99 dòng, requestMatchers)
+│   │   │   ├── JwtAuthenticationFilter.java  # 🔐 Parse Bearer → SecurityContext
+│   │   │   ├── JwtAuthenticationEntryPoint.java  # 401 JSON response
+│   │   │   ├── PasswordConfig.java           # 🔑 BCryptPasswordEncoder bean
+│   │   │   ├── VnpayConfig.java              # 💳 @ConfigurationProperties cho VNPay
+│   │   │   ├── DataInitializer.java          # 🌱 Seed 4 routes + 20 buses + 20 employees + admin user
+│   │   │   ├── DatabaseInspector.java        # 🔍 Startup DB schema inspector
+│   │   │   └── DatabaseMigrationConfig.java  # 🛠️ Auto-migrate khi Hibernate update
+│   │   ├── 📁 controller/                    # REST endpoints (13 controllers)
+│   │   │   ├── AuthController.java           # /api/public/auth/{register,login,google}
+│   │   │   ├── AdminController.java          # /api/admin/** (CRUD users/buses/routes/trips/tickets/feedbacks + SSE)
+│   │   │   ├── TicketController.java         # /api/public/trips/** + /api/private/tickets/**
+│   │   │   ├── VnpayController.java          # /api/public/payment/vnpay/{return,ipn} + /api/private/payment/vnpay/create
+│   │   │   ├── TripController.java           # /api/trips (dispatcher dùng chung)
+│   │   │   ├── RouteController.java          # /api/routes (public dropdown cho form tạo chuyến)
+│   │   │   ├── ProfileController.java        # /api/auth/profile (GET/PUT)
+│   │   │   ├── TripAssignmentController.java # /api/admin/trip-assignments/{tripId}
+│   │   │   ├── EmployeeController.java       # /api/admin/employees + /type/{type} + /top-experienced
+│   │   │   ├── MaintenanceController.java    # /api/admin/maintenance CRUD
+│   │   │   ├── CargoController.java          # /api/admin/cargo CRUD
+│   │   │   ├── FeedbackController.java       # /api/private/feedbacks/** (customer side)
+│   │   │   └── HealthController.java         # /api/health + /api/debug/dispatcher
+│   │   ├── 📁 dto/                           # Request/Response DTOs (43+ files, 3 packages)
+│   │   │   ├── (root: AuthResponse, GoogleAuthRequest, LoginRequest, RegisterRequest,
+│   │   │   │    BookTicketRequest, PayTicketRequest, SeatStatusResponse, TicketResponse,
+│   │   │   │    TripCreateRequest, TripResponse, TripSearchResponse, UpdateProfileRequest,
+│   │   │   │    VnpayCreatePaymentRequest, VnpayPaymentResponse)
+│   │   │   ├── 📁 admin/                     # 17 DTOs: AdminDashboard, BusDetail, BusList, CreateBus,
+│   │   │   │                                 # CreateRoute, CreateUser, ResetPassword, RevenueStats,
+│   │   │   │                                 # RouteDetail, RouteList, TicketDetail, TicketList,
+│   │   │   │                                 # TripDetail, UpdateBus, UpdateRoute, UpdateUser,
+│   │   │   │                                 # UserDetail, UserList
+│   │   │   └── 📁 feedback/                  # 7 DTOs: CreateFeedback, CreateReply, FeedbackReply,
+│   │   │                                     # FeedbackResponse, FeedbackSseEvent, FeedbackStats,
+│   │   │                                     # UpdateFeedbackStatus
+│   │   ├── 📁 exception/                     # Global error handling (@ControllerAdvice)
+│   │   │   ├── GlobalExceptionHandler.java   # Xử lý tập trung → trả JSON {error, message, status}
 │   │   │   ├── BusinessConflictException.java
 │   │   │   └── ResourceNotFoundException.java
-│   │   ├── 📁 model/                         # JPA entities (15 entities)
+│   │   ├── 📁 model/                         # JPA entities (16 entities — 17 files vì có FeedbackReply)
 │   │   │   ├── User.java  Role.java  Passenger.java
 │   │   │   ├── Bus.java   Seat.java
 │   │   │   ├── Route.java Trip.java
 │   │   │   ├── Ticket.java Payment.java
 │   │   │   ├── Employee.java TripAssignment.java
 │   │   │   ├── Maintenance.java Cargo.java
+│   │   │   ├── Feedback.java FeedbackReply.java
 │   │   │   └── AuditLog.java
-│   │   ├── 📁 repository/                    # Spring Data JPA repositories (15 repos)
-│   │   ├── 📁 service/                       # Business logic (@Transactional)
-│   │   │   ├── AdminService.java             # 🔥 1009 dòng - core business logic
-│   │   │   ├── TicketService.java            # 🎫 Race-condition-safe booking
-│   │   │   ├── VnpayService.java             # 💳 HMAC-SHA512 + IPN handler
-│   │   │   ├── TripService.java              # 🚌 Overlap detection
+│   │   ├── 📁 repository/                    # Spring Data JPA repositories (16 repos)
+│   │   │   ├── UserRepository, RoleRepository, PassengerRepository
+│   │   │   ├── BusRepository, SeatRepository (có @Lock PESSIMISTIC_WRITE)
+│   │   │   ├── RouteRepository, TripRepository
+│   │   │   ├── TicketRepository, PaymentRepository
+│   │   │   ├── EmployeeRepository, TripAssignmentRepository
+│   │   │   ├── MaintenanceRepository, CargoRepository
+│   │   │   ├── FeedbackRepository, FeedbackReplyRepository
+│   │   │   └── AuditLogRepository
+│   │   ├── 📁 service/                       # Business logic (@Transactional) — 9 services
+│   │   │   ├── AdminService.java             # 🔥 1122 dòng - core admin logic (dashboard, stats)
+│   │   │   ├── TicketService.java            # 🎫 PESSIMISTIC_WRITE booking, idempotent VNPay callback
+│   │   │   ├── VnpayService.java             # 💳 HMAC-SHA512 + IPN handler + idempotency
+│   │   │   ├── TripService.java              # 🚌 Overlap detection cho lịch xe
+│   │   │   ├── RouteService.java             # 🗺️ getActiveRoutes() cho dropdown
 │   │   │   ├── UserService.java
-│   │   │   ├── JwtService.java
-│   │   │   ├── PaymentService.java
-│   │   │   └── AdminNotificationService.java # 📡 SSE broadcaster
+│   │   │   ├── JwtService.java               # 🔑 Generate/parse JWT (HMAC-SHA256)
+│   │   │   ├── PaymentService.java           # 💰 Tạo & cập nhật Payment row
+│   │   │   ├── FeedbackService.java          # 📬 CRUD feedback + reply thread
+│   │   │   └── AdminNotificationService.java # 📡 SSE broadcaster (CopyOnWriteArrayList<SseEmitter>)
 │   │   └── 📁 util/
-│   │       ├── VnpayUtil.java                # 🔐 HMAC-SHA512, URL encoding
-│   │       └── RoleNormalizer.java
+│   │       ├── VnpayUtil.java                # 🔐 HMAC-SHA512, URL encoding theo chuẩn VNPay
+│   │       └── RoleNormalizer.java           # Chuẩn hoá role name (ADMIN/CUSTOMER/DISPATCHER)
+│   ├── 📁 src/main/resources/
+│   │   └── application.properties            # ⚙️ Cấu hình DB/JWT/VNPay/CORS (53 dòng)
 │   └── 📄 pom.xml                            # Maven config
 │
 ├── 📁 src/                                   # React 18 frontend
 │   ├── 📁 api/                               # Axios API clients (typed)
-│   │   ├── apiClient.ts                      # 🌐 Axios instance + JWT interceptor
-│   │   ├── auth.ts                           # 🔐 Login/Register
-│   │   ├── customer.ts                       # 🛒 Booking, my tickets, VNPay
-│   │   ├── admin.ts                          # 👨‍💼 Admin CRUD + SSE connector
-│   │   ├── dispatcher.ts
+│   │   ├── apiClient.ts                      # 🌐 Axios instance + JWT interceptor + 401 auth:expired event
+│   │   ├── auth.ts                           # 🔐 Login/Register/Google
+│   │   ├── customer.ts                       # 🛒 Booking, my tickets, VNPay create
+│   │   ├── admin.ts                          # 👨‍💼 Admin CRUD + SSE connector (EventSource)
+│   │   ├── dispatcher.ts                     # 🚚 Dispatcher API
 │   │   └── feedback.ts                       # 📬 Feedback (customer + admin)
 │   ├── 📁 components/
-│   │   ├── 📁 layout/                        # MainLayout, ProtectedRoute
-│   │   ├── 📁 ui/                            # StatusBadge, Snowfall, Pagination
-│   │   ├── 📁 admin/                         # EmployeeInfoSection, FeedbackInboxModal
-│   │   ├── 📁 customer/                      # BookingHero
-│   │   └── 📁 feedback/                      # FeedbackModal (customer submit)
+│   │   ├── 📁 layout/                        # MainLayout.tsx, ProtectedRoute.tsx
+│   │   ├── 📁 ui/                            # StatusBadge.tsx, Snowfall.tsx, Pagination.tsx
+│   │   ├── 📁 admin/                         # EmployeeInfoSection.tsx, FeedbackInboxModal.tsx
+│   │   ├── 📁 customer/                      # BookingHero.tsx
+│   │   └── 📁 feedback/                      # FeedbackModal.tsx (customer submit)
 │   ├── 📁 pages/
-│   │   ├── 📁 auth/                          # LoginPage (Google login), RegisterPage
-│   │   ├── 📁 customer/                      # CustomerBookingPage (1300+ dòng!)
+│   │   ├── 📁 auth/                          # LoginPage.tsx (Google login), RegisterPage.tsx
+│   │   ├── 📁 customer/                      # CustomerBookingPage (1246 dòng!)
 │   │   │   ├── CustomerBookingPage.tsx       # 🎯 6-step booking flow
 │   │   │   ├── CustomerTicketsPage.tsx
 │   │   │   └── CustomerProfilePage.tsx
-│   │   ├── 📁 admin/                         # Admin pages
+│   │   ├── 📁 admin/                         # 9 admin pages
 │   │   │   ├── AdminDashboardPage.tsx        # 📊 Realtime dashboard
 │   │   │   ├── AdminUsersPage.tsx
 │   │   │   ├── AdminBusesPage.tsx
@@ -449,25 +501,29 @@ BUS/
 │   │   └── 📁 payment/
 │   │       └── PaymentReturnPage.tsx         # 💳 VNPay return handler
 │   ├── 📁 stores/                            # Zustand state
-│   │   ├── authStore.ts                      # 🔐 JWT + user (with persist)
+│   │   ├── authStore.ts                      # 🔐 JWT + user (with persist → localStorage)
 │   │   └── dispatcherStore.ts
-│   ├── 📁 styles/
-│   ├── 📁 types/                             # TypeScript types
+│   ├── 📁 styles/                            # index.css (CSS vars + theme overrides)
+│   ├── 📁 types/                             # TypeScript types (UserRole, BusStatus, TicketStatus, ...)
 │   ├── 📁 utils/
-│   │   ├── apiError.ts                       # 🎯 Error message extractor
-│   │   ├── constants.ts                      # ROLE_LABELS, etc.
-│   │   └── locations.ts                      # 🗺️ 15 thành phố × 80 điểm đón
+│   │   ├── apiError.ts                       # 🎯 Error message extractor (axios → string)
+│   │   ├── constants.ts                      # ROLE_LABELS, STATUS_COLORS, formatStatusLabel
+│   │   └── locations.ts                      # 🗺️ 15 thành phố × 5-8 điểm đón
 │   ├── 📄 App.tsx                            # React Router root
-│   └── 📄 main.tsx                           # Vite entry
+│   └── 📄 main.tsx                           # Vite entry (GoogleOAuthProvider)
 │
-├── 📁 scripts/                               # Deployment scripts
-├── 📁 .github/                               # GitHub Actions
-├── 📄 docker-compose.yml
-├── 📄 package.json                           # Frontend deps
+├── 📄 docker-compose.yml                     # MySQL 8.0 + phpMyAdmin
+├── 📄 .env                                   # VITE_GOOGLE_CLIENT_ID (root level)
+├── 📄 package.json                           # Frontend deps + scripts (dev/dev:full/build)
 ├── 📄 tsconfig.json
+├── 📄 tsconfig.node.json
 ├── 📄 vite.config.ts
 ├── 📄 tailwind.config.js
-├── 📄 test-vnpay-e2e.ps1                     # 🧪 End-to-end VNPay test
+├── 📄 postcss.config.js
+├── 📄 index.html                             # Vite HTML shell
+├── 📄 test-vnpay-e2e.ps1                     # 🧪 End-to-end VNPay test (PowerShell)
+├── 📄 test_login.json / test_register.json   # 🧪 Sample payloads for manual testing
+├── 📄 capture_screenshots.py                 # 📸 Auto screenshot script cho README
 └── 📄 README.md                              # ← YOU ARE HERE
 ```
 
@@ -526,14 +582,15 @@ BUS/
 
 | From | To | Trigger | Service |
 |---|---|---|---|
-| *(none)* | **HOLD** | Khách chọn ghế + đặt vé | `TicketService.bookTicket()` |
-| HOLD | **PAID** | VNPay IPN trả `vnp_ResponseCode = "00"` | `VnpayService.processIpn()` |
-| HOLD | **PAID** | Khách chọn CASH/MOMO/BANK inline | `TicketController.payTicket()` |
-| HOLD | **CONFIRMED** | Admin gọi điện xác nhận (chưa có payment row → tạo CASH/SUCCESS) | `AdminService.confirmTicket()` |
-| HOLD | **CANCELLED** | Khách tự hủy (chỉ HOLD/BOOKED) | `TicketController.cancelTicket()` |
-| HOLD | **CANCELLED** | Admin hủy (chỉ HOLD/CONFIRMED) | `AdminService.adminCancelTicket()` |
-| PAID | *(blocked)* | Không thể hủy — phải refund | — |
-| REFUNDED | *(blocked)* | Terminal state | — |
+| *(none)* | **HOLD** | Khách chọn ghế + đặt vé (PESSIMISTIC_WRITE lock seat) | `TicketService.bookTicket()` |
+| HOLD | **PAID** | VNPay IPN trả `vnp_ResponseCode = "00"` (idempotent) | `VnpayService.processIpn()` |
+| HOLD | **PAID** | Khách chọn CASH/MOMO/BANK inline qua `PUT /api/private/tickets/{id}/pay` | `TicketController.payTicket()` |
+| HOLD | **CONFIRMED** | Admin gọi điện xác nhận COD (gọi `mark-paid` hoặc `confirm`) | `AdminController` → `AdminService` |
+| HOLD | **CANCELLED** | Khách tự hủy (chỉ khi status = `HOLD`) | `TicketController.cancelTicket()` |
+| HOLD | **CANCELLED** | Admin hủy (chỉ khi `HOLD` hoặc `CONFIRMED`) | `AdminService.adminCancelTicket()` |
+| CONFIRMED | **PAID** | Admin đánh dấu đã thu tiền mặt (`mark-paid`) | `AdminController.markPaid()` |
+| PAID | *(blocked)* | Không thể hủy trực tiếp — phải refund (chưa implement auto-refund) | — |
+| REFUNDED / EXPIRED | *(blocked)* | Terminal state | — |
 
 ### Guards (điều kiện chặn)
 
@@ -777,7 +834,7 @@ String secureHash = HmacSHA512(VNPAY_HASH_SECRET, hashData);
 
 ## 📡 API Endpoints
 
-Tổng cộng **40+ endpoints** chia theo 3 nhóm quyền.
+Tổng cộng **55+ endpoints** chia theo 4 nhóm quyền (Public / Authenticated / CUSTOMER / ADMIN).
 
 ### 🌍 Public (Không cần auth)
 
@@ -789,75 +846,132 @@ Tổng cộng **40+ endpoints** chia theo 3 nhóm quyền.
 | `GET` | `/api/public/trips` | Lấy tất cả chuyến tương lai (30 ngày) |
 | `GET` | `/api/public/trips/search` | Tìm theo `origin`, `destination`, `date` |
 | `GET` | `/api/public/trips/{tripId}/seats` | Sơ đồ ghế của 1 chuyến |
-| `GET` | `/api/public/payment/vnpay/return` | Return URL từ VNPay |
-| `POST` | `/api/public/payment/vnpay/ipn` | IPN callback server-to-server |
+| `GET` | `/api/routes` | Danh sách tuyến active (dropdown cho form tạo chuyến) |
+| `GET` | `/api/public/payment/vnpay/return` | Return URL từ VNPay (browser redirect) |
+| `POST` | `/api/public/payment/vnpay/ipn` | IPN callback server-to-server (form-urlencoded) |
 | `GET` | `/api/health` | Health check |
+| `GET` | `/api/debug/dispatcher` | Debug dispatcher state (dev only) |
+
+### 🔐 Authenticated (CUSTOMER hoặc ADMIN đều truy cập được)
+
+| Method | Endpoint | Mô tả |
+|---|---|---|
+| `GET` | `/api/auth/profile` | Lấy hồ sơ user đang đăng nhập |
+| `PUT` | `/api/auth/profile` | Cập nhật họ tên, SĐT |
 
 ### 🔐 Private — CUSTOMER
 
 | Method | Endpoint | Mô tả |
 |---|---|---|
-| `POST` | `/api/private/tickets` | Đặt vé (tạo HOLD) |
+| `POST` | `/api/private/tickets` | Đặt vé (tạo HOLD — có PESSIMISTIC_WRITE lock) |
 | `GET` | `/api/private/tickets/my` | Lịch sử vé của tôi |
-| `PUT` | `/api/private/tickets/{id}/cancel` | Hủy vé |
+| `PUT` | `/api/private/tickets/{id}/cancel` | Hủy vé (chỉ khi HOLD) |
 | `PUT` | `/api/private/tickets/{id}/pay` | Thanh toán inline (CASH/MOMO/BANK) |
-| `POST` | `/api/private/payment/vnpay/create` | Tạo URL thanh toán VNPay |
-| `GET` | `/api/auth/profile` | Lấy hồ sơ |
-| `PUT` | `/api/auth/profile` | Cập nhật hồ sơ |
+| `POST` | `/api/private/payment/vnpay/create` | Tạo URL thanh toán VNPay → redirect sang sandbox |
 | `POST` | `/api/private/feedbacks` | Gửi feedback mới |
 | `GET` | `/api/private/feedbacks/me` | Lịch sử feedback của tôi |
 | `GET` | `/api/private/feedbacks/{id}` | Chi tiết feedback |
-| `POST` | `/api/private/feedbacks/{id}/reply` | Khách phản hồi lại |
+| `POST` | `/api/private/feedbacks/{id}/reply` | Khách phản hồi lại thread |
 | `PUT` | `/api/private/feedbacks/{id}/close` | Khách đóng feedback |
 
 ### 👨‍💼 Admin — ROLE_ADMIN
 
+#### Dashboard & Realtime
 | Method | Endpoint | Mô tả |
 |---|---|---|
-| `GET` | `/api/admin/dashboard` | Thống kê tổng quan |
-| `GET` | `/api/admin/notifications/stream` | **SSE stream** realtime |
-| `GET` | `/api/admin/users` | Danh sách user (filter keyword/role/status) |
+| `GET` | `/api/admin/dashboard` | Thống kê tổng quan (users/buses/routes/trips + charts + bảo hiểm sắp hết hạn) |
+| `GET` | `/api/admin/revenue` | Thống kê doanh thu (tổng / theo ngày / theo tuyến) |
+| `GET` | `/api/admin/notifications/stream` | **SSE stream** realtime (EventSource — token qua query `access_token`) |
+
+#### Quản lý User
+| Method | Endpoint | Mô tả |
+|---|---|---|
+| `GET` | `/api/admin/users` | Danh sách user (filter keyword/role/status, phân trang) |
 | `GET` | `/api/admin/users/{id}` | Chi tiết user |
 | `POST` | `/api/admin/users` | Tạo user |
 | `PUT` | `/api/admin/users/{id}` | Cập nhật user |
 | `PUT` | `/api/admin/users/{id}/lock` | Khóa/mở khóa user |
 | `PUT` | `/api/admin/users/{id}/password` | Reset mật khẩu |
 | `DELETE` | `/api/admin/users/{id}` | Soft-delete user |
-| `GET` | `/api/admin/buses` | Danh sách xe |
-| `POST` | `/api/admin/buses` | Tạo xe + auto-generate ghế |
+
+#### Quản lý Xe
+| Method | Endpoint | Mô tả |
+|---|---|---|
+| `GET` | `/api/admin/buses` | Danh sách xe (filter status, phân trang) |
+| `GET` | `/api/admin/buses/{id}` | Chi tiết xe |
+| `POST` | `/api/admin/buses` | Tạo xe + auto-generate ghế theo `totalSeats` |
 | `PUT` | `/api/admin/buses/{id}` | Cập nhật xe |
 | `PUT` | `/api/admin/buses/{id}/status` | Đổi trạng thái xe |
 | `DELETE` | `/api/admin/buses/{id}` | Xóa xe (chặn nếu đang có chuyến) |
+
+#### Quản lý Tuyến & Chuyến
+| Method | Endpoint | Mô tả |
+|---|---|---|
 | `GET` | `/api/admin/routes` | Danh sách tuyến |
+| `GET` | `/api/admin/routes/{id}` | Chi tiết tuyến |
 | `POST` | `/api/admin/routes` | Tạo tuyến |
 | `PUT` | `/api/admin/routes/{id}` | Cập nhật tuyến |
 | `DELETE` | `/api/admin/routes/{id}` | Xóa tuyến |
 | `GET` | `/api/admin/trips` | Danh sách chuyến (filter date/route/status) |
-| `GET` | `/api/admin/trips/{id}` | Chi tiết chuyến + sơ đồ ghế + tickets |
+| `GET` | `/api/admin/trips/{id}` | Chi tiết chuyến + sơ đồ ghế + danh sách vé |
 | `POST` | `/api/admin/trips` | Tạo chuyến (kèm tạo route inline) |
 | `PUT` | `/api/admin/trips/{id}` | Cập nhật chuyến |
 | `DELETE` | `/api/admin/trips/{id}` | Xóa chuyến |
-| `POST` | `/api/admin/trip-assignments/{tripId}` | Phân công tài xế + phụ xe |
-| `GET` | `/api/admin/trip-assignments/{tripId}` | Xem phân công của chuyến |
-| `GET` | `/api/admin/tickets` | Danh sách vé (filter keyword/status/tripId) |
-| `GET` | `/api/admin/tickets/{id}` | Chi tiết vé |
-| `GET` | `/api/admin/tickets/all` | Tất cả vé (cho admin tickets page) |
-| `PUT` | `/api/admin/tickets/{id}/confirm` | Xác nhận vé (gọi điện xác nhận) |
-| `PUT` | `/api/admin/tickets/{id}/mark-paid` | Đánh dấu vé đã thanh toán (dùng cho COD/admin xác nhận tiền mặt) |
-| `PUT` | `/api/admin/tickets/{id}/admin-cancel` | Admin hủy vé |
+| `GET` | `/api/trips` | Dispatcher xem chuyến (phục vụ `/dispatcher` dashboard) |
+
+#### Phân công nhân sự
+| Method | Endpoint | Mô tả |
+|---|---|---|
+| `POST` | `/api/admin/trip-assignments/{tripId}` | Phân công tài xế + phụ xe cho chuyến |
+| `GET` | `/api/admin/trip-assignments/{tripId}` | Xem phân công hiện tại của chuyến |
+
+#### Quản lý Nhân viên
+| Method | Endpoint | Mô tả |
+|---|---|---|
 | `GET` | `/api/admin/employees` | Danh sách nhân viên |
 | `POST` | `/api/admin/employees` | Thêm nhân viên |
-| `GET` | `/api/admin/employees/type/{type}` | Lọc theo loại (DRIVER/ASSISTANT) |
-| `GET` | `/api/admin/employees/top-experienced` | Top 5 tài xế kinh nghiệm |
-| `GET` | `/api/admin/revenue` | Thống kê doanh thu (tổng / theo ngày / theo tuyến) |
-| `GET` | `/api/admin/feedbacks` | Inbox feedback (filter status/category/priority) |
-| `GET` | `/api/admin/feedbacks/stats` | Thống kê feedback |
-| `GET` | `/api/admin/feedbacks/{id}` | Chi tiết feedback |
-| `POST` | `/api/admin/feedbacks/{id}/reply` | Admin phản hồi feedback |
-| `PUT` | `/api/admin/feedbacks/{id}/status` | Đổi trạng thái + ưu tiên |
+| `GET` | `/api/admin/employees/type/{type}` | Lọc theo loại (DRIVER / ASSISTANT) |
+| `GET` | `/api/admin/employees/top-experienced` | Top 5 tài xế kinh nghiệm cao |
+| `DELETE` | `/api/admin/employees/{id}` | Xoá nhân viên |
+
+#### Quản lý Vé
+| Method | Endpoint | Mô tả |
+|---|---|---|
+| `GET` | `/api/admin/tickets` | Danh sách vé (filter keyword/status/tripId, phân trang 10/trang) |
+| `GET` | `/api/admin/tickets/all` | Tất cả vé (cho admin tickets page) |
+| `GET` | `/api/admin/tickets/{id}` | Chi tiết vé |
+| `PUT` | `/api/admin/tickets/{id}/confirm` | Xác nhận vé (gọi điện xác nhận → `CONFIRMED`) |
+| `PUT` | `/api/admin/tickets/{id}/mark-paid` | Đánh dấu vé đã thanh toán (COD/đã thu tiền mặt → `PAID`) |
+| `PUT` | `/api/admin/tickets/{id}/admin-cancel` | Admin hủy vé (`HOLD`/`CONFIRMED` → `CANCELLED`) |
+
+#### Quản lý Hàng hoá (Cargo)
+| Method | Endpoint | Mô tả |
+|---|---|---|
+| `GET` | `/api/admin/cargo` | Danh sách đơn hàng vận chuyển |
+| `GET` | `/api/admin/cargo/{id}` | Chi tiết đơn hàng |
+| `POST` | `/api/admin/cargo` | Tạo đơn hàng |
+| `PUT` | `/api/admin/cargo/{id}` | Cập nhật đơn hàng |
+| `PUT` | `/api/admin/cargo/{id}/status` | Đổi trạng thái đơn hàng |
+| `DELETE` | `/api/admin/cargo/{id}` | Xóa đơn hàng |
+
+#### Quản lý Bảo trì (Maintenance)
+| Method | Endpoint | Mô tả |
+|---|---|---|
+| `GET` | `/api/admin/maintenance` | Danh sách lịch sử bảo trì xe |
+| `GET` | `/api/admin/maintenance/{id}` | Chi tiết phiên bảo trì |
+| `POST` | `/api/admin/maintenance` | Tạo phiên bảo trì |
+| `PUT` | `/api/admin/maintenance/{id}` | Cập nhật phiên bảo trì |
+| `DELETE` | `/api/admin/maintenance/{id}` | Xóa phiên bảo trì |
+
+#### Quản lý Feedback
+| Method | Endpoint | Mô tả |
+|---|---|---|
+| `GET` | `/api/admin/feedbacks` | Inbox feedback (filter status/category/priority, search full-text) |
+| `GET` | `/api/admin/feedbacks/stats` | Thống kê feedback (NEW/READ/IN_PROGRESS/RESOLVED/CLOSED) |
+| `GET` | `/api/admin/feedbacks/{id}` | Chi tiết feedback + reply thread |
+| `POST` | `/api/admin/feedbacks/{id}/reply` | Admin phản hồi feedback (tạo FeedbackReply row) |
+| `PATCH` | `/api/admin/feedbacks/{id}/status` | Đổi trạng thái + ưu tiên (NEW/READ/IN_PROGRESS/RESOLVED/CLOSED + LOW/MEDIUM/HIGH) |
 | `DELETE` | `/api/admin/feedbacks/{id}` | Xóa feedback |
-| `GET` | `/api/admin/dispatcher/trips` | Danh sách chuyến cho điều phối |
-| `PUT` | `/api/admin/dispatcher/trips/{id}/assign` | Phân công nhanh từ dispatcher |
 
 ### 📝 Ví dụ Request/Response
 
@@ -1029,9 +1143,13 @@ spring.datasource.password=YOUR_PASSWORD
 # → Kiểm tra application.properties:
 app.cors.allowed-origins=http://localhost:5173
 
-# Lỗi: 401 Unauthorized
-# → Token hết hạn (1 giờ). Logout rồi login lại.
-```
+# Lỗi: 401 Unauthorized (sau khi gọi /api/private/**)
+# → Token hết hạn (1 giờ theo JWT_EXPIRATION_MS). Logout rồi login lại.
+# → Hoặc token chưa được gửi kèm — kiểm tra localStorage('token') hoặc 'auth-storage'.
+
+# Lỗi: 403 Forbidden
+# → Đã đăng nhập nhưng sai role. CUSTOMER không được gọi /api/admin/** và ngược lại.
+#   Dispatcher xem /api/trips (public), Admin mới gọi /api/admin/**.
 
 ### ❌ VNPay sandbox không hoạt động
 
@@ -1091,7 +1209,7 @@ echo "VITE_GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com" > .env
 | **Bước 1**: Tìm chuyến | Form với 3 trường: Điểm đi / Điểm đến / Ngày đi. Hiển thị danh sách chuyến với progress bar tỉ lệ đầy ghế. |
 | **Bước 2-3**: Chọn điểm đón/trả | City picker + collapsible list các điểm cụ thể (VP, Bến xe, Trạm xăng, ĐH...). |
 | **Bước 4**: Chọn ghế | Grid ghế với 3 trạng thái màu: xanh (trống) / đỏ (đã đặt) / xanh dương (đang chọn). |
-| **Bước 5**: Xác nhận | Hiển thị tóm tắt + 2 phương thức thanh toán (VNPay / COD) + nhập SĐT. |
+| **Bước 5**: Xác nhận | Hiển thị tóm tắt + 2 phương thức thanh toán (VNPay → redirect sandbox / CASH-MOMO-BANK inline) + nhập SĐT. |
 | **Bước 6**: Thành công | Card vé gradient xanh, mã vé `BUS-YYYYMMDD-XXXXX`. |
 | **Feedback** | Modal phản hồi từ header / trang vé: chọn danh mục + đánh giá sao + liên kết chuyến (tuỳ chọn). |
 

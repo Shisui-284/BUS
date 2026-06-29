@@ -26,6 +26,10 @@ import java.util.Map;
  *   <li>{@code GET  /api/public/payment/vnpay/return} — Return URL (user redirect về)</li>
  *   <li>{@code POST /api/public/payment/vnpay/ipn} — IPN callback (server-to-server từ VNPay)</li>
  * </ul>
+ *
+ * - createPayment: tạo URL redirect sang sandbox.vnpayment.vn
+ * - paymentReturn: VNPay redirect user về sau khi thanh toán xong
+ * - ipnCallback: VNPay gọi server-to-server để xác nhận
  */
 @RestController
 @RequestMapping("/api")
@@ -42,6 +46,8 @@ public class VnpayController {
     // PRIVATE — Tạo URL thanh toán VNPay
     // POST /api/private/payment/vnpay/create
     // Body: { ticketId: 123 }
+    // Mục đích: Customer bấm "Thanh toán VNPay" → FE gọi API này → trả URL
+    // redirect sang sandbox.vnpayment.vn
     // ─────────────────────────────────────────────────────────────
     @PostMapping("/private/payment/vnpay/create")
     public ResponseEntity<VnpayPaymentResponse> createPayment(

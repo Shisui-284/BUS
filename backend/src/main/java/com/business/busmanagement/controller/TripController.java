@@ -1,5 +1,12 @@
 package com.business.busmanagement.controller;
 
+/* ============================================================
+ * TRIP CONTROLLER — Module: Quản lý chuyến xe (Admin)
+ * Endpoint:
+ *   GET  /api/trips?date=&routeId=&status=  → DS chuyến (lọc theo ngày/tuyến/trạng thái)
+ *   POST /api/trips                          → tạo chuyến mới
+ * ============================================================ */
+
 import com.business.busmanagement.dto.TripCreateRequest;
 import com.business.busmanagement.dto.TripResponse;
 import com.business.busmanagement.model.Trip;
@@ -21,6 +28,7 @@ public class TripController {
 
     private final TripService tripService;
 
+    // GET /api/trips — Admin lấy DS chuyến, có thể lọc theo date/route/status
     @GetMapping
     public ResponseEntity<List<TripResponse>> getTrips(
             @RequestParam(required = false)
@@ -32,6 +40,7 @@ public class TripController {
         return ResponseEntity.ok(tripService.getTrips(date, routeId, status));
     }
 
+    // POST /api/trips — Admin tạo chuyến mới (gán bus, driver, route)
     @PostMapping
     public ResponseEntity<TripResponse> createTrip(@Valid @RequestBody TripCreateRequest request) {
         return ResponseEntity.ok(tripService.createTrip(request));

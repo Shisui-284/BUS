@@ -1,5 +1,10 @@
 package com.business.busmanagement.util;
 
+/* ============================================================
+ * Chuẩn hóa role string (uppercase, trim, fallback CUSTOMER).
+ * Tránh bug do frontend gửi role lệch ("admin", "Admin ", "ADMIN ")
+ * ============================================================ */
+
 public final class RoleNormalizer {
 
     private RoleNormalizer() {

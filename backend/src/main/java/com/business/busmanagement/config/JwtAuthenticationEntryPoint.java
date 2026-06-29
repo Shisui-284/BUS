@@ -1,5 +1,10 @@
 package com.business.busmanagement.config;
 
+/* ============================================================
+ * Trả JSON 401 khi request không có authentication hợp lệ.
+ * Đảm bảo FE nhận 401 (không phải 403/redirect) để xử lý logout.
+ * ============================================================ */
+
 import com.business.busmanagement.exception.ApiErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;

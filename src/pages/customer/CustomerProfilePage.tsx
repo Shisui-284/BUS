@@ -1,3 +1,8 @@
+// ============================================================================
+// CUSTOMER PROFILE PAGE — Trang hồ sơ cá nhân
+// Cho phép customer xem + sửa fullName/phone, xem lịch sử chuyến đã đi
+// ============================================================================
+
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { getProfile, updateProfile, getMyTickets, TicketRecord } from "../../api/customer";

@@ -1,5 +1,9 @@
 package com.business.busmanagement.repository;
 
+/* ============================================================
+ * findAllForAdmin / searchForCustomer / statsForAdmin
+ * ============================================================ */
+
 import com.business.busmanagement.model.Feedback;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

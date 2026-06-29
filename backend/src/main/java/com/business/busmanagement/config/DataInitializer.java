@@ -1,5 +1,12 @@
 package com.business.busmanagement.config;
 
+/* ============================================================
+ * Chạy khi app start (CommandLineRunner):
+ *   - Tạo roles (ADMIN, CUSTOMER, DISPATCHER)
+ *   - Tạo user mặc định (admin/admin123, dispatcher/ChangeMe@123)
+ *   - Seed Bus + Route mẫu để demo
+ * ============================================================ */
+
 import com.business.busmanagement.model.Bus;
 import com.business.busmanagement.model.Employee;
 import com.business.busmanagement.model.Role;

@@ -1,5 +1,12 @@
 package com.business.busmanagement.config;
 
+/* ============================================================
+ * Filter chạy MỖI request:
+ *   1. Lấy token từ Authorization header (hoặc query param cho SSE)
+ *   2. Verify token → set Authentication vào SecurityContext
+ *   3. Nếu không có token → để SecurityConfig quyết định cho qua hay 401
+ * ============================================================ */
+
 import com.business.busmanagement.model.User;
 import com.business.busmanagement.service.JwtService;
 import com.business.busmanagement.service.UserService;

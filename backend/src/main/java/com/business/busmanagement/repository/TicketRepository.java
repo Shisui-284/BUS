@@ -1,4 +1,12 @@
 package com.business.busmanagement.repository;
+
+/* ============================================================
+ * Query đặc biệt:
+ *   - findBookedSeatIdsByTripId: lấy DS ghế đã đặt của 1 chuyến
+ *   - findByTripIdAndSeatIdForUpdate: PESSIMISTIC LOCK chống race
+ *   - findByPassengerUserId: lịch sử vé của 1 user
+ *   - findAllTicketsForAdmin: admin xem tất cả vé
+ * ============================================================ */
 import com.business.busmanagement.dto.AdminTicketDTO;
 import com.business.busmanagement.model.Seat;
 import com.business.busmanagement.model.Ticket;

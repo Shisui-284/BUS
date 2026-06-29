@@ -1,5 +1,12 @@
 package com.business.busmanagement.repository;
 
+/* ============================================================
+ * Query đặc biệt:
+ *   - findUpcomingTrips: chuyến SCHEDULED trong tương lai
+ *   - searchByRoute: tìm theo origin/destination/date
+ *   - findByIdWithBusAndRoute: EAGER LOAD (tránh N+1)
+ * ============================================================ */
+
 import com.business.busmanagement.model.Trip;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
